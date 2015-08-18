@@ -1,0 +1,73 @@
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# =========================
+# Operating System Files
+# =========================
+
+# OSX
+# =========================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+Debug/Curve.obj
+*.obj
+Debug/StepToMcnp.log
+*.pch
+Debug/StepToMcnp.tlog/cl.command.1.tlog
+*.tlog
+Debug/vc120.idb
+*.pdb
+*.dll
+Debug/StepToMcnp.exe
+*.exp
+Debug/StepToMcnp.ilk
+*.lib
+Debug/tbbvars.bat
+*.sh
+GL/fgl.h
+GL/fglut.h
+GL/glsmap.h
+GL/fglu.h
+GL/glut.h
+GL/GL.H
+GL/GLAUX.H
+GL/GLU.H
+ipch/steptomcnp-4c9827b2/steptomcnp-583a0a79.ipch
+StepToMcnp.sdf
+StepToMcnp.vcxproj.filters
+StepToMcnp.vcxproj
+*.user
+GL/tube.h
+StepToMcnp.sln
