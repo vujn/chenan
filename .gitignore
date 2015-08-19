@@ -71,3 +71,6 @@ StepToMcnp.vcxproj
 *.user
 GL/tube.h
 StepToMcnp.sln
+Debug/DRAWEXE.exe
+*.ipch
+*.opensdf
