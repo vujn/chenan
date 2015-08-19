@@ -42,8 +42,6 @@ StepEntity::~StepEntity(void)
 				GenerateHalfCharacteristicPoint();
 				PMCtest(face);
 				Output(&m, &n, "", vecOut_, false, false, false, false);
-
-				printf("\t manifold_solid_brep\n");
 			}
 			if(!strcmp("brep_with_voids", it->className()))
 			{
@@ -70,7 +68,6 @@ StepEntity::~StepEntity(void)
 					else
 						Output(&m, &n, "", vecOut_, true, false, false, (i == oriClosedShell->size() - 1));
 				}
-				printf("\t brep_with_voids\n");
 			}					
 		}
 	}
