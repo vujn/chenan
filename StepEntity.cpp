@@ -816,8 +816,8 @@ ConvexConcave StepEntity::MakeBoundFace(ListOfstp_oriented_edge* oriList)
 		stp_cartesian_point* eEnd = EdgeCurveStartOrEnd(curve->edge_end());
 		stp_curve* pcurve = curve->edge_geometry();//line , circle , surface_curve
 		ORIENTATION ori;
-		ori.orientedEdgeOri = oriEdge->orientation();
-		ori.edgeCurveOri = curve->same_sense();
+		ori.orientedEdgeOri = oriEdge->orientation();//oriented_dege orientation
+		ori.edgeCurveOri = curve->same_sense();//edge_curve orientation
 		if(!strcmp("circle", pcurve->className()))
 			CircleInfo(pcurve, ori, eStart, eEnd);
 		if(!strcmp("ellipse", pcurve->className()))
@@ -1709,15 +1709,16 @@ void StepEntity::GenerateHalfSpaceList(SetOfstp_face* stpFace)
 void StepEntity::GenerateSepHalfspace(SFace* face)
 {
 	vector<stp_face_bound*>().swap(faceBound_);
-	vector<stp_oriented_edge*>().swap(orientedEdge_);
 	if(!strcmp("plane", face->name_)) //如果是平面，不生成分割半空间，直接返回
 		return;
 	RoseObject * obj = design_->findByEntityId(face->entityID_);
 	stp_advanced_face* adFace = ROSE_CAST(stp_advanced_face, obj);
+	RoseBoolean sameSenseFace = adFace->same_sense();//advanced_face orientation
 	SetOfstp_face_bound * bounds = adFace->bounds();
 	for(size_t i = 0; i < bounds->size(); i++)
 	{
 		stp_face_bound* bound = bounds->get(i);
+		RoseBoolean sameSenseBound = bound->orientation();//face_outer_bound orientation
 		faceBound_.push_back(bound);
 		stp_loop* ploop = bound->bound();
 		stp_edge_loop* edgeLoop = ROSE_CAST(stp_edge_loop, ploop);
@@ -1738,11 +1739,19 @@ void StepEntity::GenerateSepHalfspace(SFace* face)
 void StepEntity::GetAxisData(stp_axis2_placement_3d* axis, GeometryData& data)
 {
 	CVector3D cV1(axis->axis()->direction_ratios()->get(0),axis->axis()->direction_ratios()->get(1),axis->axis()->direction_ratios()->get(2));
-	CVector3D cV2(axis->ref_direction()->direction_ratios()->get(0),axis->ref_direction()->direction_ratios()->get(1),axis->ref_direction()->direction_ratios()->get(2));
+	if(axis->ref_direction())
+	{
+		CVector3D cV2(axis->ref_direction()->direction_ratios()->get(0), axis->ref_direction()->direction_ratios()->get(1), axis->ref_direction()->direction_ratios()->get(2));
+		data.verRefDirection = cV2;
+	}
+	else
+	{
+		CVector3D cV2(0.0, 0.0, 0.0);
+		data.verRefDirection = cV2;
+	}
 	CPoint3D cP(axis->location()->coordinates()->get(0),axis->location()->coordinates()->get(1),axis->location()->coordinates()->get(2));
 	cP /= ZOOMTIME;
 	data.verAxis = cV1;
-	data.verRefDirection = cV2;
 	data.point = cP;
 }
 

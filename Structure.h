@@ -47,8 +47,8 @@ typedef struct tagTermIndex
 
 struct ORIENTATION
 {
-	BOOLEAN orientedEdgeOri;
-	BOOLEAN edgeCurveOri;
+	RoseBoolean orientedEdgeOri;
+	RoseBoolean edgeCurveOri;
 };
 
 struct GeometryData 

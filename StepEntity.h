@@ -97,6 +97,4 @@ private:
 	bool muticp_;					// «∑Ò∏¥‘” µÃÂ
 	LOGICAL logical_;
 	vector<stp_face_bound*> faceBound_;
-	vector<stp_oriented_edge*> orientedEdge_;
-
 };
