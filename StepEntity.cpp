@@ -809,6 +809,12 @@ ConvexConcave StepEntity::MakeBoundFace(ListOfstp_oriented_edge* oriList)
 		stp_oriented_edge* oriEdge = oriList->get(j);
 		stp_edge* edge = oriEdge->edge_element();
 		stp_edge_curve* curve = ROSE_CAST(stp_edge_curve, edge);
+
+		RoseAggregate * return_values = new RoseAggregate;
+		curve->usedin(0, 0, return_values);//查找edge_curve被调用的次数
+		if(return_values->size() > 1)
+			printf("test");
+
 		stp_cartesian_point* eStart = EdgeCurveStartOrEnd(curve->edge_start());
 		stp_cartesian_point* eEnd = EdgeCurveStartOrEnd(curve->edge_end());
 		stp_curve* pcurve = curve->edge_geometry();//line , circle , surface_curve
