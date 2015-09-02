@@ -20,6 +20,7 @@ void Partition::PartitionFace()
 	}
 	else
 	{
+
 	}
 }
 
@@ -33,7 +34,8 @@ bool Partition::IsPartitionFace()
 
 vector<SFace*> Partition::OcctSplit()
 {
-	//BRepAlgoAPI_Section
+//	BRepAlgoAPI_Section
+
 }
 
 void Partition::JudgeCommon(SFace* Fa, SFace* Fb)
@@ -42,15 +44,15 @@ void Partition::JudgeCommon(SFace* Fa, SFace* Fb)
 	{
 
 	}
-	if (strcmp(Fa->name_, "plane") && strcmp(Fb->name_, ""))//Fa为平面,Fb为曲面 
+	else if (strcmp(Fa->name_, "plane") && strcmp(Fb->name_, ""))//Fa为平面,Fb为曲面 
 	{
 
 	}
-	if (strcmp(Fa->name_, "") && strcmp(Fb->name_, "plane"))//Fa为曲面,Fb为平面
+	else if (strcmp(Fa->name_, "") && strcmp(Fb->name_, "plane"))//Fa为曲面,Fb为平面
 	{
 
 	}
-	if (strcmp(Fa->name_, "") && strcmp(Fb->name_, ""))//Fa为曲面,Fb为曲面,相交为圆锥曲线的情况
+	else if (strcmp(Fa->name_, "") && strcmp(Fb->name_, ""))//Fa为曲面,Fb为曲面,相交为圆锥曲线的情况
 	{
 
 	}

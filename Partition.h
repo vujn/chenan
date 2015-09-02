@@ -2,6 +2,7 @@
 
 #include  "stdafx.h"
 #include "SFace.h"
+#include "BRepAlgoAPI_Section.hxx"
 
 class Partition
 {
