@@ -5,6 +5,7 @@
 #include <commdlg.h>
 #include <shlwapi.h>
 #include <map>
+#include <stplib_init.h>
 
 
 std::string pathName;
