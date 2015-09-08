@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "Structure.h"
+#include "FaceBounds.h"
 
 ///////////////////////////////////////////////////////////////////////////
 class SFace
@@ -17,6 +18,12 @@ public:
 public:
 	char* name_;
 	size_t entityID_;
+
+
+	BOOLEAN sameSense_;//  advanced_face的same_sense    2015/09/08
+	vector<FaceBounds*> faceBounds_;
+
+
 	GeometryData* position_;
 	double coefficient_[10];//系数数组，二次曲面的一般方程为Ax^2+2Bxy+2Cxz+2Dx+Ey^2+2Fyz+2Gy+Hz^2+2Iz+J = 0，共10个系数
 	EdgeCurveVertex* vertex_;

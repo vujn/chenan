@@ -20,20 +20,13 @@ void Partition::PartitionFace(stp_closed_shell* closeShell)
 		stp_face* face = stpFace->get(i);
 		stp_advanced_face* adFace = ROSE_CAST(stp_advanced_face, face);
 		
-		//NatlHalfVector(adFace);// 保存每个面结构的信息
-		
-		//比较两个面是否有相交的边 如果有->判断是否是分割面; 否则继续下两个面的判断
-		SFace* Fa = new SFace;
-		SFace* Fb = new SFace;
-		JudgeIntersection(Fa, Fb);
-		SetOfstp_face_bound* outerBound = adFace->bounds();
-		for(size_t j = 0; j < outerBound->size(); j++)
-		{
-			stp_face_bound* bound = outerBound->get(i);
-
-		}
-		
+		//NatlHalfVector(adFace);// 保存每个面结构的信息 faceInfors_;
 	}
+	//比较两个面是否有相交的边 如果有->判断是否是分割面; 否则继续下两个面的判断
+	SFace* Fa = new SFace;
+	SFace* Fb = new SFace;
+	JudgeIntersection(Fa, Fb);
+	
 	if (IsPartitionFace())
 	{
 		OcctSplit();
