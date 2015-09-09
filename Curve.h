@@ -20,6 +20,13 @@ public:
 	virtual ~Curve();
 	virtual Curve * GenerateCoefficient();
 	virtual Geom2d_Curve * ToOCCT();
+
+	BOOLEAN orientedEdgeOri_;		//oriented_edge
+	BOOLEAN edgeCurvesameSense_;	//edge_curve
+
+	EdgeCurveVertex* edgeStart_;
+	EdgeCurveVertex* edgeEnd_;
+
 	double coefficient_[6];//二次曲线的一般方程为Ax^2+2Bxy+2Cx+Dy^2+2Ey+F = 0，共6个系数
 };
 

@@ -9,16 +9,14 @@ class FaceBounds
 public:
 	FaceBounds();
 
-	virtual ~FaceBounds();
-
+	~FaceBounds();
 
 public:
 
-	/*  */
-	BOOLEAN orientation_; 
+	/*! face_outer_bound orientation */
+	BOOLEAN boundsOri_; 
 
-	/*  */
-	vector<Curve*> edgeLoop_;
-	//edgeLoop vector
+	/*! save the edge_curve infors;*/
+	vector<Curve*> edgeLoop_; 
 };
 

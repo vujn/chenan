@@ -1596,6 +1596,54 @@ void StepEntity::NatlHalfVector(stp_advanced_face* adFace)
 {
 	char* entityName = adFace->face_geometry()->className();
 
+	/*! get bounds to vector<FaceBounds*> faceBounds_ */
+	vector<FaceBounds*> faceBounds;
+	SetOfstp_face_bound* bounds = adFace->bounds();
+	for(size_t i = 0; i < bounds->size(); i++)
+	{
+		FaceBounds* faceB = new FaceBounds;
+		stp_face_bound* bound = bounds->get(i);
+
+		faceB->boundsOri_ = bound->orientation();;
+
+		stp_edge_loop* edgeLoop = ROSE_CAST(stp_edge_loop, bound->bound());
+		ListOfstp_oriented_edge* oriList = edgeLoop->edge_list();
+
+		vector<Curve*> curveTemp;
+		for(size_t j = 0; j < oriList->size(); j++)
+		{
+			stp_oriented_edge* oriEdge = oriList->get(j);
+			stp_edge* edge = oriEdge->edge_element();
+			stp_edge_curve* curve = ROSE_CAST(stp_edge_curve, edge);
+			
+			Curve* cur = new Curve;
+			cur->edgeStart_ = EdgeCurveStartOrEnd(curve->edge_start());
+			cur->edgeEnd_ = EdgeCurveStartOrEnd(curve->edge_start());
+
+			stp_cartesian_point* eStart = EdgeCurveStartOrEnd(curve->edge_start());
+			stp_cartesian_point* eEnd = EdgeCurveStartOrEnd(curve->edge_end());
+
+			stp_curve* pcurve = curve->edge_geometry();//line , circle , surface_curve
+
+			ORIENTATION ori;
+			ori.orientedEdgeOri = oriEdge->orientation();//oriented_dege orientation
+			ori.edgeCurveOri = curve->same_sense();//edge_curve orientation
+	
+
+			if(!strcmp("circle", pcurve->className()))
+				CircleInfo(pcurve, ori, eStart, eEnd);
+			if(!strcmp("ellipse", pcurve->className()))
+				EllipseInfo(pcurve, ori, eStart, eEnd);
+			if(!strcmp("surface_curve", pcurve->className()))
+				SurfaceCurveInfo(pcurve, eStart, eEnd);
+		}
+
+		faceBounds.push_back();
+		vector<Curve*>().swap(curveTemp);
+	}
+
+
+
 	if (!strcmp(entityName, "plane"))
 	{
 		SPlane* pl = new SPlane;
@@ -1663,6 +1711,7 @@ void StepEntity::NatlHalfVector(stp_advanced_face* adFace)
 		tor->position_ = data;
 		NatlHalfSpaceList_.push_back(tor);
 	}
+	vector<FaceBounds*>().swap(faceBounds);
 }
 
 void StepEntity::GenerateHalfSpaceList(SetOfstp_face* stpFace)
