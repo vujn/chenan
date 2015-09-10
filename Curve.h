@@ -21,12 +21,12 @@ public:
 	virtual Curve * GenerateCoefficient();
 	virtual Geom2d_Curve * ToOCCT();
 
+public:
+	char* curveName_;
 	BOOLEAN orientedEdgeOri_;		//oriented_edge
 	BOOLEAN edgeCurvesameSense_;	//edge_curve
-
-	EdgeCurveVertex* edgeStart_;
-	EdgeCurveVertex* edgeEnd_;
-
+	stp_cartesian_point* edgeStart_;
+	stp_cartesian_point* edgeEnd_;
 	double coefficient_[6];//二次曲线的一般方程为Ax^2+2Bxy+2Cx+Dy^2+2Ey+F = 0，共6个系数
 };
 
@@ -39,6 +39,7 @@ public:
 	virtual ~Circle();
 	Curve * GenerateCoefficient(CMatrix3D RTMatrix);
 	Geom2d_Curve * ToOCCT();
+
 public:
 	GeometryData position_;
 	double radius_;

@@ -1601,115 +1601,119 @@ void StepEntity::NatlHalfVector(stp_advanced_face* adFace)
 	SetOfstp_face_bound* bounds = adFace->bounds();
 	for(size_t i = 0; i < bounds->size(); i++)
 	{
+		vector<Curve*> curveTemp;
 		FaceBounds* faceB = new FaceBounds;
+
 		stp_face_bound* bound = bounds->get(i);
-
-		faceB->boundsOri_ = bound->orientation();;
-
 		stp_edge_loop* edgeLoop = ROSE_CAST(stp_edge_loop, bound->bound());
 		ListOfstp_oriented_edge* oriList = edgeLoop->edge_list();
 
-		vector<Curve*> curveTemp;
 		for(size_t j = 0; j < oriList->size(); j++)
 		{
-			stp_oriented_edge* oriEdge = oriList->get(j);
-			stp_edge* edge = oriEdge->edge_element();
-			stp_edge_curve* curve = ROSE_CAST(stp_edge_curve, edge);
-			
+			GeometryData tempGepmetry;
 			Curve* cur = new Curve;
+			stp_oriented_edge* oriEdge = oriList->get(j);
+			stp_edge_curve* curve = ROSE_CAST(stp_edge_curve, oriEdge->edge_element());
+			stp_curve* pcurve = curve->edge_geometry();//line, circle,ellipse,surface_curve
+			if( !strcmp(pcurve->className(), "circle") )
+			{
+				stp_circle* cir = ROSE_CAST(stp_circle, pcurve);
+				GetAxisData(cir->position()->_axis2_placement_3d(), tempGepmetry);
+				((Circle*)cur)->position_ = tempGepmetry;
+				((Circle*)cur)->radius_ = cir->radius();
+			}
+			if(!strcmp(pcurve->className(), "ellipse"))
+			{
+				stp_ellipse* ell = ROSE_CAST(stp_ellipse, pcurve);
+				GetAxisData(ell->position()->_axis2_placement_3d(), tempGepmetry);
+				((ELLIPSE*)cur)->position_ = tempGepmetry;
+				((ELLIPSE*)cur)->semi_axis_1_ = ell->semi_axis_1();
+				((ELLIPSE*)cur)->semi_axis_2_ = ell->semi_axis_2();
+			}
+			cur->curveName_ = pcurve->className();
 			cur->edgeStart_ = EdgeCurveStartOrEnd(curve->edge_start());
 			cur->edgeEnd_ = EdgeCurveStartOrEnd(curve->edge_start());
-
-			stp_cartesian_point* eStart = EdgeCurveStartOrEnd(curve->edge_start());
-			stp_cartesian_point* eEnd = EdgeCurveStartOrEnd(curve->edge_end());
-
-			stp_curve* pcurve = curve->edge_geometry();//line , circle , surface_curve
-
-			ORIENTATION ori;
-			ori.orientedEdgeOri = oriEdge->orientation();//oriented_dege orientation
-			ori.edgeCurveOri = curve->same_sense();//edge_curve orientation
-	
-
-			if(!strcmp("circle", pcurve->className()))
-				CircleInfo(pcurve, ori, eStart, eEnd);
-			if(!strcmp("ellipse", pcurve->className()))
-				EllipseInfo(pcurve, ori, eStart, eEnd);
-			if(!strcmp("surface_curve", pcurve->className()))
-				SurfaceCurveInfo(pcurve, eStart, eEnd);
+			cur->edgeCurvesameSense_ = curve->same_sense();
+			cur->orientedEdgeOri_ = oriEdge->orientation();
+			curveTemp.push_back(cur);
 		}
-
-		faceBounds.push_back();
+		faceB->edgeLoop_ = curveTemp;
+		faceB->boundsOri_ = bound->orientation();
+		faceBounds.push_back(faceB);
 		vector<Curve*>().swap(curveTemp);
 	}
 
-
-
 	if (!strcmp(entityName, "plane"))
 	{
-		SPlane* pl = new SPlane;
+		SPlane* surface = new SPlane;
 		stp_plane* plane = ROSE_CAST(stp_plane, adFace->face_geometry());
 		stp_axis2_placement_3d* axis = plane->position();
 		GeometryData* data = new GeometryData;
 		GetAxisData(axis, *data);
-		pl->entityID_ = adFace->entity_id();
-		pl->name_ = entityName;
-		pl->position_ = data;
-		NatlHalfSpaceList_.push_back(pl);
+		surface->entityID_ = adFace->entity_id();
+		surface->name_ = entityName;
+		surface->position_ = data;
+		surface->faceBounds_ = faceBounds;
+		NatlHalfSpaceList_.push_back(surface);
 	}
 	else if (!strcmp(entityName, "spherical_surface"))
 	{
-		SSpherical* spher = new SSpherical;
+		SSpherical* surface = new SSpherical;
 		stp_spherical_surface* spherical = ROSE_CAST(stp_spherical_surface, adFace->face_geometry());
 		stp_axis2_placement_3d* axis3D = spherical->position();
 		GeometryData* data = new GeometryData;
 		GetAxisData(axis3D, *data);
-		spher->entityID_ = adFace->entity_id();
-		spher->name_ = entityName;
-		spher->radius_ = spherical->radius() / ZOOMTIME;
-		spher->position_ = data;
-		NatlHalfSpaceList_.push_back(spher);
+		surface->entityID_ = adFace->entity_id();
+		surface->name_ = entityName;
+		surface->radius_ = spherical->radius() / ZOOMTIME;
+		surface->position_ = data;
+		surface->faceBounds_ = faceBounds;
+		NatlHalfSpaceList_.push_back(surface);
 
 	}
 	else if (!strcmp(entityName, "conical_surface"))
 	{
-		SConical* con = new SConical;
+		SConical* surface = new SConical;
 		stp_conical_surface* conical = ROSE_CAST(stp_conical_surface, adFace->face_geometry());
 		stp_axis2_placement_3d* axis3D = conical->position();
 		GeometryData* data = new GeometryData;
 		GetAxisData(axis3D, *data);
-		con->entityID_ = adFace->entity_id();
-		con->name_ = entityName;
-		con->radius_ = conical->radius();
-		con->semi_angle_ = conical->semi_angle()/ZOOMTIME;
-		con->position_ = data;
-		NatlHalfSpaceList_.push_back(con);
+		surface->entityID_ = adFace->entity_id();
+		surface->name_ = entityName;
+		surface->radius_ = conical->radius();
+		surface->semi_angle_ = conical->semi_angle()/ZOOMTIME;
+		surface->position_ = data;
+		surface->faceBounds_ = faceBounds;
+		NatlHalfSpaceList_.push_back(surface);
 	}
 	else if (!strcmp(entityName, "cylindrical_surface"))
 	{
-		SCylindrical* cyli = new SCylindrical;
+		SCylindrical* surface = new SCylindrical;
 		stp_cylindrical_surface* cylindrical = ROSE_CAST(stp_cylindrical_surface, adFace->face_geometry());
 		stp_axis2_placement_3d* axis3D = cylindrical->position();
 		GeometryData* data = new GeometryData;
 		GetAxisData(axis3D, *data);
-		cyli->entityID_ = adFace->entity_id();
-		cyli->name_ = entityName;
-		cyli->radius_ = cylindrical->radius() / ZOOMTIME;
-		cyli->position_ = data;
-		NatlHalfSpaceList_.push_back(cyli);
+		surface->entityID_ = adFace->entity_id();
+		surface->name_ = entityName;
+		surface->radius_ = cylindrical->radius() / ZOOMTIME;
+		surface->position_ = data;
+		surface->faceBounds_ = faceBounds;
+		NatlHalfSpaceList_.push_back(surface);
 	}
 	else if (!strcmp(entityName, "toroidal_surface"))
 	{
-		SToroidal* tor = new SToroidal;
+		SToroidal* surface = new SToroidal;
 		stp_toroidal_surface* toroidal = ROSE_CAST(stp_toroidal_surface, adFace->face_geometry());
 		stp_axis2_placement_3d* axis3D = toroidal->position();
 		GeometryData* data = new GeometryData;
 		GetAxisData(axis3D, *data);
-		tor->entityID_ = adFace->entity_id();
-		tor->name_ = entityName;
-		tor->major_radius_ = toroidal->major_radius();
-		tor->minor_radius_ = toroidal->minor_radius();
-		tor->position_ = data;
-		NatlHalfSpaceList_.push_back(tor);
+		surface->entityID_ = adFace->entity_id();
+		surface->name_ = entityName;
+		surface->major_radius_ = toroidal->major_radius();
+		surface->minor_radius_ = toroidal->minor_radius();
+		surface->position_ = data;
+		surface->faceBounds_ = faceBounds;
+		NatlHalfSpaceList_.push_back(surface);
 	}
 	vector<FaceBounds*>().swap(faceBounds);
 }
