@@ -21,7 +21,7 @@ public:
 
 	void StepConversionAndOutput();	 //转换
 	
-private:
+public:
 
 	void GenerateSepHalfspace(SFace* face);				//生成分割半空间
 	void GenerateHalfSpaceList(SetOfstp_face* stpFace);//生成半空间队列
