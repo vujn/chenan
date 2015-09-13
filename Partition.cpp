@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Partition.h"
+#include <algorithm>
 
 
 
@@ -110,7 +111,14 @@ void Partition::JudgeIntersection(SFace* Fa, SFace* Fb)
 {
 	if (strcmp(Fa->name_, "plane") && strcmp(Fb->name_, "plane"))
 	{
-		
+		for (auto i = Fa->faceBounds_.begin(); i != Fa->faceBounds_.end(); i++)
+		{
+			for (auto j = Fb->faceBounds_.begin(); j != Fb->faceBounds_.end(); j++)
+			{
+				((*i)->edgeLoop_)
+			}
+		}
+		//for_each(Fa->faceBounds_.begin(), Fa->faceBounds_.end(), myfunction);
 	}
 	else if (strcmp(Fa->name_, "plane") && strcmp(Fb->name_, ""))//Fa为平面,Fb为曲面 
 	{

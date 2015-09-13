@@ -23,6 +23,7 @@ public:
 
 public:
 	char* curveName_;
+	size_t edgeCurveId_;
 	BOOLEAN orientedEdgeOri_;		//oriented_edge
 	BOOLEAN edgeCurvesameSense_;	//edge_curve
 	stp_cartesian_point* edgeStart_;
