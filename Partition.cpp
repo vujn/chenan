@@ -92,10 +92,12 @@ void Partition::PartitionFace(stp_closed_shell* closeShell)
 
 bool Partition::IsPartitionFace()
 {
-	vector<stp_edge_curve*> edgeCurveList;
-
-	TraverseEdgeCurve(edgeCurveList);
-
+	multimap<int, SFace*> partitionFaceList;
+	
+	for(auto iter = 0; iter < NatlHalfSpaceList_.size(); iter++)
+	{
+		FindPartitionFace(NatlHalfSpaceList_[iter], NatlHalfSpaceList_[iter + 1]);
+	}
 	return false;
 }
 
@@ -109,16 +111,11 @@ vector<SFace*> Partition::OcctSplit()
 
 void Partition::JudgeIntersection(SFace* Fa, SFace* Fb)
 {
+	//for_each(Fa->faceBounds_.begin(), Fa->faceBounds_.end(), myfunction);
 	if (strcmp(Fa->name_, "plane") && strcmp(Fb->name_, "plane"))
 	{
-		for (auto i = Fa->faceBounds_.begin(); i != Fa->faceBounds_.end(); i++)
-		{
-			for (auto j = Fb->faceBounds_.begin(); j != Fb->faceBounds_.end(); j++)
-			{
-				((*i)->edgeLoop_)
-			}
-		}
-		//for_each(Fa->faceBounds_.begin(), Fa->faceBounds_.end(), myfunction);
+		
+		
 	}
 	else if (strcmp(Fa->name_, "plane") && strcmp(Fb->name_, ""))//Fa为平面,Fb为曲面 
 	{
@@ -134,9 +131,36 @@ void Partition::JudgeIntersection(SFace* Fa, SFace* Fb)
 	}
 }
 
-void Partition::TraverseEdgeCurve(vector<stp_edge_curve*>& edgeList)
+void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 {
+	//比较两个面是否有相邻curve_edge, 如果有那么就判断两面是否是分割面 否则continue
+	for(auto i = Fa->faceBounds_.begin(); i != Fa->faceBounds_.end(); i++)
+	{
+		for(auto ia = ((*i)->edgeLoop_).begin(); ia != ((*i)->edgeLoop_).end(); ia++)
+		{
+			size_t curveFaceAId = (*ia)->edgeCurveId_;
+			for(auto j = Fb->faceBounds_.begin(); j != Fb->faceBounds_.end(); j++)
+			{
+				for(auto ib = ((*j)->edgeLoop_).begin(); ib != ((*j)->edgeLoop_).end(); ib++)
+				{
+					size_t curveFaceBId = (*ib)->edgeCurveId_;
+					if(curveFaceBId == curveFaceAId)
+					{
+						/*! //判断是否是分割面
+						if(真)
+						{
+						Fa和Fb 计数 保存
+						}
+						else
+						null
 
+						*/
+						break;
+					}
+				}
+			}
+		}
+	}
 }
 
 void Partition::NatlHalfVector(stp_advanced_face* adFace)

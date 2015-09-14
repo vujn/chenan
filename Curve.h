@@ -71,9 +71,9 @@ public:
 	Curve * GenerateCoefficient(CMatrix3D RTMatrix);
 	Geom2d_Curve * ToOCCT();
 public:
-	CPoint3D pnt_;
-	CVector3D dir_;
-	double magnitude_;
+	CPoint3D pnt_; //表示其定位点
+	CVector3D dir_;//表示其方向
+	double magnitude_;//表示其大小
 };
 
 ////////////////////////////////////////////////////////////////////////
