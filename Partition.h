@@ -7,6 +7,16 @@
 
 #define ZOOMTIME 10.0
 
+
+typedef	struct Orientation
+{
+	BOOLEAN advancedFaceOri;
+	BOOLEAN boundsOri;
+	BOOLEAN orientedEdgeOri;
+	BOOLEAN edgeCurveOri;
+}orientationFaceA, orientationFaceB;
+
+
 class Partition
 {
 public:
@@ -20,17 +30,21 @@ public:
 	void StepConversionAndOutput();
 	void NatlHalfVector(stp_advanced_face* adFace);
 	void GetAxisData(stp_axis2_placement_3d* axis, GeometryData& data);
+	stp_cartesian_point* EdgeCurveStartOrEnd(stp_vertex* ver);
+
 public:
 
+	
 	bool IsPartitionFace();
 	vector<SFace*> OcctSplit();		//occt切割面
-	void JudgeIntersection(SFace* Fa, SFace* Fb);// 两个面相交或者多个面相交
+	bool JudgeIntersection(SFace* Fa, SFace* Fb, orientationFaceA oriA, CPoint3D start, CPoint3D end);// 两个面相交或者多个面相交
 	void FindPartitionFace(SFace* Fa, SFace* Fb);
 
 public:
 	vector<SFace*> NatlHalfSpaceList_;			//自然半空间队列
 
 private:
+
 	vector<SFace*> intersectionFaceList_;
 	vector<SFace*> faceInfors_;
 	RoseDesign* design_;

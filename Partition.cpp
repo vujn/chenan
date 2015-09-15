@@ -109,25 +109,27 @@ vector<SFace*> Partition::OcctSplit()
 	return faceTemp;
 }
 
-void Partition::JudgeIntersection(SFace* Fa, SFace* Fb)
+bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, orientationFaceA oriA, CPoint3D start,CPoint3D end)
 {
-	//for_each(Fa->faceBounds_.begin(), Fa->faceBounds_.end(), myfunction);
 	if (strcmp(Fa->name_, "plane") && strcmp(Fb->name_, "plane"))
 	{
-		
-		
+		if(oriA.boundsOri == oriA.advancedFaceOri)
+		{
+
+		}
+			return false;
 	}
 	else if (strcmp(Fa->name_, "plane") && strcmp(Fb->name_, ""))//Fa为平面,Fb为曲面 
 	{
-
+		return false;
 	}
 	else if (strcmp(Fa->name_, "") && strcmp(Fb->name_, "plane"))//Fa为曲面,Fb为平面
 	{
-
+		return false;
 	}
 	else if (strcmp(Fa->name_, "") && strcmp(Fb->name_, ""))//Fa为曲面,Fb为曲面,相交为圆锥曲线的情况
 	{
-
+		return false;
 	}
 }
 
@@ -141,21 +143,26 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 			size_t curveFaceAId = (*ia)->edgeCurveId_;
 			for(auto j = Fb->faceBounds_.begin(); j != Fb->faceBounds_.end(); j++)
 			{
-				for(auto ib = ((*j)->edgeLoop_).begin(); ib != ((*j)->edgeLoop_).end(); ib++)
+				for(auto jb = ((*j)->edgeLoop_).begin(); jb != ((*j)->edgeLoop_).end(); jb++)
 				{
-					size_t curveFaceBId = (*ib)->edgeCurveId_;
+					size_t curveFaceBId = (*jb)->edgeCurveId_;
+					orientationFaceA oriA;
+					oriA.advancedFaceOri = Fa->adFaceSameSense_;
+					oriA.boundsOri = (*i)->boundsOri_;
+					oriA.orientedEdgeOri = (*ia)->orientedEdgeOri_;
+					oriA.edgeCurveOri = (*ia)->edgeCurvesameSense_;
+					CPoint3D edgeStart = (*ia)->edgeStart_;
+					CPoint3D edgeEnd = (*ia)->edgeEnd_;
 					if(curveFaceBId == curveFaceAId)
 					{
-						/*! //判断是否是分割面
-						if(真)
+						//判断是否是分割面
+						bool isPartitionFace = JudgeIntersection(Fa, Fb,oriA,edgeStart,edgeEnd);
+						if(isPartitionFace)
 						{
-						Fa和Fb 计数 保存
+							//保存到map 并计数
 						}
 						else
-						null
-
-						*/
-						break;
+							continue;
 					}
 				}
 			}
@@ -202,8 +209,12 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 				((ELLIPSE*)cur)->semi_axis_2_ = ell->semi_axis_2();
 			}
 			cur->curveName_ = pcurve->className();
-			cur->edgeStart_ = EdgeCurveStartOrEnd(curve->edge_start());
-			cur->edgeEnd_ = EdgeCurveStartOrEnd(curve->edge_start());
+			stp_cartesian_point* eStart = EdgeCurveStartOrEnd(curve->edge_start());
+			stp_cartesian_point* eEnd = EdgeCurveStartOrEnd(curve->edge_end());
+			CPoint3D start(eStart->coordinates()->get(0), eStart->coordinates()->get(1), eStart->coordinates()->get(2));
+			CPoint3D end(eEnd->coordinates()->get(0), eEnd->coordinates()->get(1), eEnd->coordinates()->get(2));
+			cur->edgeStart_ = start;
+			cur->edgeEnd_ = end;
 			cur->edgeCurvesameSense_ = curve->same_sense();
 			cur->orientedEdgeOri_ = oriEdge->orientation();
 			curveTemp.push_back(cur);
@@ -306,4 +317,10 @@ void Partition::GetAxisData(stp_axis2_placement_3d* axis, GeometryData& data)
 	cP /= ZOOMTIME;
 	data.verAxis = cV1;
 	data.point = cP;
+}
+
+stp_cartesian_point* Partition::EdgeCurveStartOrEnd(stp_vertex* ver)
+{
+	stp_vertex_point * vpt = ROSE_CAST(stp_vertex_point, ver);
+	return ROSE_CAST(stp_cartesian_point, vpt->vertex_geometry());
 }
