@@ -75,11 +75,6 @@ void Partition::PartitionFace(stp_closed_shell* closeShell)
 		NatlHalfVector(adFace);// 保存每个面结构的信息 faceInfors_;
 	}
 
-	//比较两个面是否有相交的边 如果有->判断是否是分割面; 否则继续下两个面的判断
-	SFace* Fa = new SFace;
-	SFace* Fb = new SFace;
-	JudgeIntersection(Fa, Fb);
-	
 	if (IsPartitionFace())
 	{
 		OcctSplit();
@@ -109,27 +104,88 @@ vector<SFace*> Partition::OcctSplit()
 	return faceTemp;
 }
 
-bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, orientationFaceA oriA, CPoint3D start,CPoint3D end)
+bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName,orientationFaceA oriA,
+	CPoint3D start, CPoint3D end, CPoint3D pointA, CPoint3D pointB)
 {
-	if (strcmp(Fa->name_, "plane") && strcmp(Fb->name_, "plane"))
+	CVector3D aDir = Fa->position_->verAxis;//Fa法线
+	CVector3D bDir = Fb->position_->verAxis;
+
+	if (!strcmp(Fa->name_, "plane")&&!strcmp(Fb->name_, "plane")) //平面平面
 	{
-		if(oriA.boundsOri == oriA.advancedFaceOri)
+		double result;
+		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
+		{
+			CVector3D vect(end.x - start.x, end.y - start.y, end.z - start.z);//交线向量
+			result = (aDir*vect) | bDir; //(A法线叉积交线向量EF)点积 B法线
+		}
+		else
+		{
+			CVector3D vect(start.x - end.x, start.y - end.y, start.z - end.z);
+			result = (aDir*vect) | bDir;
+		}
+		if(result > 0)
+			return true;
+		else
+			return false;
+	}
+	else if(!strcmp(Fa->name_, "plane") && strcmp(Fb->name_, "plane") )//平面 曲面
+	{
+		double result;
+		CPoint3D P(start.x, start.y, start.z);
+		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
+		{
+			CVector3D PVec(pointA.x - P.x, pointA.y - P.y, pointA.z - P.z);
+			if(oriA.advancedFaceOri == 'T')
+			{
+				CVector3D RVec = PVec*bDir;
+				result = aDir | (RVec*bDir);
+			}
+			else
+			{
+				CVector3D RVec = bDir * PVec;
+				result = aDir | (RVec*bDir);
+			}
+			if(result > 0)
+				return true;
+			else
+				return false;
+		}
+		else
+		{
+			CVector3D PVec(P.x - pointA.x, P.y - pointA.y, P.z - pointA.z);
+			if(oriA.advancedFaceOri == 'T')
+			{
+				CVector3D RVec = PVec*bDir;
+				result = aDir | (RVec*bDir);
+			}
+			else
+			{
+				CVector3D RVec = bDir * PVec;
+				result = aDir | (RVec*bDir);
+			}
+			if(result > 0)
+				return true;
+			else
+				return false;
+		}
+	}
+	else if(strcmp(Fa->name_, "plane") && strcmp(Fb->name_, "plane"))//曲面 曲面
+	{
+		double result;
+		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
+		{
+			CPoint3D P0(Fa->position_->point.x, Fa->position_->point.y,
+				Fa->position_->point.z);//pointA
+			
+		}
+		else
 		{
 
 		}
+		if(result > 0)
+			return true;
+		else
 			return false;
-	}
-	else if (strcmp(Fa->name_, "plane") && strcmp(Fb->name_, ""))//Fa为平面,Fb为曲面 
-	{
-		return false;
-	}
-	else if (strcmp(Fa->name_, "") && strcmp(Fb->name_, "plane"))//Fa为曲面,Fb为平面
-	{
-		return false;
-	}
-	else if (strcmp(Fa->name_, "") && strcmp(Fb->name_, ""))//Fa为曲面,Fb为曲面,相交为圆锥曲线的情况
-	{
-		return false;
 	}
 }
 
@@ -151,12 +207,17 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 					oriA.boundsOri = (*i)->boundsOri_;
 					oriA.orientedEdgeOri = (*ia)->orientedEdgeOri_;
 					oriA.edgeCurveOri = (*ia)->edgeCurvesameSense_;
+
 					CPoint3D edgeStart = (*ia)->edgeStart_;
 					CPoint3D edgeEnd = (*ia)->edgeEnd_;
+					char* curveName = (*ia)->curveName_;
+					CPoint3D pointA = ((Circle*)(*ia))->position_.point;//圆心
+					CPoint3D pointB = ((Circle*)(*jb))->position_.point;
 					if(curveFaceBId == curveFaceAId)
 					{
 						//判断是否是分割面
-						bool isPartitionFace = JudgeIntersection(Fa, Fb,oriA,edgeStart,edgeEnd);
+						bool isPartitionFace = JudgeIntersection(Fa, Fb, curveName,
+							oriA, edgeStart, edgeEnd, pointA, pointB);
 						if(isPartitionFace)
 						{
 							//保存到map 并计数
@@ -193,6 +254,21 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 			stp_oriented_edge* oriEdge = oriList->get(j);
 			stp_edge_curve* curve = ROSE_CAST(stp_edge_curve, oriEdge->edge_element());
 			stp_curve* pcurve = curve->edge_geometry();//line, circle,ellipse,surface_curve
+			if(!strcmp(pcurve->className(), "line"))
+			{
+				stp_line* line = ROSE_CAST(stp_line, pcurve);
+				CPoint3D point(line->pnt()->coordinates()->get(0),
+					line->pnt()->coordinates()->get(1),
+					line->pnt()->coordinates()->get(2));
+				((Line*)cur)->pnt_ = point;
+				CVector3D dir(line->dir()->orientation()->direction_ratios()->get(0),
+					line->dir()->orientation()->direction_ratios()->get(1),
+					line->dir()->orientation()->direction_ratios()->get(2)
+					);
+				((Line*)cur)->dir_ = dir;
+				((Line*)cur)->magnitude_ = line->dir()->magnitude();
+				 
+			}
 			if(!strcmp(pcurve->className(), "circle"))
 			{
 				stp_circle* cir = ROSE_CAST(stp_circle, pcurve);
