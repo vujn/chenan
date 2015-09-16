@@ -104,8 +104,8 @@ vector<SFace*> Partition::OcctSplit()
 	return faceTemp;
 }
 
-bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName,orientationFaceA oriA,
-	CPoint3D start, CPoint3D end, CPoint3D pointA, CPoint3D pointB)
+bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orientationFaceA oriA,
+	EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA)
 {
 	CVector3D aDir = Fa->position_->verAxis;//Fa法线
 	CVector3D bDir = Fb->position_->verAxis;
@@ -115,12 +115,16 @@ bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName,orientat
 		double result;
 		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
 		{
-			CVector3D vect(end.x - start.x, end.y - start.y, end.z - start.z);//交线向量
+			CVector3D vect(curveA.cartesianEnd.x - curveA.cartesianStart.x, 
+				curveA.cartesianEnd.y - curveA.cartesianStart.y,
+				curveA.cartesianEnd.z - curveA.cartesianStart.z);//交线向量
 			result = (aDir*vect) | bDir; //(A法线叉积交线向量EF)点积 B法线
 		}
 		else
 		{
-			CVector3D vect(start.x - end.x, start.y - end.y, start.z - end.z);
+			CVector3D vect(curveA.cartesianStart.x - curveA.cartesianEnd.x,
+				curveA.cartesianStart.y - curveA.cartesianEnd.y,
+				curveA.cartesianStart.z - curveA.cartesianEnd.z);
 			result = (aDir*vect) | bDir;
 		}
 		if(result > 0)
@@ -131,7 +135,7 @@ bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName,orientat
 	else if(!strcmp(Fa->name_, "plane") && strcmp(Fb->name_, "plane") )//平面 曲面
 	{
 		double result;
-		CPoint3D P(start.x, start.y, start.z);
+		CPoint3D P(curveA.cartesianStart.x, curveA.cartesianStart.y, curveA.cartesianStart.z);
 		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
 		{
 			CVector3D PVec(pointA.x - P.x, pointA.y - P.y, pointA.z - P.z);
@@ -174,18 +178,31 @@ bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName,orientat
 		double result;
 		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
 		{
-			CPoint3D P0(Fa->position_->point.x, Fa->position_->point.y,
-				Fa->position_->point.z);//pointA
-			
-		}
-		else
-		{
+			CVector3D FaVector, FbVector;
+			CVector3D PVec(pointA.x - curveA.cartesianStart.x, 
+				pointA.y - curveA.cartesianStart.y, 
+				pointA.z - curveA.cartesianStart.z);
+			if (oriA.advancedFaceOri == 'T')
+				FaVector = (PVec * aDir) * aDir;
+			else
+				FaVector = aDir * (PVec * aDir);
 
+			CPoint3D pB = curveB.cartesianStart;//Fb 相交边对应的start
+			CVector3D vec(curveB.cartesianStart.x - curveA.cartesianStart.x,
+				curveB.cartesianStart.y - curveA.cartesianStart.y,
+				curveB.cartesianStart.z - curveA.cartesianStart.z);
+			CVector3D RvecB = PVec * vec;
+
+			if (oriA.advancedFaceOri == 'T')
+				FbVector = RvecB * vec;
+			else
+				FbVector = vec * RvecB;
+			result = ((PVec * aDir)*FbVector) | FaVector;
+			if (result > 0)
+				return  true;
+			else
+				return false;
 		}
-		if(result > 0)
-			return true;
-		else
-			return false;
 	}
 }
 
@@ -208,19 +225,22 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 					oriA.orientedEdgeOri = (*ia)->orientedEdgeOri_;
 					oriA.edgeCurveOri = (*ia)->edgeCurvesameSense_;
 
-					CPoint3D edgeStart = (*ia)->edgeStart_;
-					CPoint3D edgeEnd = (*ia)->edgeEnd_;
 					char* curveName = (*ia)->curveName_;
+					EdgeCurveVertex curveA, curveB;
+					curveA.cartesianStart = (*ia)->edgeStart_;
+					curveA.cartesianEnd = (*ia)->edgeEnd_;
+					curveA.cartesianStart = (*jb)->edgeStart_;
+					curveA.cartesianEnd = (*jb)->edgeEnd_;
 					CPoint3D pointA = ((Circle*)(*ia))->position_.point;//圆心
-					CPoint3D pointB = ((Circle*)(*jb))->position_.point;
 					if(curveFaceBId == curveFaceAId)
 					{
 						//判断是否是分割面
 						bool isPartitionFace = JudgeIntersection(Fa, Fb, curveName,
-							oriA, edgeStart, edgeEnd, pointA, pointB);
+							oriA, curveA, curveB, pointA);
 						if(isPartitionFace)
 						{
 							//保存到map 并计数
+
 						}
 						else
 							continue;
