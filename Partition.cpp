@@ -74,35 +74,21 @@ void Partition::PartitionFace(stp_closed_shell* closeShell)
 		stp_advanced_face* adFace = ROSE_CAST(stp_advanced_face, face);
 		NatlHalfVector(adFace);// 保存每个面结构的信息 faceInfors_;
 	}
-
-	if (IsPartitionFace())
-	{
-		OcctSplit();
-	}
-	else
-	{
-
-	}
+	IsPartitionFace();
 }
 
-bool Partition::IsPartitionFace()
+void Partition::IsPartitionFace()
 {
-	multimap<int, SFace*> partitionFaceList;
-	
 	for(auto iter = 0; iter < NatlHalfSpaceList_.size(); iter++)
 	{
 		FindPartitionFace(NatlHalfSpaceList_[iter], NatlHalfSpaceList_[iter + 1]);
 	}
-	return false;
+	//分割面优先级判断
+
+	OcctSplit();
 }
 
-vector<SFace*> Partition::OcctSplit()
-{
-	vector<SFace*> faceTemp;
-//	BRepAlgoAPI_Section
 
-	return faceTemp;
-}
 
 bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orientationFaceA oriA,
 	EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA)
@@ -239,8 +225,10 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 							oriA, curveA, curveB, pointA);
 						if(isPartitionFace)
 						{
-							//保存到map 并计数
-
+							pair<size_t, SFace*> pa(Fa->entityID_, Fa);
+							pair<size_t, SFace*> pb(Fb->entityID_, Fb);
+							partitionFaceList_.insert(pa);
+							partitionFaceList_.insert(pb);
 						}
 						else
 							continue;
@@ -419,4 +407,26 @@ stp_cartesian_point* Partition::EdgeCurveStartOrEnd(stp_vertex* ver)
 {
 	stp_vertex_point * vpt = ROSE_CAST(stp_vertex_point, ver);
 	return ROSE_CAST(stp_cartesian_point, vpt->vertex_geometry());
+}
+
+vector<SFace*> Partition::OcctSplit()
+{
+	vector<SFace*> faceTemp;
+
+// 	BRepAlgoAPI_Section(TopoDS_Shape Sh, gp_Pln Pl, bool PerformNow);
+// 	gp_Pln aplane = new gp_Pln(1, 0.25, 3, 4);
+// 	Geom_Plane thePlane = new Geom_Plane(aplane);
+// 	BRepAlgoAPI_Section section = new BRepAlgoAPI_Section(theTorus, thePlane, false);
+// 	section.ComputePCurveOn1(true);
+// 	section.Approximation(true);
+// 	section.Build();
+// 	AIS_Shape asection = new AIS_Shape(section.Shape());
+
+// 	BRepAlgoAPI_Section mkCut(_cTopoShape, cutting_plane, Standard_False);
+// 	mkCut.ComputePCurveOn1(Standard_True);
+// 	mkCut.Approximation(Standard_True);
+// 	mkCut.Build(
+	partitionFaceList_.clear();
+
+	return faceTemp;
 }

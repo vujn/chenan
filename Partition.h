@@ -2,7 +2,6 @@
 
 #include  "stdafx.h"
 #include "SFace.h"
-#include "BRepAlgoAPI_Section.hxx"
 
 
 #define ZOOMTIME 10.0
@@ -35,7 +34,7 @@ public:
 public:
 
 	
-	bool IsPartitionFace();
+	void IsPartitionFace();
 	vector<SFace*> OcctSplit();		//occt切割面
 	bool JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orientationFaceA oriA,
 		EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA);// 两个面相交或者多个面相交
@@ -45,7 +44,7 @@ public:
 	vector<SFace*> NatlHalfSpaceList_;			//自然半空间队列
 
 private:
-
+	multimap<size_t, SFace*> partitionFaceList_;
 	vector<SFace*> intersectionFaceList_;
 	vector<SFace*> faceInfors_;
 	RoseDesign* design_;

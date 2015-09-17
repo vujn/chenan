@@ -1,5 +1,6 @@
 #pragma  once
 #include <math.h>
+#include <wtypes.h>
 
 
 #define CAD_ZERO				1.0E-6

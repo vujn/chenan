@@ -1630,9 +1630,14 @@ void StepEntity::NatlHalfVector(stp_advanced_face* adFace)
 				((ELLIPSE*)cur)->semi_axis_1_ = ell->semi_axis_1();
 				((ELLIPSE*)cur)->semi_axis_2_ = ell->semi_axis_2();
 			}
+			
 			cur->curveName_ = pcurve->className();
-			cur->edgeStart_ = EdgeCurveStartOrEnd(curve->edge_start());
-			cur->edgeEnd_ = EdgeCurveStartOrEnd(curve->edge_start());
+			stp_cartesian_point* eStart = EdgeCurveStartOrEnd(curve->edge_start());
+			stp_cartesian_point* eEnd = EdgeCurveStartOrEnd(curve->edge_end());
+			CPoint3D start(eStart->coordinates()->get(0), eStart->coordinates()->get(1), eStart->coordinates()->get(2));
+			CPoint3D end(eEnd->coordinates()->get(0), eEnd->coordinates()->get(1), eEnd->coordinates()->get(2));
+			cur->edgeStart_ = start;
+			cur->edgeEnd_ = end;
 			cur->edgeCurvesameSense_ = curve->same_sense();
 			cur->orientedEdgeOri_ = oriEdge->orientation();
 			curveTemp.push_back(cur);
