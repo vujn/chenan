@@ -83,12 +83,46 @@ void Partition::IsPartitionFace()
 	{
 		FindPartitionFace(NatlHalfSpaceList_[iter], NatlHalfSpaceList_[iter + 1]);
 	}
-	//分割面优先级判断
-
 	OcctSplit();
 }
 
 
+SFace* Partition::ChoosePartitionFace()
+{
+	//分割面优先级判断
+	int num = 0;
+	SFace* partFace = new SFace;
+	for(auto pIter = partitionFaceList_.begin(); pIter != partitionFaceList_.end(); pIter++)
+	{
+		auto mulSize = partitionFaceList_.count(pIter->first);
+		if(mulSize > num)
+		{
+			num = mulSize;
+			partFace = pIter->second;
+		}
+		else if(mulSize == num)
+		{
+			if(!strcmp(pIter->second->name_, "plane") 
+				&& strcmp(partFace->name_, "plane") != 0)
+				partFace = pIter->second;
+			else if(!strcmp(pIter->second->name_, "spherical_surface") 
+				&& strcmp(partFace->name_, "plane") != 0 )
+				partFace = pIter->second;
+			else if(!strcmp(pIter->second->name_, "cylindrical_surface" )
+				&& strcmp(partFace->name_, "plane") != 0 
+				&& strcmp(partFace->name_, "spherical_surface") != 0
+				)
+				partFace = pIter->second;
+			else if(strcmp(pIter->second->name_, "conical_surface") == 0
+				&& strcmp(partFace->name_, "plane") != 0
+				&& strcmp(partFace->name_, "spherical_surface") != 0
+				&& strcmp(pIter->second->name_, "cylindrical_surface") != 0
+				)
+				partFace = pIter->second;
+		}
+	}
+	return partFace;
+}
 
 bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orientationFaceA oriA,
 	EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA)
@@ -118,7 +152,7 @@ bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orienta
 		else
 			return false;
 	}
-	else if(!strcmp(Fa->name_, "plane") && strcmp(Fb->name_, "plane") )//平面 曲面
+	else if( strcmp(Fa->name_, "plane")== 0 && strcmp(Fb->name_, "plane")!=0 )//平面 曲面
 	{
 		double result;
 		CPoint3D P(curveA.cartesianStart.x, curveA.cartesianStart.y, curveA.cartesianStart.z);
@@ -159,7 +193,7 @@ bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orienta
 				return false;
 		}
 	}
-	else if(strcmp(Fa->name_, "plane") && strcmp(Fb->name_, "plane"))//曲面 曲面
+	else if(strcmp(Fa->name_, "plane")!= 0 && strcmp(Fb->name_, "plane") != 0)//曲面 曲面
 	{
 		double result;
 		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
@@ -238,6 +272,7 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 		}
 	}
 }
+
 
 void Partition::NatlHalfVector(stp_advanced_face* adFace)
 {

@@ -39,6 +39,7 @@ public:
 	bool JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orientationFaceA oriA,
 		EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA);// 两个面相交或者多个面相交
 	void FindPartitionFace(SFace* Fa, SFace* Fb);
+	SFace* ChoosePartitionFace();
 
 public:
 	vector<SFace*> NatlHalfSpaceList_;			//自然半空间队列
