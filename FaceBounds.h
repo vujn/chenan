@@ -7,6 +7,7 @@
 class FaceBounds
 {
 public:
+
 	FaceBounds();
 
 	~FaceBounds();

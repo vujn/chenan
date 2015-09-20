@@ -2,7 +2,6 @@
 
 #include "stdafx.h"
 
-
 enum HalfSpaceOrientation
 {
 	POSITIVE = 1,

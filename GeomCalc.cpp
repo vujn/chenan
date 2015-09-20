@@ -7,7 +7,6 @@ double _AngleBetween(VECTOR3D v1, VECTOR3D v2)					//retrun 0 to 180 degree
 	CVector3D cv1(v1), cv2(v2);
 	cv1.Normalize();
 	cv2.Normalize();
-
 	return acos(max(-1.0, min(1.0, cv1 | cv2)));
 }
 

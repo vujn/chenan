@@ -8,7 +8,6 @@
 using namespace std;
 class StepEntity;
 
-
 class InterProcess
 {
 public:

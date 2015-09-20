@@ -62,6 +62,7 @@ void Partition::StepConversionAndOutput()
 				step->PMCtest();
 				step->Output(&m, &n, "", vecOut_, false, false, false, false);
 
+
  				SetOfstp_oriented_closed_shell* orientedShell = voidsBrep->voids();
 				for(size_t i = 0; i < orientedShell->size(); i++)
 				{
@@ -69,7 +70,7 @@ void Partition::StepConversionAndOutput()
 					stp_closed_shell* closeShell = oriClosedShell->closed_shell_element();
 					SetOfstp_face* face = closeShell->cfs_faces();
 					GetSFaceInfo(face);
-
+					 
 					StepEntity* step = new StepEntity(intersectionFaceList_);
 					step->GenerateHalfSpaceList();
 					step->GenerateCIT();

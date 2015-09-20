@@ -86,7 +86,7 @@ void InfoMatrix::MatrixMess(size_t entityId, StixMtrx& stixMtrx)
 	//			x÷·::stixMtrx.get(0,0), stixMtrx.get(1,0), stixMtrx.get(2,0))
 	//			y÷·::stixMtrx.get(0,1), stixMtrx.get(1,1), stixMtrx.get(2,1))
 	//			z÷·::stixMtrx.get(0,2), stixMtrx.get(1,2), stixMtrx.get(2,2))
-
+	 
 	// ÷ÿ∏¥Ω·ππ
 	//			Repetition;
 	Repetition repe;

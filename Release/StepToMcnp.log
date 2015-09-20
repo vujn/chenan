@@ -1,0 +1,27 @@
+﻿  stdafx.cpp
+  Curve.cpp
+Curve.cpp(165): warning C4244: “参数”: 从“double”转换到“const Standard_Integer”，可能丢失数据
+  FaceBounds.cpp
+  Partition.cpp
+Partition.cpp(82): warning C4018: “<”: 有符号/无符号不匹配
+Partition.cpp(99): warning C4018: “>”: 有符号/无符号不匹配
+  SFace.cpp
+  GeomCalc.cpp
+  GeomKernel.cpp
+  InfoMatrix.cpp
+  InterProcess.cpp
+  StepEntity.cpp
+StepEntity.cpp(78): warning C4244: “参数”: 从“double”转换到“size_t”，可能丢失数据
+StepEntity.cpp(82): warning C4244: “参数”: 从“double”转换到“size_t”，可能丢失数据
+  StepToMcnp.cpp
+     正在创建库 C:\Users\Administrator\Desktop\StepToMcnp\Release\StepToMcnp.lib 和对象 C:\Users\Administrator\Desktop\StepToMcnp\Release\StepToMcnp.exp
+Partition.obj : error LNK2001: 无法解析的外部符号 "public: void __thiscall BRepAlgoAPI_BooleanOperation::Destroy(void)" (?Destroy@BRepAlgoAPI_BooleanOperation@@QAEXXZ)
+Partition.obj : error LNK2001: 无法解析的外部符号 "public: virtual void __thiscall BRepAlgoAPI_BooleanOperation::Build(void)" (?Build@BRepAlgoAPI_BooleanOperation@@UAEXXZ)
+Partition.obj : error LNK2001: 无法解析的外部符号 "public: virtual class TopTools_ListOfShape const & __thiscall BRepAlgoAPI_BooleanOperation::Generated(class TopoDS_Shape const &)" (?Generated@BRepAlgoAPI_BooleanOperation@@UAEABVTopTools_ListOfShape@@ABVTopoDS_Shape@@@Z)
+Partition.obj : error LNK2001: 无法解析的外部符号 "public: virtual class TopTools_ListOfShape const & __thiscall BRepAlgoAPI_BooleanOperation::Modified(class TopoDS_Shape const &)" (?Modified@BRepAlgoAPI_BooleanOperation@@UAEABVTopTools_ListOfShape@@ABVTopoDS_Shape@@@Z)
+Partition.obj : error LNK2001: 无法解析的外部符号 "public: virtual unsigned int __thiscall BRepAlgoAPI_BooleanOperation::IsDeleted(class TopoDS_Shape const &)" (?IsDeleted@BRepAlgoAPI_BooleanOperation@@UAEIABVTopoDS_Shape@@@Z)
+Partition.obj : error LNK2001: 无法解析的外部符号 "public: virtual unsigned int __thiscall BRepAlgoAPI_BooleanOperation::HasModified(void)const " (?HasModified@BRepAlgoAPI_BooleanOperation@@UBEIXZ)
+Partition.obj : error LNK2001: 无法解析的外部符号 "public: virtual unsigned int __thiscall BRepAlgoAPI_BooleanOperation::HasGenerated(void)const " (?HasGenerated@BRepAlgoAPI_BooleanOperation@@UBEIXZ)
+Partition.obj : error LNK2001: 无法解析的外部符号 "public: virtual unsigned int __thiscall BRepAlgoAPI_BooleanOperation::HasDeleted(void)const " (?HasDeleted@BRepAlgoAPI_BooleanOperation@@UBEIXZ)
+Partition.obj : error LNK2001: 无法解析的外部符号 "public: virtual void __thiscall BRepAlgoAPI_Section::Build(void)" (?Build@BRepAlgoAPI_Section@@UAEXXZ)
+C:\Users\Administrator\Desktop\StepToMcnp\Release\StepToMcnp.exe : fatal error LNK1120: 9 个无法解析的外部命令

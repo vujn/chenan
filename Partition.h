@@ -23,7 +23,6 @@ public:
 	Partition(RoseDesign* design);
 	~Partition();
 
-
 public:
 
 	void GetSFaceInfo(SetOfstp_face* stpFace);

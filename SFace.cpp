@@ -17,7 +17,6 @@ SFace::SFace()
 
 SFace::~SFace()
 {
-
 }
 
 void SFace::GenerateCoefficient()

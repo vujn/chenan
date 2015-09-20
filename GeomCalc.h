@@ -2,7 +2,6 @@
 #include <math.h>
 #include <wtypes.h>
 
-
 #define CAD_ZERO				1.0E-6
 #define NC_ZERO					1.0E-3
 #define IS_ZERO(x)				( fabs(x) <= CAD_ZERO )

@@ -26,6 +26,7 @@ public:
 	GeometryData* position_;
 	double coefficient_[10];//系数数组，二次曲面的一般方程为Ax^2+2Bxy+2Cxz+2Dx+Ey^2+2Fyz+2Gy+Hz^2+2Iz+J = 0，共10个系数
 	EdgeCurveVertex* vertex_;
+
 };
 
 ///////////////////////////////////////////////////////////////////////////

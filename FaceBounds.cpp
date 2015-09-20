@@ -10,5 +10,4 @@ FaceBounds::FaceBounds()
 
 FaceBounds::~FaceBounds()
 {
-
 }

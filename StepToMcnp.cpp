@@ -7,7 +7,6 @@
 #include <stplib_init.h>
 #include "Partition.h"
 
-
 std::string pathName;
 
 void TCharToString(TCHAR* STR, string& pathName);

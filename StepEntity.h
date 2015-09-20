@@ -89,5 +89,5 @@ private:
 	InterProcess MP2D_;				//二维求交
 	bool muticp_;					//是否复杂实体
 	LOGICAL logical_;
-	vector<stp_face_bound*> faceBound_;
+
 };
