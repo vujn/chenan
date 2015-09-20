@@ -1,11 +1,11 @@
 
 #include "stdafx.h"
 #include "InfoMatrix.h"
-#include "StepEntity.h"
 #include <commdlg.h>
 #include <shlwapi.h>
 #include <map>
 #include <stplib_init.h>
+#include "Partition.h"
 
 
 std::string pathName;
@@ -36,7 +36,7 @@ void _tmain(int argc, _TCHAR* argv[])
 	rose_compute_backptrs(design);
 	stix_tag_asms(design);
 
-	StepEntity* step = new StepEntity(design);
+	Partition* partit = new Partition(design);
 
 }
 

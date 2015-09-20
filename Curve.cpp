@@ -36,27 +36,27 @@ Geom2d_Curve * Curve::ToOCCT()
 // CIRCLE
 //////////////////////////////////////////////////////////////////////
 	
-Circle::Circle()
+CIRCLE::CIRCLE()
 {
 }
 
-Circle::~Circle()
+CIRCLE::~CIRCLE()
 {
 
 }
 
-Curve * Circle::GenerateCoefficient(CMatrix3D RTMatrix)
+Curve * CIRCLE::GenerateCoefficient(CMatrix3D RTMatrix)
 {
 	//二次曲线的一般方程为Ax^2+2Bxy+2Cx+Dy^2+2Ey+F = 0，共6个系数
 
 	CPoint3D center = position_.point * RTMatrix;
-	Circle * pCircle =  new Circle;
+	CIRCLE * pCircle =  new CIRCLE;
 	pCircle->position_.point = center;
 	pCircle->radius_ = radius_;
 	return pCircle;
 }
 
-Geom2d_Curve * Circle::ToOCCT()
+Geom2d_Curve * CIRCLE::ToOCCT()
 {
 	gp_Pnt2d Pnt1(position_.point.x,position_.point.y);
 	gp_Vec2d Vec1(1,0);
@@ -102,28 +102,27 @@ Geom2d_Curve * ELLIPSE::ToOCCT()
 	gp_Ax2d Ax2d1(Pnt1, Dir1);
 	Geom2d_Ellipse* ell = new Geom2d_Ellipse(Ax2d1, semi_axis_1_, semi_axis_2_, Standard_True);
 	return ell;
-	return NULL;
 }
 
 
 //////////////////////////////////////////////////////////////////////
 // LINE
 //////////////////////////////////////////////////////////////////////
-Line::Line()
+LINE::LINE()
 {
 }
 
-Line::~Line()
+LINE::~LINE()
 {
 
 }
 
-Curve * Line::GenerateCoefficient(CMatrix3D RTMatrix)
+Curve * LINE::GenerateCoefficient(CMatrix3D RTMatrix)
 {
 	//二次曲线的一般方程为Ax^2+2Bxy+2Cx+Dy^2+2Ey+F = 0，共6个系数
 	CPoint3D direction = CPoint3D(dir_.dx,dir_.dy,dir_.dz)*RTMatrix;
 	CPoint3D point = pnt_*RTMatrix;
-	Line * pLine = new Line;
+	LINE * pLine = new LINE;
 	pLine->pnt_ = point;
 	pLine->dir_.dx = direction.x;
 	pLine->dir_.dy = direction.y;
@@ -131,7 +130,7 @@ Curve * Line::GenerateCoefficient(CMatrix3D RTMatrix)
 	return pLine;
 }
 
-Geom2d_Curve* Line::ToOCCT()
+Geom2d_Curve* LINE::ToOCCT()
 {
 	gp_Vec2d Vec1(dir_.dx,dir_.dy);
 	gp_Dir2d Dir1(Vec1);

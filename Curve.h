@@ -4,12 +4,7 @@
 
 #pragma once
 #include "stdafx.h"
-#include "GeomCalc.h"
 #include <string>
-#include "Geom2d_Curve.hxx"
-#include "Geom2d_Line.hxx"
-#include "Geom2d_Circle.hxx"
-#include "gp_Ax2d.hxx"
 #include "Structure.h"
 
 ////////////////////////////////////////////////////////////////////////
@@ -33,11 +28,11 @@ public:
 
 
 ////////////////////////////////////////////////////////////////////////
-class Circle :public Curve
+class CIRCLE :public Curve
 {
 public:
-	Circle();
-	virtual ~Circle();
+	CIRCLE();
+	virtual ~CIRCLE();
 	Curve * GenerateCoefficient(CMatrix3D RTMatrix);
 	Geom2d_Curve * ToOCCT();
 
@@ -63,11 +58,11 @@ public:
 
 
 ////////////////////////////////////////////////////////////////////////
-class Line : public Curve
+class LINE : public Curve
 {
 public:
-	Line();
-	virtual ~Line();
+	LINE();
+	virtual ~LINE();
 	Curve * GenerateCoefficient(CMatrix3D RTMatrix);
 	Geom2d_Curve * ToOCCT();
 public:

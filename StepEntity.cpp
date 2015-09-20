@@ -3,74 +3,15 @@
 #include "GeomCalc.h"
 #include "CURVE.h"
 
-StepEntity::StepEntity(RoseDesign* design)
-	:design_(design)
+StepEntity::StepEntity(vector<SFace*> natlHalfSpaceList)
+	:NatlHalfSpaceList_(natlHalfSpaceList)
 {
-	StepConversionAndOutput();
+
 }
 
 StepEntity::~StepEntity(void)
 {
-	vector<string>().swap(vecOut_);
-}
-
- void StepEntity::StepConversionAndOutput()
-{
-	RoseCursor objects;
-	RoseObject* obj;
-	objects.traverse (design_);
-	objects.domain(ROSE_DOMAIN(stp_advanced_brep_shape_representation));
-	int m = 1;
-	int n = 1;
-	while(obj = objects.next())
-	{
-		stp_advanced_brep_shape_representation* pt = ROSE_CAST(stp_advanced_brep_shape_representation, obj);
-		SetOfstp_representation_item* items = pt->items();
-		stp_representation_context* item = pt->context_of_items();
-		for (size_t i = 0; i < items->size(); i++)
-		{
-			stp_representation_item* it = items->get(i);
-			if (!strcmp("axis2_placement_3d", it->className()))
-				stp_axis2_placement_3d *axis = ROSE_CAST(stp_axis2_placement_3d , it);
-			if (!strcmp("manifold_solid_brep", it->className()))
-			{
-				stp_manifold_solid_brep* solidBrep = ROSE_CAST(stp_manifold_solid_brep, it);
-				stp_closed_shell* shell = solidBrep->outer();
-				SetOfstp_face* face = shell->cfs_faces();
-				GenerateHalfSpaceList(face);
-				GenerateCIT();
-				GenerateHalfCharacteristicPoint();
-				PMCtest(face);
-				Output(&m, &n, "", vecOut_, false, false, false, false);
-			}
-			if(!strcmp("brep_with_voids", it->className()))
-			{
-				stp_brep_with_voids* voidsBrep = ROSE_CAST(stp_brep_with_voids, it);
-				stp_closed_shell* shell = voidsBrep->outer();
-				SetOfstp_face* face = shell->cfs_faces();
-				GenerateHalfSpaceList(face);
-				GenerateCIT();
-				GenerateHalfCharacteristicPoint();
-				PMCtest(face);
-				Output(&m, &n, "", vecOut_, true, true, true, false);
-				SetOfstp_oriented_closed_shell* orientedShell = voidsBrep->voids();
-				for(size_t i = 0; i < orientedShell->size(); i++)
-				{
-					stp_oriented_closed_shell* oriClosedShell = orientedShell->get(i);
-					stp_closed_shell* closeShell = oriClosedShell->closed_shell_element();
-					SetOfstp_face* face = closeShell->cfs_faces();
-					GenerateHalfSpaceList(face);
-					GenerateCIT();
-					GenerateHalfCharacteristicPoint();
-					PMCtest(face);
-					if(oriClosedShell->orientation())
-						Output(&m, &n, "", vecOut_, true, true, false,(i == oriClosedShell->size() - 1));
-					else
-						Output(&m, &n, "", vecOut_, true, false, false, (i == oriClosedShell->size() - 1));
-				}
-			}					
-		}
-	}
+	
 }
 
 void StepEntity::GenerateCIT()
@@ -520,7 +461,7 @@ void StepEntity::GenerateOffsetHalfSpaceList()
 	}
 }
 
-void StepEntity::PMCtest(SetOfstp_face* face)
+void StepEntity::PMCtest()
 {
 	bool isTangency = false;
 	bool isOnBound = false;
@@ -799,51 +740,39 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 	vecOut.push_back(str2);
 }
 
-ConvexConcave StepEntity::MakeBoundFace(ListOfstp_oriented_edge* oriList)
+ConvexConcave StepEntity::MakeBoundFace(vector<Curve*> edgeLoop_)
 {
 	vector<CPoint3D> boundPtarray;
 	vector<CTriChip*> triList;
 
-	for(size_t j = 0; j < oriList->size(); j++)
+	for(auto j = edgeLoop_.begin(); j != edgeLoop_.end(); j++)
 	{
-		stp_oriented_edge* oriEdge = oriList->get(j);
-		stp_edge* edge = oriEdge->edge_element();
-		stp_edge_curve* curve = ROSE_CAST(stp_edge_curve, edge);
-
-		RoseAggregate * return_values = new RoseAggregate;
-		curve->usedin(0, 0, return_values);//查找edge_curve被调用的次数
-		if(return_values->size() > 1)
-			printf("test");
-
-		stp_cartesian_point* eStart = EdgeCurveStartOrEnd(curve->edge_start());
-		stp_cartesian_point* eEnd = EdgeCurveStartOrEnd(curve->edge_end());
-		stp_curve* pcurve = curve->edge_geometry();//line , circle , surface_curve
-		ORIENTATION ori;
-		ori.orientedEdgeOri = oriEdge->orientation();//oriented_dege orientation
-		ori.edgeCurveOri = curve->same_sense();//edge_curve orientation
-		if(!strcmp("circle", pcurve->className()))
-			CircleInfo(pcurve, ori, eStart, eEnd);
-		if(!strcmp("ellipse", pcurve->className()))
-			EllipseInfo(pcurve, ori, eStart, eEnd);
-		if(!strcmp("surface_curve", pcurve->className()))
-			SurfaceCurveInfo(pcurve, eStart, eEnd);
-		// 	if (!strcmp(("b_spline_curve_with_knots"), pcurve->className()))
-		// 		BSplineCurveWithKnotsInfo(pcurve, eStart, eEnd);
+		ORIENTATION ori; 
+		ori.orientedEdgeOri = (*j)->orientedEdgeOri_;//oriented_dege orientation
+		ori.edgeCurveOri = (*j)->edgeCurvesameSense_;//edge_curve orientation
+		if(!strcmp("circle", (*j)->curveName_))
+			CircleInfo((CIRCLE*)(*j), ori, (*j)->edgeStart_, (*j)->edgeEnd_);
+		if (!strcmp("ellipse", (*j)->curveName_))
+			EllipseInfo((ELLIPSE*)(*j), ori, (*j)->edgeStart_, (*j)->edgeEnd_);
+// 		if (!strcmp("surface_curve"(*j)->curveName_))
+// 			SurfaceCurveInfo(pcurve, (*j)->edgeStart_, (*j)->edgeEnd_);
+// 			if (!strcmp(("b_spline_curve_with_knots"), pcurve->className()))
+// 				 		BSplineCurveWithKnotsInfo(pcurve, eStart, eEnd);
 		if(ori.orientedEdgeOri == ori.edgeCurveOri)
 		{
 			if(0 == boundPtarray.size())
 			{
-				boundPtarray.push_back(GetPoint(eStart));
+				boundPtarray.push_back((*j)->edgeStart_);
 			}
-			boundPtarray.push_back(GetPoint(eEnd));
+			boundPtarray.push_back((*j)->edgeEnd_);
 		}
 		else
 		{
 			if(0 == boundPtarray.size())
 			{
-				boundPtarray.push_back(GetPoint(eEnd));
+				boundPtarray.push_back((*j)->edgeEnd_);
 			}
-			boundPtarray.push_back(GetPoint(eStart));
+			boundPtarray.push_back((*j)->edgeStart_);
 		}
 	}
 	
@@ -889,39 +818,23 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 		testPoint = testPoint*rotateMatrix;
 		CVector3D dir(0, 0, 0);
 	reset:dir.dx++;
-		Line* pRay2d = new Line;
+		LINE* pRay2d = new LINE;
 		pRay2d->pnt_ = testPoint;
 		pRay2d->dir_ = dir;
 		intersetedNum = 0;
-		for(size_t i = 0; i < faceBound_.size(); i++)
+		for (auto i = face->faceBounds_.begin(); i != face->faceBounds_.end(); i++)
 		{
-			stp_loop* ploop = faceBound_[i]->bound();
-			stp_edge_loop* edgeLoop = ROSE_CAST(stp_edge_loop, ploop);
-			ListOfstp_oriented_edge* oriList = edgeLoop->edge_list();
-			for(size_t j = 0; j < oriList->size(); j++)
+			for (auto j = (*i)->edgeLoop_.begin(); j < (*i)->edgeLoop_.end(); j++)
 			{
 				CPoint3D pPoint3D1 = face->vertex_->cartesianStart;
 				CPoint3D pPoint3D2 = face->vertex_->cartesianEnd;
-				stp_oriented_edge* oriEdge = oriList->get(j);
-				stp_edge* edge = oriEdge->edge_element();
-				stp_edge_curve* curve = ROSE_CAST(stp_edge_curve, edge);
+
 				ORIENTATION ori;
-				ori.orientedEdgeOri = oriEdge->orientation();
-				ori.edgeCurveOri = curve->same_sense();
-				stp_curve* pcurve = curve->edge_geometry();//line , circle , surface_curve
-				if (!strcmp(pcurve->className(), "line"))
+				ori.orientedEdgeOri = (*j)->orientedEdgeOri_;
+				ori.edgeCurveOri = (*j)->edgeCurvesameSense_;
+				if (!strcmp((*j)->curveName_, "line"))
 				{
-					Line* pLine1 = new Line;
-					stp_line* line = ROSE_CAST(stp_line, pcurve);
-					pLine1->pnt_.x = line->pnt()->coordinates()->get(0);
-					pLine1->pnt_.y = line->pnt()->coordinates()->get(1);
-					pLine1->pnt_.z = line->pnt()->coordinates()->get(2);
-					stp_vector* vect1 = line->dir();
-					stp_direction* direct1 = vect1->orientation();
-					pLine1->magnitude_ = vect1->magnitude();
-					pLine1->dir_.dx = direct1->direction_ratios()->get(0);
-					pLine1->dir_.dy = direct1->direction_ratios()->get(1);
-					pLine1->dir_.dz = direct1->direction_ratios()->get(2);
+					LINE* pLine1 = ((LINE*)(*j)); 
 					mP.SetInterPointList(pLine1->GenerateCoefficient(rotateMatrix), pRay2d);
 
 					for(size_t k = 0; k < mP.interPointList_.size(); k++)
@@ -944,15 +857,10 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 							intersetedNum++;
 					}
 				}
-				else if ( !strcmp(pcurve->className(), "circle") )
+				else if (!strcmp((*j)->curveName_, "circle"))
 				{
 					bool isTangency = false;
-					Circle* pCircle = new Circle;
-					stp_circle* circle = ROSE_CAST(stp_circle, pcurve);
-					pCircle->radius_ = circle->radius();
-					GeometryData tempGepmetry;
-					GetAxisData(circle->position()->_axis2_placement_3d(), tempGepmetry);
-					pCircle->position_ = tempGepmetry;
+					CIRCLE* pCircle = ((CIRCLE*)(*j));
 					mP.SetInterPointList(pCircle->GenerateCoefficient(rotateMatrix), pRay2d);
 					if (mP.interPointList_.size() == 1)
 						isTangency = true;
@@ -996,16 +904,10 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 						}
 					}
 				}
-				else if (!strcmp(pcurve->className(), "ellipse"))
+				else if ((*j)->curveName_, "ellipse")
 				{
 					bool isTangency = false;
-					ELLIPSE* pEll = new ELLIPSE;
-					stp_ellipse* ellipse = ROSE_CAST(stp_ellipse, pcurve);
-					GeometryData tempGepmetry;
-					GetAxisData(ellipse->position()->_axis2_placement_3d(), tempGepmetry);
-					pEll->position_ = tempGepmetry;
-					pEll->semi_axis_1_ = ellipse->semi_axis_1();
-					pEll->semi_axis_2_ = ellipse->semi_axis_2();
+					ELLIPSE* pEll = ((ELLIPSE*)(*j));
 					mP.SetInterPointList(pEll->GenerateCoefficient(rotateMatrix), pRay2d);
 					if(mP.interPointList_.size() == 1)
 						isTangency = true;
@@ -1049,7 +951,7 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 						}
 					}
 				}
-				else if(!strcmp(pcurve->className(), "b_spline_curve_with_knots"))
+				else if(!strcmp((*j)->curveName_, "b_spline_curve_with_knots"))
 				{
 // 					CurveBSpline spline;
 // 					stp_b_spline_curve_with_knots* bSpline =
@@ -1079,17 +981,14 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 	{
 		int pIsInBoundTotal = 1;
 		int pIsInBound;
-		for(size_t i = 0; i < faceBound_.size(); i++)
+		for(size_t i = 0; i < face->faceBounds_.size(); i++)
 		{
 			//如果是VERTEX_LOOP，不判断
 			if (!strcmp(faceBound_[i]->bound()->className(), "vertex_loop") )
 				continue;
-			stp_loop* ploop = faceBound_[i]->bound();
-			stp_edge_loop* edgeLoop = ROSE_CAST(stp_edge_loop, ploop);
-			ListOfstp_oriented_edge* oriList = edgeLoop->edge_list();
 			CPoint3D pPoint3D1 = face->vertex_->cartesianStart;
 			CPoint3D pPoint3D2 = face->vertex_->cartesianEnd;
-			ConvexConcave cc = MakeBoundFace(oriList);
+			ConvexConcave cc = MakeBoundFace(face->faceBounds_[i]->edgeLoop_);
 			if (cc == 0) //凸凹实体
 			{
 				printf("实体凸凹性不一致，暂不能处理！");
@@ -1479,45 +1378,39 @@ void StepEntity::UniqueHalfSpaceList()
 	}
 }
 
-stp_cartesian_point* StepEntity::EdgeCurveStartOrEnd(stp_vertex* ver)
-{
-	stp_vertex_point * vpt = ROSE_CAST(stp_vertex_point, ver);
-	return ROSE_CAST(stp_cartesian_point, vpt->vertex_geometry());
-}
+// void StepEntity::StpDefRepresentationInfo(stp_definitional_representation* def )
+// {
+// 	SetOfstp_representation_item* items1 =  def->items();
+// 	for(size_t i  = 0; i<items1->size(); i++ )
+// 	{
+// 		stp_representation_item* it = items1->get(i);
+// 		stp_b_spline_curve_with_knots* pbSpline = ROSE_CAST(stp_b_spline_curve_with_knots, it);
+// 		ListOfstp_cartesian_point* pList = pbSpline->control_points_list();
+// 	}
+// }
 
-void StepEntity::StpDefRepresentationInfo(stp_definitional_representation* def )
-{
-	SetOfstp_representation_item* items1 =  def->items();
-	for(size_t i  = 0; i<items1->size(); i++ )
-	{
-		stp_representation_item* it = items1->get(i);
-		stp_b_spline_curve_with_knots* pbSpline = ROSE_CAST(stp_b_spline_curve_with_knots, it);
-		ListOfstp_cartesian_point* pList = pbSpline->control_points_list();
-	}
-}
+// void StepEntity::ListOfPcurveOrSurfaceInfo( ListOfstp_pcurve_or_surface* pList )
+// {
+// 	for (size_t i = 0; i < pList->size(); i++ )//pcurve
+// 	{
+// 		stp_pcurve_or_surface* pOrs = pList->get(i);
+// 		stp_surface * sss = pOrs->_surface();
+// 		stp_pcurve* pCurve = ROSE_CAST(stp_pcurve, sss);
+// 		stp_surface* surf = pCurve-> basis_surface();
+// 		stp_plane* plane = ROSE_CAST(stp_plane, surf);
+// 		StpDefRepresentationInfo(pCurve->reference_to_curve());
+// 	}
+// }
 
-void StepEntity::ListOfPcurveOrSurfaceInfo( ListOfstp_pcurve_or_surface* pList )
-{
-	for (size_t i = 0; i < pList->size(); i++ )//pcurve
-	{
-		stp_pcurve_or_surface* pOrs = pList->get(i);
-		stp_surface * sss = pOrs->_surface();
-		stp_pcurve* pCurve = ROSE_CAST(stp_pcurve, sss);
-		stp_surface* surf = pCurve-> basis_surface();
-		stp_plane* plane = ROSE_CAST(stp_plane, surf);
-		StpDefRepresentationInfo(pCurve->reference_to_curve());
-	}
-}
-
-void StepEntity::LineInfo(stp_curve* cur)
-{
-	stp_line* line = ROSE_CAST(stp_line, cur);
-	stp_cartesian_point* carPoint = line->pnt();
-	stp_vector* vect1 = line->dir();
-	stp_direction* direct1 = vect1->orientation();
-	double vectDouble1 = vect1->magnitude();
-	ListOfdouble* dou = direct1->direction_ratios();
-}
+// void StepEntity::LineInfo(stp_curve* cur)
+// {
+// 	stp_line* line = ROSE_CAST(stp_line, cur);
+// 	stp_cartesian_point* carPoint = line->pnt();
+// 	stp_vector* vect1 = line->dir();
+// 	stp_direction* direct1 = vect1->orientation();
+// 	double vectDouble1 = vect1->magnitude();
+// 	ListOfdouble* dou = direct1->direction_ratios();
+// }
 
 // void StepEntity::BSplineCurveWithKnotsInfo(stp_curve* cur, stp_cartesian_point* eStart, stp_cartesian_point* eEnd)
 // {
@@ -1533,197 +1426,59 @@ void StepEntity::LineInfo(stp_curve* cur)
 // 	/////////////////////////////////
 // }
 
-void StepEntity::SaveAxisVertex(stp_axis2_placement* axis2, ORIENTATION ori, CVector3D& cVector)
+void StepEntity::SaveAxisVertex(GeometryData axis2, ORIENTATION ori, CVector3D& cVector)
 {
-	if (axis2->is_axis2_placement_3d())
+	double dir0 = axis2.verAxis.dx;
+	double dir1 = axis2.verAxis.dy;
+	double dir2 = axis2.verAxis.dz;
+	if (ori.edgeCurveOri != ori.orientedEdgeOri)
 	{
-		stp_axis2_placement_3d * axis3D = axis2->_axis2_placement_3d();
-		ListOfdouble* direction = axis3D->axis()->direction_ratios();
-		if (ori.edgeCurveOri != ori.orientedEdgeOri)
-		{
-			double dir0 = direction->get(0);
-			double dir1 = direction->get(1);
-			double dir2 = direction->get(2);
-			dir0 *= -1;
-			dir1 *= -1;
-			dir2 *= -1;
-			CVector3D cV(dir0, dir1, dir2);
-			cVector = cV;
-		}
-		else
-		{
-			CVector3D cV(direction->get(0), direction->get(1), direction->get(2));
-			cVector = cV;
-		}
+		dir0 *= -1;
+		dir1 *= -1;
+		dir2 *= -1;
+		CVector3D cV(dir0, dir1, dir2);
+		cVector = cV;
+	}
+	else
+	{
+		CVector3D cV(dir0, dir1, dir2);
+		cVector = cV;
 	}
 }
 
-void StepEntity::CircleInfo( stp_curve* cur, ORIENTATION ori,stp_cartesian_point* eStart, stp_cartesian_point* eEnd )
+void StepEntity::CircleInfo(CIRCLE* cir, ORIENTATION ori, CPoint3D eStart, CPoint3D eEnd)
 {
 	EdgeCurveVertex* tempAxis = new EdgeCurveVertex;
-	stp_circle* cir = ROSE_CAST(stp_circle, cur);
-	tempAxis->cartesianStart = GetPoint(eStart);
-	tempAxis->cartesianEnd = GetPoint(eEnd);
+	tempAxis->cartesianStart = eStart;
+	tempAxis->cartesianEnd = eEnd;
 	CVector3D cv;
-	SaveAxisVertex(cir->position(), ori, cv);
+	SaveAxisVertex(cir->position_, ori, cv);
 	tempAxis->axisDirection = cv;
 	axisVertex_.push_back( tempAxis );
 }
 
-void StepEntity::EllipseInfo(stp_curve* cur, ORIENTATION ori,
-	stp_cartesian_point* eStart, stp_cartesian_point* eEnd)
+void StepEntity::EllipseInfo(ELLIPSE* cur, ORIENTATION ori,
+	CPoint3D eStart, CPoint3D eEnd)
 {
 	EdgeCurveVertex* tempAxis = new EdgeCurveVertex;
-	stp_ellipse * cir = ROSE_CAST(stp_ellipse, cur);
-	tempAxis->cartesianStart = GetPoint(eStart);
-	tempAxis->cartesianEnd = GetPoint(eEnd);
+	tempAxis->cartesianStart = eStart;
+	tempAxis->cartesianEnd = eEnd;
 	CVector3D cv;
-	SaveAxisVertex(cir->position(), ori, cv);
+	SaveAxisVertex(cur->position_, ori, cv);
 	tempAxis->axisDirection = cv;
 	axisVertex_.push_back(tempAxis);
 }
 
-void StepEntity::SurfaceCurveInfo(stp_curve* cur, stp_cartesian_point*eStart, stp_cartesian_point* eEnd)
-{
-//1.line     2. pcurve
-	stp_surface_curve* pSur = ROSE_CAST(stp_surface_curve, cur);
-	stp_curve* curve = pSur->curve_3d();
-	LineInfo(curve);//line
-	ListOfPcurveOrSurfaceInfo(pSur->associated_geometry());
-}
+// void StepEntity::SurfaceCurveInfo(stp_curve* cur, stp_cartesian_point*eStart, stp_cartesian_point* eEnd)
+// {
+// //1.line     2. pcurve
+// 	stp_surface_curve* pSur = ROSE_CAST(stp_surface_curve, cur);
+// 	stp_curve* curve = pSur->curve_3d();
+// 	LineInfo(curve);//line
+// 	ListOfPcurveOrSurfaceInfo(pSur->associated_geometry());
+// }
 
-void StepEntity::NatlHalfVector(stp_advanced_face* adFace)
-{
-	char* entityName = adFace->face_geometry()->className();
-
-	/*! get bounds to vector<FaceBounds*> faceBounds_ */
-	vector<FaceBounds*> faceBounds;
-	SetOfstp_face_bound* bounds = adFace->bounds();
-	for(size_t i = 0; i < bounds->size(); i++)
-	{
-		vector<Curve*> curveTemp;
-		FaceBounds* faceB = new FaceBounds;
-
-		stp_face_bound* bound = bounds->get(i);
-		stp_edge_loop* edgeLoop = ROSE_CAST(stp_edge_loop, bound->bound());
-		ListOfstp_oriented_edge* oriList = edgeLoop->edge_list();
-
-		for(size_t j = 0; j < oriList->size(); j++)
-		{
-			GeometryData tempGepmetry;
-			Curve* cur = new Curve;
-			stp_oriented_edge* oriEdge = oriList->get(j);
-			stp_edge_curve* curve = ROSE_CAST(stp_edge_curve, oriEdge->edge_element());
-			stp_curve* pcurve = curve->edge_geometry();//line, circle,ellipse,surface_curve
-			if( !strcmp(pcurve->className(), "circle") )
-			{
-				stp_circle* cir = ROSE_CAST(stp_circle, pcurve);
-				GetAxisData(cir->position()->_axis2_placement_3d(), tempGepmetry);
-				((Circle*)cur)->position_ = tempGepmetry;
-				((Circle*)cur)->radius_ = cir->radius();
-			}
-			if(!strcmp(pcurve->className(), "ellipse"))
-			{
-				stp_ellipse* ell = ROSE_CAST(stp_ellipse, pcurve);
-				GetAxisData(ell->position()->_axis2_placement_3d(), tempGepmetry);
-				((ELLIPSE*)cur)->position_ = tempGepmetry;
-				((ELLIPSE*)cur)->semi_axis_1_ = ell->semi_axis_1();
-				((ELLIPSE*)cur)->semi_axis_2_ = ell->semi_axis_2();
-			}
-			
-			cur->curveName_ = pcurve->className();
-			stp_cartesian_point* eStart = EdgeCurveStartOrEnd(curve->edge_start());
-			stp_cartesian_point* eEnd = EdgeCurveStartOrEnd(curve->edge_end());
-			CPoint3D start(eStart->coordinates()->get(0), eStart->coordinates()->get(1), eStart->coordinates()->get(2));
-			CPoint3D end(eEnd->coordinates()->get(0), eEnd->coordinates()->get(1), eEnd->coordinates()->get(2));
-			cur->edgeStart_ = start;
-			cur->edgeEnd_ = end;
-			cur->edgeCurvesameSense_ = curve->same_sense();
-			cur->orientedEdgeOri_ = oriEdge->orientation();
-			curveTemp.push_back(cur);
-		}
-		faceB->edgeLoop_ = curveTemp;
-		faceB->boundsOri_ = bound->orientation();
-		faceBounds.push_back(faceB);
-		vector<Curve*>().swap(curveTemp);
-	}
-
-	if (!strcmp(entityName, "plane"))
-	{
-		SPlane* surface = new SPlane;
-		stp_plane* plane = ROSE_CAST(stp_plane, adFace->face_geometry());
-		stp_axis2_placement_3d* axis = plane->position();
-		GeometryData* data = new GeometryData;
-		GetAxisData(axis, *data);
-		surface->entityID_ = adFace->entity_id();
-		surface->name_ = entityName;
-		surface->position_ = data;
-		surface->faceBounds_ = faceBounds;
-		NatlHalfSpaceList_.push_back(surface);
-	}
-	else if (!strcmp(entityName, "spherical_surface"))
-	{
-		SSpherical* surface = new SSpherical;
-		stp_spherical_surface* spherical = ROSE_CAST(stp_spherical_surface, adFace->face_geometry());
-		stp_axis2_placement_3d* axis3D = spherical->position();
-		GeometryData* data = new GeometryData;
-		GetAxisData(axis3D, *data);
-		surface->entityID_ = adFace->entity_id();
-		surface->name_ = entityName;
-		surface->radius_ = spherical->radius() / ZOOMTIME;
-		surface->position_ = data;
-		surface->faceBounds_ = faceBounds;
-		NatlHalfSpaceList_.push_back(surface);
-
-	}
-	else if (!strcmp(entityName, "conical_surface"))
-	{
-		SConical* surface = new SConical;
-		stp_conical_surface* conical = ROSE_CAST(stp_conical_surface, adFace->face_geometry());
-		stp_axis2_placement_3d* axis3D = conical->position();
-		GeometryData* data = new GeometryData;
-		GetAxisData(axis3D, *data);
-		surface->entityID_ = adFace->entity_id();
-		surface->name_ = entityName;
-		surface->radius_ = conical->radius();
-		surface->semi_angle_ = conical->semi_angle()/ZOOMTIME;
-		surface->position_ = data;
-		surface->faceBounds_ = faceBounds;
-		NatlHalfSpaceList_.push_back(surface);
-	}
-	else if (!strcmp(entityName, "cylindrical_surface"))
-	{
-		SCylindrical* surface = new SCylindrical;
-		stp_cylindrical_surface* cylindrical = ROSE_CAST(stp_cylindrical_surface, adFace->face_geometry());
-		stp_axis2_placement_3d* axis3D = cylindrical->position();
-		GeometryData* data = new GeometryData;
-		GetAxisData(axis3D, *data);
-		surface->entityID_ = adFace->entity_id();
-		surface->name_ = entityName;
-		surface->radius_ = cylindrical->radius() / ZOOMTIME;
-		surface->position_ = data;
-		surface->faceBounds_ = faceBounds;
-		NatlHalfSpaceList_.push_back(surface);
-	}
-	else if (!strcmp(entityName, "toroidal_surface"))
-	{
-		SToroidal* surface = new SToroidal;
-		stp_toroidal_surface* toroidal = ROSE_CAST(stp_toroidal_surface, adFace->face_geometry());
-		stp_axis2_placement_3d* axis3D = toroidal->position();
-		GeometryData* data = new GeometryData;
-		GetAxisData(axis3D, *data);
-		surface->entityID_ = adFace->entity_id();
-		surface->name_ = entityName;
-		surface->major_radius_ = toroidal->major_radius();
-		surface->minor_radius_ = toroidal->minor_radius();
-		surface->position_ = data;
-		surface->faceBounds_ = faceBounds;
-		NatlHalfSpaceList_.push_back(surface);
-	}
-	vector<FaceBounds*>().swap(faceBounds);
-}
-
-void StepEntity::GenerateHalfSpaceList(SetOfstp_face* stpFace)
+void StepEntity::GenerateHalfSpaceList()
 {
 	bool isGen[1280];
 	memset(isGen, true, sizeof(isGen));
@@ -1731,12 +1486,6 @@ void StepEntity::GenerateHalfSpaceList(SetOfstp_face* stpFace)
 	vector<SFace*>().swap(NatlHalfSpaceList_);
 	vector<SFace*>().swap(CSGHalfSpaceList_);
 	vector<SFace*>().swap(HalfSpaceList_);
-	for(size_t i = 0; i < stpFace->size(); i++)
-	{
-		stp_face* face = stpFace->get(i);
-		stp_advanced_face* adFace = ROSE_CAST(stp_advanced_face, face);
-		NatlHalfVector(adFace);
-	}
 
 	for(size_t i = 0; i < NatlHalfSpaceList_.size(); i++)
 	{
@@ -1769,24 +1518,14 @@ void StepEntity::GenerateHalfSpaceList(SetOfstp_face* stpFace)
 
 void StepEntity::GenerateSepHalfspace(SFace* face)
 {
-	vector<stp_face_bound*>().swap(faceBound_);
 	if(!strcmp("plane", face->name_)) //如果是平面，不生成分割半空间，直接返回
 		return;
-	RoseObject * obj = design_->findByEntityId(face->entityID_);
-	stp_advanced_face* adFace = ROSE_CAST(stp_advanced_face, obj);
-	RoseBoolean sameSenseFace = adFace->same_sense();//advanced_face orientation
-	SetOfstp_face_bound * bounds = adFace->bounds();
-	for(size_t i = 0; i < bounds->size(); i++)
+	RoseBoolean sameSenseFace = face->adFaceSameSense_;
+	for(auto iter = face->faceBounds_.begin(); iter != face->faceBounds_.end(); iter++)
 	{
-		stp_face_bound* bound = bounds->get(i);
-		RoseBoolean sameSenseBound = bound->orientation();//face_outer_bound orientation
-		faceBound_.push_back(bound);
-		stp_loop* ploop = bound->bound();
-		stp_edge_loop* edgeLoop = ROSE_CAST(stp_edge_loop, ploop);
+		RoseBoolean sameSenseBound = (*iter)->boundsOri_;//face_outer_bound orientation
 
-		ListOfstp_oriented_edge* oriList = edgeLoop->edge_list();
-
-		MakeBoundFace(oriList);
+		MakeBoundFace((*iter)->edgeLoop_);
 		
 		for(size_t k = 0; k < axisVertex_.size(); k++)
 		{
@@ -1795,25 +1534,6 @@ void StepEntity::GenerateSepHalfspace(SFace* face)
 			SepHalfspacePlacementList_.push_back(ent);
 		}
 	}
-}
-
-void StepEntity::GetAxisData(stp_axis2_placement_3d* axis, GeometryData& data)
-{
-	CVector3D cV1(axis->axis()->direction_ratios()->get(0),axis->axis()->direction_ratios()->get(1),axis->axis()->direction_ratios()->get(2));
-	if(axis->ref_direction())
-	{
-		CVector3D cV2(axis->ref_direction()->direction_ratios()->get(0), axis->ref_direction()->direction_ratios()->get(1), axis->ref_direction()->direction_ratios()->get(2));
-		data.verRefDirection = cV2;
-	}
-	else
-	{
-		CVector3D cV2(0.0, 0.0, 0.0);
-		data.verRefDirection = cV2;
-	}
-	CPoint3D cP(axis->location()->coordinates()->get(0),axis->location()->coordinates()->get(1),axis->location()->coordinates()->get(2));
-	cP /= ZOOMTIME;
-	data.verAxis = cV1;
-	data.point = cP;
 }
 
 void StepEntity::SetSurfaceIntersectPoints(SFace* Surf1, SFace* Surf2, SFace* Surf3)

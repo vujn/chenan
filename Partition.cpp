@@ -7,13 +7,13 @@
 Partition::Partition(RoseDesign* design)
 	:design_(design)
 {
-
+	StepConversionAndOutput();
 }
 
 
 Partition::~Partition()
 {
-
+	vector<string>().swap(vecOut_);
 }
 
 void Partition::StepConversionAndOutput()
@@ -22,6 +22,8 @@ void Partition::StepConversionAndOutput()
 	RoseObject* obj;
 	objects.traverse(design_);
 	objects.domain(ROSE_DOMAIN(stp_advanced_brep_shape_representation));
+	int m = 1;
+	int n = 1;
 	while(obj = objects.next())
 	{
 		stp_advanced_brep_shape_representation* pt = ROSE_CAST(stp_advanced_brep_shape_representation, obj);
@@ -37,18 +39,28 @@ void Partition::StepConversionAndOutput()
 				stp_manifold_solid_brep* solidBrep = ROSE_CAST(stp_manifold_solid_brep, it);
 				stp_closed_shell* shell = solidBrep->outer();
 				SetOfstp_face* face = shell->cfs_faces();
-				/*
-					StepEntity class 
-				*/
+				GetSFaceInfo(face);
+
+				StepEntity* step = new StepEntity(intersectionFaceList_);
+				step->GenerateHalfSpaceList();
+				step->GenerateCIT();
+				step->GenerateHalfCharacteristicPoint();
+				step->PMCtest();
+				step->Output(&m, &n, "", vecOut_, false, false, false, false);
 			}
 			if(!strcmp("brep_with_voids", it->className()))
 			{
 				stp_brep_with_voids* voidsBrep = ROSE_CAST(stp_brep_with_voids, it);
 				stp_closed_shell* shell = voidsBrep->outer();
 				SetOfstp_face* face = shell->cfs_faces();
-				/* 
-					StepEntity class
-				*/
+				GetSFaceInfo(face);
+
+				StepEntity* step = new StepEntity(intersectionFaceList_);
+				step->GenerateHalfSpaceList();
+				step->GenerateCIT();
+				step->GenerateHalfCharacteristicPoint();
+				step->PMCtest();
+				step->Output(&m, &n, "", vecOut_, false, false, false, false);
 
  				SetOfstp_oriented_closed_shell* orientedShell = voidsBrep->voids();
 				for(size_t i = 0; i < orientedShell->size(); i++)
@@ -56,34 +68,39 @@ void Partition::StepConversionAndOutput()
 					stp_oriented_closed_shell* oriClosedShell = orientedShell->get(i);
 					stp_closed_shell* closeShell = oriClosedShell->closed_shell_element();
 					SetOfstp_face* face = closeShell->cfs_faces();
-					/*
-						StepEntity class
-					*/
+					GetSFaceInfo(face);
+
+					StepEntity* step = new StepEntity(intersectionFaceList_);
+					step->GenerateHalfSpaceList();
+					step->GenerateCIT();
+					step->GenerateHalfCharacteristicPoint();
+					step->PMCtest();
+					step->Output(&m, &n, "", vecOut_, false, false, false, false);
 				}
 			}
 		}
 	}
 }
 
-void Partition::PartitionFace(stp_closed_shell* closeShell)
+void Partition::GetSFaceInfo(SetOfstp_face* stpFace)
 {
-	SetOfstp_face* stpFace = closeShell->cfs_faces();
 	for(size_t i = 0; i < stpFace->size(); i++)
 	{
 		stp_face* face = stpFace->get(i);
 		stp_advanced_face* adFace = ROSE_CAST(stp_advanced_face, face);
-		NatlHalfVector(adFace);// 保存每个面结构的信息 faceInfors_;
+		NatlHalfVector(adFace);
 	}
-	IsPartitionFace();
 }
 
-void Partition::IsPartitionFace()
+void Partition::PartitionFace()
 {
 	for(auto iter = 0; iter < NatlHalfSpaceList_.size(); iter++)
 	{
 		FindPartitionFace(NatlHalfSpaceList_[iter], NatlHalfSpaceList_[iter + 1]);
 	}
-	OcctSplit();
+	SFace* partFace = ChoosePartitionFace();
+	if (partFace != nullptr)
+		OcctSplit();
 }
 
 
@@ -122,6 +139,39 @@ SFace* Partition::ChoosePartitionFace()
 		}
 	}
 	return partFace;
+}
+
+
+void Partition::CurrentStructToOCCT(TopoDS_Shape& aShape, SFace* face)
+{
+
+}
+
+
+void Partition::OcctToCurrentStruct(TopoDS_Shape& aShape)
+{
+	TopoDS_Face aFace;
+	TopoDS_Wire aWire;
+	TopoDS_Edge aEdge;
+	TopoDS_Vertex aVertex;
+	TopExp_Explorer Exp_Edge, Exp_Wire, Exp_Face, Exp_Vertex;
+	for (Exp_Face.Init(aShape, TopAbs_FACE); Exp_Face.More(); Exp_Face.Next())
+	{
+		aFace = TopoDS::Face(Exp_Face.Current());
+		for (Exp_Wire.Init(aFace, TopAbs_WIRE); Exp_Wire.More(); Exp_Wire.Next())
+		{
+			aWire = TopoDS::Wire(Exp_Wire.Current());
+			for (Exp_Edge.Init(aWire, TopAbs_EDGE); Exp_Edge.More(); Exp_Edge.Next())
+			{
+				aEdge = TopoDS::Edge(Exp_Edge.Current());
+				for (Exp_Vertex.Init(aEdge, TopAbs_VERTEX); Exp_Vertex.More(); Exp_Vertex.Next())
+				{
+					aVertex = TopoDS::Vertex(Exp_Vertex.Current());
+					gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
+				}
+			}
+		}
+	}
 }
 
 bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orientationFaceA oriA,
@@ -251,7 +301,7 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 					curveA.cartesianEnd = (*ia)->edgeEnd_;
 					curveA.cartesianStart = (*jb)->edgeStart_;
 					curveA.cartesianEnd = (*jb)->edgeEnd_;
-					CPoint3D pointA = ((Circle*)(*ia))->position_.point;//圆心
+					CPoint3D pointA = ((CIRCLE*)(*ia))->position_.point;//圆心
 					if(curveFaceBId == curveFaceAId)
 					{
 						//判断是否是分割面
@@ -303,21 +353,21 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 				CPoint3D point(line->pnt()->coordinates()->get(0),
 					line->pnt()->coordinates()->get(1),
 					line->pnt()->coordinates()->get(2));
-				((Line*)cur)->pnt_ = point;
+				((LINE*)cur)->pnt_ = point;
 				CVector3D dir(line->dir()->orientation()->direction_ratios()->get(0),
 					line->dir()->orientation()->direction_ratios()->get(1),
 					line->dir()->orientation()->direction_ratios()->get(2)
 					);
-				((Line*)cur)->dir_ = dir;
-				((Line*)cur)->magnitude_ = line->dir()->magnitude();
+				((LINE*)cur)->dir_ = dir;
+				((LINE*)cur)->magnitude_ = line->dir()->magnitude();
 				 
 			}
 			if(!strcmp(pcurve->className(), "circle"))
 			{
 				stp_circle* cir = ROSE_CAST(stp_circle, pcurve);
 				GetAxisData(cir->position()->_axis2_placement_3d(), tempGepmetry);
-				((Circle*)cur)->position_ = tempGepmetry;
-				((Circle*)cur)->radius_ = cir->radius();
+				((CIRCLE*)cur)->position_ = tempGepmetry;
+				((CIRCLE*)cur)->radius_ = cir->radius();
 			}
 			if(!strcmp(pcurve->className(), "ellipse"))
 			{
