@@ -43,6 +43,7 @@ public:
 	SFace* ChoosePartitionFace();
 	void CurrentStructToOCCT(TopoDS_Shape& aShape, SFace* face);
 	void OcctToCurrentStruct(TopoDS_Shape& aShape);
+	TopoDS_Shape AddNewSplit(TopoDS_Shape Stock, Handle(Geom_Surface)& plane1);
 
 public:
 	std::vector<std::string> vecOut_;//输出的信息列表

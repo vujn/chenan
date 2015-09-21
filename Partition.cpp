@@ -147,33 +147,6 @@ void Partition::CurrentStructToOCCT(TopoDS_Shape& aShape, SFace* face)
 
 }
 
-
-void Partition::OcctToCurrentStruct(TopoDS_Shape& aShape)
-{
-	TopoDS_Face aFace;
-	TopoDS_Wire aWire;
-	TopoDS_Edge aEdge;
-	TopoDS_Vertex aVertex;
-	TopExp_Explorer Exp_Edge, Exp_Wire, Exp_Face, Exp_Vertex;
-	for (Exp_Face.Init(aShape, TopAbs_FACE); Exp_Face.More(); Exp_Face.Next())
-	{
-		aFace = TopoDS::Face(Exp_Face.Current());
-		for (Exp_Wire.Init(aFace, TopAbs_WIRE); Exp_Wire.More(); Exp_Wire.Next())
-		{
-			aWire = TopoDS::Wire(Exp_Wire.Current());
-			for (Exp_Edge.Init(aWire, TopAbs_EDGE); Exp_Edge.More(); Exp_Edge.Next())
-			{
-				aEdge = TopoDS::Edge(Exp_Edge.Current());
-				for (Exp_Vertex.Init(aEdge, TopAbs_VERTEX); Exp_Vertex.More(); Exp_Vertex.Next())
-				{
-					aVertex = TopoDS::Vertex(Exp_Vertex.Current());
-					gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
-				}
-			}
-		}
-	}
-}
-
 bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orientationFaceA oriA,
 	EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA)
 {
@@ -498,6 +471,9 @@ vector<SFace*> Partition::OcctSplit()
 {
 	vector<SFace*> faceTemp;
 
+//	BRepAlgoAPI_Section(const TopoDS_Shape& Sh,
+//	const Handle(Geom_Surface)& Sf, const Standard_Boolean PerformNow = Standard_True);
+
 // 	BRepAlgoAPI_Section(TopoDS_Shape Sh, gp_Pln Pl, bool PerformNow);
 // 	gp_Pln aplane = new gp_Pln(1, 0.25, 3, 4);
 // 	Geom_Plane thePlane = new Geom_Plane(aplane);
@@ -510,8 +486,90 @@ vector<SFace*> Partition::OcctSplit()
 // 	BRepAlgoAPI_Section mkCut(_cTopoShape, cutting_plane, Standard_False);
 // 	mkCut.ComputePCurveOn1(Standard_True);
 // 	mkCut.Approximation(Standard_True);
-// 	mkCut.Build(
+// 	mkCut.Build();
 	partitionFaceList_.clear();
 
 	return faceTemp;
+}
+
+TopoDS_Shape Partition::AddNewSplit(TopoDS_Shape stock, Handle(Geom_Surface)& surface)
+{
+	TopoDS_Shape nullshape;
+	BRepAlgoAPI_Section asect(stock, surface, Standard_False);
+
+	asect.ComputePCurveOn1(Standard_True);
+	asect.Approximation(Standard_True);
+	asect.Build();
+	TopoDS_Shape R = asect.Shape();
+
+	if(!asect.ErrorStatus() == 0) 
+		return nullshape;
+	BRepFeat_SplitShape asplit(stock);
+	for(TopExp_Explorer Ex(R, TopAbs_EDGE); Ex.More(); Ex.Next())
+	{
+		TopoDS_Shape anEdge = Ex.Current();
+		TopoDS_Shape aFace;
+		if(asect.HasAncestorFaceOn1(anEdge, aFace))
+		{
+			TopoDS_Face F = TopoDS::Face(aFace);
+			TopoDS_Edge E = TopoDS::Edge(anEdge);
+			asplit.Add(E, F);
+		}
+	}
+
+	asplit.Build();
+
+	if(!asplit.Shape().IsNull())
+		return asplit.Shape();
+	else
+		return nullshape;
+
+	//得到两个shape
+	for(TopExp_Explorer Ex1(asplit.Shape(), TopAbs_FACE); Ex1.More(); Ex1.Next())
+	{
+		//遍历每个face下的所有顶点
+		for(TopExp_Explorer Ex2(Ex1.Current(), TopAbs_VERTEX); Ex2.More(); Ex2.Next())
+		{
+			//计算顶点和 切割平面的距离 根据距离的 正值 和 负值 就可以知道 该face属于平面的哪边了
+			TopoDS_Vertex aVertex = TopoDS::Vertex(Ex2.Current());
+			Standard_Real theDistance = theplane.Distance(BRep_Tool::Pnt(aVertex));
+			if(theDistance <= 0)
+			{
+				TopoDS_Shape shape_1;
+				
+			}
+			else if(theDistance > 0)
+			{
+				TopoDS_Shape shape_2;
+				
+			}
+		}
+
+	}
+}
+
+void Partition::OcctToCurrentStruct(TopoDS_Shape& aShape)
+{
+	TopoDS_Face aFace;
+	TopoDS_Wire aWire;
+	TopoDS_Edge aEdge;
+	TopoDS_Vertex aVertex;
+	TopExp_Explorer Exp_Edge, Exp_Wire, Exp_Face, Exp_Vertex;
+	for (Exp_Face.Init(aShape, TopAbs_FACE); Exp_Face.More(); Exp_Face.Next())
+	{
+		aFace = TopoDS::Face(Exp_Face.Current());
+		for (Exp_Wire.Init(aFace, TopAbs_WIRE); Exp_Wire.More(); Exp_Wire.Next())
+		{
+			aWire = TopoDS::Wire(Exp_Wire.Current());
+			for (Exp_Edge.Init(aWire, TopAbs_EDGE); Exp_Edge.More(); Exp_Edge.Next())
+			{
+				aEdge = TopoDS::Edge(Exp_Edge.Current());
+				for (Exp_Vertex.Init(aEdge, TopAbs_VERTEX); Exp_Vertex.More(); Exp_Vertex.Next())
+				{
+					aVertex = TopoDS::Vertex(Exp_Vertex.Current());
+					gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
+				}
+			}
+		}
+	}
 }
