@@ -74,3 +74,4 @@ StepToMcnp.sln
 Debug/DRAWEXE.exe
 *.ipch
 *.opensdf
+stdafx.h.lock
