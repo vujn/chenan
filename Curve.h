@@ -26,6 +26,7 @@ public:
 	double coefficient_[6];//二次曲线的一般方程为Ax^2+2Bxy+2Cx+Dy^2+2Ey+F = 0，共6个系数
 };
 
+
 ////////////////////////////////////////////////////////////////////////
 class CIRCLE :public Curve
 {

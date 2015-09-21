@@ -1478,7 +1478,6 @@ void StepEntity::EllipseInfo(ELLIPSE* cur, ORIENTATION ori,
 // 	ListOfPcurveOrSurfaceInfo(pSur->associated_geometry());
 // }
 
-
 void StepEntity::GenerateHalfSpaceList()
 {
 	bool isGen[1280];

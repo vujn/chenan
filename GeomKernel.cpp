@@ -6,6 +6,7 @@
 	
 CTriChip::CTriChip()
 {
+
 }
 
 CTriChip::CTriChip(const CPoint3D& v0, const CPoint3D& v1, const CPoint3D& v2, const CVector3D& norm)

@@ -7,6 +7,7 @@
 #include <stplib_init.h>
 #include "Partition.h"
 
+
 std::string pathName;
 
 void TCharToString(TCHAR* STR, string& pathName);
@@ -35,7 +36,7 @@ void _tmain(int argc, _TCHAR* argv[])
 	rose_compute_backptrs(design);
 	stix_tag_asms(design);
 
-	Partition* partit = new Partition(design);
+	Partition* part = new Partition(design);
 
 }
 

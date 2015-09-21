@@ -12,6 +12,7 @@
 
 using namespace std;
 
+
 struct Repetition 
 {
 	size_t entityId;

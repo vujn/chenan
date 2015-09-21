@@ -45,16 +45,12 @@
 #include "Geom_BSplineSurface.hxx"
 #include "Geom_RectangularTrimmedSurface.hxx"
 #include "Geom_OffsetSurface.hxx"
-#include <Standard_ErrorHandler.hxx> 
 #include "Geom2dAPI_InterCurveCurve.hxx"
 #include "GeomAPI_IntCS.hxx"
 #include "GeomAPI_IntSS.hxx"
 #include "Geom2d_Line.hxx"
 #include "Geom2d_Circle.hxx"
-#include "Geom_Surface.hxx"
 #include "Structure.h"
-#include "Geom_SphericalSurface.hxx"
-#include "Geom_ConicalSurface.hxx"
 #include "Geom2d_Ellipse.hxx"
 #include "Geom_BSplineCurve.hxx"
 #include "Geom2d_BoundedCurve.hxx"
@@ -80,7 +76,9 @@
 #include "gp_Torus.hxx"
 #include "BRep_Tool.hxx"
 #include "TopExp_Explorer.hxx"
-#include "TopoDS.hxx" 
-
+#include "TopoDS.hxx"
+#include "BRepAlgoAPI_BooleanOperation.hxx"
+#include "BRepAlgoAPI_Section.hxx"
+#include "BRepFeat_SplitShape.hxx"
 
 // TODO: 在此处引用程序需要的其他头文件

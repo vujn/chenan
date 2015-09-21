@@ -25,7 +25,7 @@ int InterProcess::SetInterPointList(SFace* F1, SFace* F2, SFace* F3)
 	Handle(Geom_Surface) HS1 = F1->ToOCCT();
 	Handle(Geom_Surface) HS2 = F2->ToOCCT();
 	Handle(Geom_Surface) HS3 = F3->ToOCCT();
-	 
+	
 	GeomAPI_IntSS intersector1(HS1, HS2, tolerance_); 
 	if(intersector1.IsDone())
 	{
