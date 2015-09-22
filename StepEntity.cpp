@@ -1483,7 +1483,7 @@ void StepEntity::GenerateHalfSpaceList()
 	bool isGen[1280];
 	memset(isGen, true, sizeof(isGen));
 	muticp_ = false;
-	vector<SFace*>().swap(NatlHalfSpaceList_);
+	
 	vector<SFace*>().swap(CSGHalfSpaceList_);
 	vector<SFace*>().swap(HalfSpaceList_);
 

@@ -41,7 +41,7 @@ void Partition::StepConversionAndOutput()
 				SetOfstp_face* face = shell->cfs_faces();
 				GetSFaceInfo(face);
 
-				StepEntity* step = new StepEntity(intersectionFaceList_);
+				StepEntity* step = new StepEntity(NatlHalfSpaceList_);
 				step->GenerateHalfSpaceList();
 				step->GenerateCIT();
 				step->GenerateHalfCharacteristicPoint();
@@ -55,7 +55,7 @@ void Partition::StepConversionAndOutput()
 				SetOfstp_face* face = shell->cfs_faces();
 				GetSFaceInfo(face);
 
-				StepEntity* step = new StepEntity(intersectionFaceList_);
+				StepEntity* step = new StepEntity(NatlHalfSpaceList_);
 				step->GenerateHalfSpaceList();
 				step->GenerateCIT();
 				step->GenerateHalfCharacteristicPoint();
@@ -70,7 +70,7 @@ void Partition::StepConversionAndOutput()
 					SetOfstp_face* face = closeShell->cfs_faces();
 					GetSFaceInfo(face);
 
-					StepEntity* step = new StepEntity(intersectionFaceList_);
+					StepEntity* step = new StepEntity(NatlHalfSpaceList_);
 					step->GenerateHalfSpaceList();
 					step->GenerateCIT();
 					step->GenerateHalfCharacteristicPoint();
@@ -84,6 +84,7 @@ void Partition::StepConversionAndOutput()
 
 void Partition::GetSFaceInfo(SetOfstp_face* stpFace)
 {
+	vector<SFace*>().swap(NatlHalfSpaceList_);
 	for(size_t i = 0; i < stpFace->size(); i++)
 	{
 		stp_face* face = stpFace->get(i);
@@ -492,9 +493,9 @@ vector<SFace*> Partition::OcctSplit()
 	return faceTemp;
 }
 
-TopoDS_Shape Partition::AddNewSplit(TopoDS_Shape stock, Handle(Geom_Surface)& surface)
+void Partition::AddNewSplit(TopoDS_Shape stock, Handle(Geom_Surface)& surface)
 {
-	TopoDS_Shape nullshape;
+	TopoDS_Shape resultShape, nullshape;
 	BRepAlgoAPI_Section asect(stock, surface, Standard_False);
 
 	asect.ComputePCurveOn1(Standard_True);
@@ -503,7 +504,7 @@ TopoDS_Shape Partition::AddNewSplit(TopoDS_Shape stock, Handle(Geom_Surface)& su
 	TopoDS_Shape R = asect.Shape();
 
 	if(!asect.ErrorStatus() == 0) 
-		return nullshape;
+		return;
 	BRepFeat_SplitShape asplit(stock);
 	for(TopExp_Explorer Ex(R, TopAbs_EDGE); Ex.More(); Ex.Next())
 	{
@@ -520,19 +521,20 @@ TopoDS_Shape Partition::AddNewSplit(TopoDS_Shape stock, Handle(Geom_Surface)& su
 	asplit.Build();
 
 	if(!asplit.Shape().IsNull())
-		return asplit.Shape();
+		resultShape = asplit.Shape();
 	else
-		return nullshape;
+		resultShape = nullshape;
 
 	//得到两个shape
-	for(TopExp_Explorer Ex1(asplit.Shape(), TopAbs_FACE); Ex1.More(); Ex1.Next())
+	for(TopExp_Explorer Ex1(resultShape, TopAbs_FACE); Ex1.More(); Ex1.Next())
 	{
-		//遍历每个face下的所有顶点
+		TopoDS_Face aFace = TopoDS::Face(Ex1.Current());
+		
 		for(TopExp_Explorer Ex2(Ex1.Current(), TopAbs_VERTEX); Ex2.More(); Ex2.Next())
 		{
-			//计算顶点和 切割平面的距离 根据距离的 正值 和 负值 就可以知道 该face属于平面的哪边了
 			TopoDS_Vertex aVertex = TopoDS::Vertex(Ex2.Current());
-			Standard_Real theDistance = theplane.Distance(BRep_Tool::Pnt(aVertex));
+			gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
+			Standard_Real theDistance = Pnt.Distance(BRep_Tool::Pnt(aVertex));
 			if(theDistance <= 0)
 			{
 				TopoDS_Shape shape_1;
@@ -548,6 +550,7 @@ TopoDS_Shape Partition::AddNewSplit(TopoDS_Shape stock, Handle(Geom_Surface)& su
 	}
 }
 
+//
 void Partition::OcctToCurrentStruct(TopoDS_Shape& aShape)
 {
 	TopoDS_Face aFace;
@@ -571,5 +574,29 @@ void Partition::OcctToCurrentStruct(TopoDS_Shape& aShape)
 				}
 			}
 		}
+	}
+
+	for(Exp_Vertex.Init(aShape, TopAbs_VERTEX); Exp_Vertex.More(); Exp_Vertex.Next())
+	{
+		aVertex = TopoDS::Vertex(Exp_Vertex.Current());
+		gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
+	}
+	for(Exp_Edge.Init(aShape, TopAbs_EDGE); Exp_Edge.More(); Exp_Edge.Next())
+	{
+		aEdge = TopoDS::Edge(Exp_Edge.Current());
+		Standard_Real First, Last;
+		Handle(Geom_Curve) Pnt = BRep_Tool::Curve(aEdge, First, Last);
+
+	}
+	for(Exp_Wire.Init(aShape, TopAbs_WIRE); Exp_Wire.More(); Exp_Wire.Next())
+	{
+		aWire = TopoDS::Wire(Exp_Wire.Current());
+	}
+	for(Exp_Face.Init(aShape, TopAbs_WIRE); Exp_Face.More(); Exp_Face.Next())
+	{
+
+		aFace = TopoDS::Face(Exp_Face.Current());
+		Handle(Geom_Surface) aSurface = BRep_Tool::Surface(aFace);
+		
 	}
 }
