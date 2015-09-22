@@ -575,7 +575,7 @@ void Partition::OcctToCurrentStruct(TopoDS_Shape& aShape)
 			}
 		}
 	}
-
+	 
 	for(Exp_Vertex.Init(aShape, TopAbs_VERTEX); Exp_Vertex.More(); Exp_Vertex.Next())
 	{
 		aVertex = TopoDS::Vertex(Exp_Vertex.Current());
