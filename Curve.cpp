@@ -135,7 +135,7 @@ Geom2d_Curve* LINE::ToOCCT()
 	gp_Vec2d Vec1(dir_.dx,dir_.dy);
 	gp_Dir2d Dir1(Vec1);
 	gp_Pnt2d Pnt1(pnt_.x,pnt_.y);
-	Geom2d_Curve * pLine = new Geom2d_Line(Pnt1,Dir1);
+	Geom2d_Line * pLine = new Geom2d_Line(Pnt1,Dir1);
 	return pLine;
 }
 

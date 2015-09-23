@@ -3,6 +3,7 @@
 #include  "stdafx.h"
 #include "SFace.h"
 #include "StepEntity.h"
+#include "ShapeCutter.h"
 
 
 #define ZOOMTIME 10.0
@@ -41,8 +42,8 @@ public:
 		EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA);// 两个面相交或者多个面相交
 	void FindPartitionFace(SFace* Fa, SFace* Fb);
 	SFace* ChoosePartitionFace();
-	void CurrentStructToOCCT(TopoDS_Shape& aShape, SFace* face);
-	void OcctToCurrentStruct(TopoDS_Shape& aShape);
+	void CurrentStructToOCCT( vector<SFace*> faceList, TopoDS_Shape& aShape );
+	void OcctToCurrentStruct( TopoDS_Shape& aShape, vector<SFace*> faceList );
 	void AddNewSplit(TopoDS_Shape Stock, Handle(Geom_Surface)& plane1);
 
 public:

@@ -14,10 +14,11 @@ public:
 public:
 	virtual void GenerateCoefficient();
 	virtual Geom_Surface * ToOCCT();
-	virtual TopoDS_Face CurrentStructToOCCT();
 public:
 	PointPosition PointIsIn(CPoint3D TestPoint);
+
 	vector<Handle(Geom2d_Curve)> GetCurveList();
+
 public:
 	char* name_;
 	size_t entityID_;
@@ -37,7 +38,7 @@ public:
 public:
 	void GenerateCoefficient();
 	Geom_Surface * ToOCCT();
-	TopoDS_Face CurrentStructToOCCT();
+
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -49,7 +50,7 @@ public:
 public:
 	void GenerateCoefficient();
 	Geom_Surface * ToOCCT();
-	TopoDS_Face CurrentStructToOCCT();
+
 public:
 	double radius_;
 };
@@ -63,7 +64,7 @@ public:
 public:
 	void GenerateCoefficient();
 	Geom_Surface * ToOCCT();
-	TopoDS_Face CurrentStructToOCCT();
+
 public:
 	double radius_;
 };
@@ -77,7 +78,7 @@ public:
 public:
 	void GenerateCoefficient();
 	Geom_Surface * ToOCCT();
-	TopoDS_Face CurrentStructToOCCT();
+
 public:
 	double radius_;
 	double semi_angle_;
@@ -93,7 +94,7 @@ public:
 public:
 	void GenerateCoefficient();
 	Geom_Surface * ToOCCT();
-	TopoDS_Face CurrentStructToOCCT();
+
 public:
 	double major_radius_;
 	double minor_radius_;

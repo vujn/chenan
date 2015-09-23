@@ -142,12 +142,6 @@ SFace* Partition::ChoosePartitionFace()
 	return partFace;
 }
 
-
-void Partition::CurrentStructToOCCT(TopoDS_Shape& aShape, SFace* face)
-{
-
-}
-
 bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orientationFaceA oriA,
 	EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA)
 {
@@ -472,6 +466,13 @@ vector<SFace*> Partition::OcctSplit()
 {
 	vector<SFace*> faceTemp;
 
+	TopoDS_Face theFace;
+	TopoDS_Shape theBox;
+	ShapeCutter cutter(theBox, theFace);
+	cutter.Perform();
+	TopoDS_Shape S1 = cutter.CalcResult1();
+	TopoDS_Shape S2 = cutter.CalcResult2();
+
 //	BRepAlgoAPI_Section(const TopoDS_Shape& Sh,
 //	const Handle(Geom_Surface)& Sf, const Standard_Boolean PerformNow = Standard_True);
 
@@ -483,7 +484,6 @@ vector<SFace*> Partition::OcctSplit()
 // 	section.Approximation(true);
 // 	section.Build();
 // 	AIS_Shape asection = new AIS_Shape(section.Shape());
-
 // 	BRepAlgoAPI_Section mkCut(_cTopoShape, cutting_plane, Standard_False);
 // 	mkCut.ComputePCurveOn1(Standard_True);
 // 	mkCut.Approximation(Standard_True);
@@ -550,8 +550,74 @@ void Partition::AddNewSplit(TopoDS_Shape stock, Handle(Geom_Surface)& surface)
 	}
 }
 
-//
-void Partition::OcctToCurrentStruct(TopoDS_Shape& aShape)
+void Partition::CurrentStructToOCCT(vector<SFace*> faceList, TopoDS_Shape& aShape)
+{
+	//step一个实体中的advanced_face组成的vector->OCC中的Shape
+	for(auto itFace = faceList.begin(); itFace != faceList.end(); itFace++)
+	{
+		for(auto itBound = (*itFace)->faceBounds_.begin(); itBound != (*itFace)->faceBounds_.end(); itBound++)
+		{
+			BRepBuilderAPI_MakeWire wire;
+			BRepBuilderAPI_MakeEdge edge;
+			vector<BRepBuilderAPI_MakeEdge> edgeList;
+			for(auto itCurve = (*itBound)->edgeLoop_.begin(); itCurve != (*itBound)->edgeLoop_.end(); itCurve++)
+			{
+				//vertex satrt and vertex end
+				gp_Pnt start((*itCurve)->edgeStart_.x, (*itCurve)->edgeStart_.y, (*itCurve)->edgeStart_.z);
+				gp_Pnt end((*itCurve)->edgeEnd_.x, (*itCurve)->edgeEnd_.y, (*itCurve)->edgeEnd_.z);
+
+				if(!stricmp((*itCurve)->curveName_, "line"))
+				{
+					gp_Dir Dir1(((LINE*)(*itCurve))->dir_.dx, ((LINE*)(*itCurve))->dir_.dy, ((LINE*)(*itCurve))->dir_.dz );
+					gp_Pnt Pnt1(((LINE*)(*itCurve))->pnt_.x, ((LINE*)(*itCurve))->pnt_.y, ((LINE*)(*itCurve))->pnt_.z);
+					gp_Lin pLine(Pnt1, Dir1);
+					edge = BRepBuilderAPI_MakeEdge(pLine,start,end);
+				}
+				if(!stricmp((*itCurve)->curveName_, "circle"))
+				{
+					gp_Dir N1(((CIRCLE*)(*itCurve))->position_.verAxis.dx, ((CIRCLE*)(*itCurve))->position_.verAxis.dy, ((CIRCLE*)(*itCurve))->position_.verAxis.dz );
+					gp_Pnt P1(((CIRCLE*)(*itCurve))->position_.point.x, ((CIRCLE*)(*itCurve))->position_.point.y, ((CIRCLE*)(*itCurve))->position_.point.z );
+					gp_Ax2 ax1(P1,N1);
+					gp_Circ circle(ax1, ((CIRCLE*)(*itCurve))->radius_);
+					edge = BRepBuilderAPI_MakeEdge(circle, start, end);
+				}
+				if(!stricmp((*itCurve)->curveName_, "ellipse"))
+				{
+					gp_Dir N1(((ELLIPSE*)(*itCurve))->position_.verAxis.dx, ((ELLIPSE*)(*itCurve))->position_.verAxis.dy, ((ELLIPSE*)(*itCurve))->position_.verAxis.dz);
+					gp_Pnt P1(((ELLIPSE*)(*itCurve))->position_.point.x, ((ELLIPSE*)(*itCurve))->position_.point.y, ((ELLIPSE*)(*itCurve))->position_.point.z);
+					gp_Ax2 ax1(P1, N1);
+					gp_Elips elips(ax1, ((ELLIPSE*)(*itCurve))->semi_axis_1_, ((ELLIPSE*)(*itCurve))->semi_axis_2_);
+					edge = BRepBuilderAPI_MakeEdge(elips, start, end);
+				}
+				edgeList.push_back(edge);
+				wire.Add(edge);
+			}
+// 			size_t edgeNum = edgeList.size();
+// 			switch(edgeNum)
+// 			{
+// 			case 0:
+// 				break;
+// 			case 1:
+// 				wire = BRepBuilderAPI_MakeWire(edgeList.at(0));
+// 			case 2:
+// 				wire = BRepBuilderAPI_MakeWire(edgeList.at(0), edgeList.at(1));
+// 			case 3:
+// 				wire = BRepBuilderAPI_MakeWire(edgeList.at(0), edgeList.at(1), edgeList.at(2));
+// 			default:
+// 				wire = BRepBuilderAPI_MakeWire(edgeList.at(0), edgeList.at(1), edgeList.at(2), edgeList.at(3));
+// 			}
+			if(wire.IsDone())
+			{
+				WhiteWire = wire.Wire();
+				LastEdge = wire.Edge();
+				LastVertex = wire.Vertex();
+			}
+		}
+	}
+	TopoDS_Face F = BRepBuilderAPI_MakeFace(gp_Pln(gp::ZOX()), wire);
+}
+
+void Partition::OcctToCurrentStruct( TopoDS_Shape& aShape, vector<SFace*> faceList )
 {
 	TopoDS_Face aFace;
 	TopoDS_Wire aWire;
@@ -587,10 +653,6 @@ void Partition::OcctToCurrentStruct(TopoDS_Shape& aShape)
 		Standard_Real First, Last;
 		Handle(Geom_Curve) Pnt = BRep_Tool::Curve(aEdge, First, Last);
 
-	}
-	for(Exp_Wire.Init(aShape, TopAbs_WIRE); Exp_Wire.More(); Exp_Wire.Next())
-	{
-		aWire = TopoDS::Wire(Exp_Wire.Current());
 	}
 	for(Exp_Face.Init(aShape, TopAbs_WIRE); Exp_Face.More(); Exp_Face.Next())
 	{

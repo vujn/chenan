@@ -31,12 +31,6 @@ Geom_Surface * SFace::ToOCCT()
 }
 
 
-TopoDS_Face SFace::CurrentStructToOCCT()
-{
-	TopoDS_Face face;
-	return face;
-}
-
 PointPosition SFace::PointIsIn(CPoint3D TestPoint)
 {
 	PointPosition Position;
@@ -148,20 +142,6 @@ Geom_Surface * SPlane::ToOCCT()
 	return plane;
 }
 
-
-TopoDS_Face SPlane::CurrentStructToOCCT()
-{
-	TopoDS_Face face;
-	TopoDS_Edge edge;
-	gp_Pnt P1(position_->point.x, position_->point.y, position_->point.z);
-	gp_Vec Vec1(position_->verAxis.dx, position_->verAxis.dy, position_->verAxis.dz);
-	gp_Dir Dir1(Vec1);
-	gp_Ax3 Ax31(P1, Dir1);
-	gp_Pln plane(Ax31);
-	face = BRepBuilderAPI_MakeFace(plane);
-	return face;
-}
-
 //////////////////////////////////////////////////////////////////////
 // SCylindrical Ô²Öù
 //////////////////////////////////////////////////////////////////////
@@ -211,18 +191,6 @@ Geom_Surface * SCylindrical::ToOCCT()
 }
 
 
-TopoDS_Face SCylindrical::CurrentStructToOCCT()
-{
-	gp_Pnt P1(position_->point.x, position_->point.y, position_->point.z);
-	gp_Vec Vec1(position_->verAxis.dx, position_->verAxis.dy, position_->verAxis.dz);
-	gp_Dir Dir1(Vec1);
-	gp_Ax3 Ax31(P1, Dir1);
-	gp_Cylinder  cylinder(Ax31, radius_);
-	TopoDS_Face face;
-	face = BRepBuilderAPI_MakeFace(cylinder);
-	return face;
-}
-
 //////////////////////////////////////////////////////////////////////
 // SSpherical ÇòÃæ
 //////////////////////////////////////////////////////////////////////
@@ -265,18 +233,6 @@ Geom_Surface * SSpherical::ToOCCT()
 	return spherical;
 }
 
-
-TopoDS_Face SSpherical::CurrentStructToOCCT()
-{
-	gp_Pnt P1(position_->point.x, position_->point.y, position_->point.z);
-	gp_Vec Vec1(position_->verAxis.dx, position_->verAxis.dy, position_->verAxis.dz);
-	gp_Dir Dir1(Vec1);
-	gp_Ax3 Ax31(P1, Dir1);
-	gp_Sphere sphere(Ax31,radius_);
-	TopoDS_Face face;
-	face = BRepBuilderAPI_MakeFace(sphere);
-	return face;
-}
 
 //////////////////////////////////////////////////////////////////////
 // SConical Ô²×¶
@@ -344,18 +300,6 @@ Geom_Surface * SConical::ToOCCT()
 }
 
 
-TopoDS_Face SConical::CurrentStructToOCCT()
-{
-	gp_Pnt P1(position_->point.x, position_->point.y, position_->point.z);
-	gp_Vec Vec1(position_->verAxis.dx, position_->verAxis.dy, position_->verAxis.dz);
-	gp_Dir Dir1(Vec1);
-	gp_Ax3 Ax31(P1, Dir1);
-	gp_Cone cone(Ax31, semi_angle_, radius_);
-	TopoDS_Face face;
-	face = BRepBuilderAPI_MakeFace(cone);
-	return face;
-}
-
 //////////////////////////////////////////////////////////////////////
 // SToroidal Ô²»·
 //////////////////////////////////////////////////////////////////////
@@ -383,17 +327,5 @@ Geom_Surface * SToroidal::ToOCCT()
 	gp_Ax3 Ax31(P1, Dir1);
 	Geom_ToroidalSurface* toroidal = new Geom_ToroidalSurface(Ax31, major_radius_, minor_radius_);
 	return toroidal;
-}
-
-TopoDS_Face SToroidal::CurrentStructToOCCT()
-{
-	gp_Pnt P1(position_->point.x, position_->point.y, position_->point.z);
-	gp_Vec Vec1(position_->verAxis.dx, position_->verAxis.dy, position_->verAxis.dz);
-	gp_Dir Dir1(Vec1);
-	gp_Ax3 Ax31(P1, Dir1);
-	gp_Torus torus(Ax31,major_radius_, minor_radius_);
-	TopoDS_Face testFace;
-	testFace = BRepBuilderAPI_MakeFace(torus);
-	return testFace;
 }
 

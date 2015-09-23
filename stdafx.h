@@ -80,5 +80,9 @@
 #include "BRepAlgoAPI_BooleanOperation.hxx"
 #include "BRepAlgoAPI_Section.hxx"
 #include "BRepFeat_SplitShape.hxx"
+#include "BRep_Builder.hxx"
+#include "gp_Circ.hxx"
+#include "gp_Elips.hxx"
+
 
 // TODO: 在此处引用程序需要的其他头文件
