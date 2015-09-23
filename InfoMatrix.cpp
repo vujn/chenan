@@ -24,6 +24,8 @@ void InfoMatrix::GetProductInformation(stp_product_definition* proDefinition,
 		return;
 	StixMgrAsmProduct* pm = StixMgrAsmProduct::find(proDefinition);
 
+	printf("ROOT PRODUCT #%lu\n", proDefinition->entity_id());
+
 	for(size_t i = 0; i < pm->shapes.size(); i++)
 	{
 		stp_shape_representation * rep = pm->shapes[i];

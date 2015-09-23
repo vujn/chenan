@@ -42,7 +42,7 @@ public:
 		EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA);// 两个面相交或者多个面相交
 	void FindPartitionFace(SFace* Fa, SFace* Fb);
 	SFace* ChoosePartitionFace();
-	void CurrentStructToOCCT( vector<SFace*> faceList, TopoDS_Shape& aShape );
+	void CurrentStructToOCCT( SFace* face, TopoDS_Shape& aShape );
 	void OcctToCurrentStruct( TopoDS_Shape& aShape, vector<SFace*> faceList );
 	void AddNewSplit(TopoDS_Shape Stock, Handle(Geom_Surface)& plane1);
 
