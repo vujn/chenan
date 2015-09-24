@@ -83,6 +83,21 @@
 #include "BRep_Builder.hxx"
 #include "gp_Circ.hxx"
 #include "gp_Elips.hxx"
-
+#include "BRepOffsetAPI_Sewing.hxx"
+#include "TColStd_ListOfReal.hxx"
+#include "BRepExtrema_DistShapeShape.hxx"
+#include "TColStd_ListIteratorOfListOfReal.hxx"
+#include "TopTools_ListIteratorOfListOfShape.hxx"
+#include "BRepAlgoAPI_Common.hxx"
+#include "ShapeFix_Solid.hxx"
+#include "BRepAdaptor_Surface.hxx"
+#include "CSLib_DerivativeStatus.hxx"
+#include "CSLib_NormalStatus.hxx"
+#include "GeomLib_Tool.hxx"
+#include "CSLib.hxx"
+#include "Bnd_Box.hxx"
+#include "BRepBndLib.hxx"
+#include "BRepAlgoAPI_Cut.hxx"
+#include "BRepPrimAPI_MakeBox.hxx"
 
 // TODO: 在此处引用程序需要的其他头文件

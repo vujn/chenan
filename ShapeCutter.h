@@ -1,27 +1,9 @@
-#ifndef _MA_ShapeCutter_HeaderFile
-#define _MA_ShapeCutter_HeaderFile
+#pragma once
+#include "stdafx.h"
 
-#ifndef _Standard_HeaderFile
-#include <Standard.hxx>
-#endif
-#ifndef _Standard_DefineAlloc_HeaderFile
-#include <Standard_DefineAlloc.hxx>
-#endif
-#ifndef _Standard_Macro_HeaderFile
-#include <Standard_Macro.hxx>
-#endif
-#ifndef _Standard_Boolean_HeaderFile
-#include <Standard_Boolean.hxx>
-#endif
-#ifndef _TopoDS_Shape_HeaderFile
-#include <TopoDS_Shape.hxx>
-#endif
-//class TopoDS_Shape;
-
-class Standard_EXPORT  ShapeCutter
+class ShapeCutter
 {
 public:
-	DEFINE_STANDARD_ALLOC
 
 	//Default Constructs
 	ShapeCutter();
@@ -68,7 +50,6 @@ private:
 	Standard_Boolean optimization_;
 };
 
-#endif
 
 //Usage method 
 /*

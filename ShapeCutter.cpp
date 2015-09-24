@@ -1,22 +1,23 @@
-#include "StdAfx.h"
-#include "MA_ShapeCutter.h"
+#include "stdafx.h"
+#include "ShapeCutter.h"
 
 ShapeCutter::ShapeCutter()
 {
+
 }
 
 ShapeCutter::ShapeCutter(const TopoDS_Shape& theBox1,
-							   const TopoDS_Shape& theBox2,
-							   const TopoDS_Face& theFace,
-							   Standard_Boolean Optimization )
+	const TopoDS_Shape& theBox2,
+	const TopoDS_Face& theFace,
+	Standard_Boolean Optimization )
 : theBox1_(theBox1), theBox2_(theBox2), theFace_(theFace), optimization_(Optimization)
 {
 
 }
 
 ShapeCutter::ShapeCutter( const TopoDS_Shape& theBox2,
-							    const TopoDS_Face& theFace,
-								Standard_Boolean optimization )
+	const TopoDS_Face& theFace,
+	Standard_Boolean optimization )
 : theBox2_(theBox2), theFace_(theFace), optimization_(optimization)
 {
 	//得到最小外接box的坐标，并生成世界1
@@ -29,21 +30,19 @@ ShapeCutter::~ShapeCutter()
 
 void ShapeCutter::Init1( const TopoDS_Shape& theBox1 )
 {
-	theBox1_ = (theBox1);
+	theBox1_ = theBox1;
 }
 
 void ShapeCutter::Init2( const TopoDS_Shape& theBox2 )
 {
-	theBox2_ = (theBox2);
+	theBox2_ = theBox2;
 	if (theBox1_.IsNull())
-	{
 		theBox1_ = this->GetBndBox(theBox2);
-	}
 }
 
 void ShapeCutter::Init3( const TopoDS_Face& theFace )
 {
-	theFace_ = (theFace);
+	theFace_ = theFace;
 }
 
 void ShapeCutter::SetOptimization( Standard_Boolean Optimization/*=Standard_True*/ )
@@ -57,7 +56,6 @@ const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, 
 
 	//gp_Pln theplane(gp_Pnt(90,90,90),gp_Dir(1,1,1));
 	//gp_Pln theplane = plane1;
-
 	//TopoDS_Face theface = BRepBuilderAPI_MakeFace(theplane);
 	BRepAlgoAPI_Section asect(S, shape2, Standard_False);
 	asect.ComputePCurveOn1(Standard_True);
@@ -80,66 +78,60 @@ const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, 
 		{
 			tempEdge = BRepBuilderAPI_MakeEdge( tempIntSS.Line(1) );
 			//asplit.Add( tempEdge , TopoDS::Face(Ex1.Current()) );
-			DisplayShape(tempEdge,Quantity_NOC_RED);
 		}
 	}
 
 	for (TopExp_Explorer Ex(R,TopAbs_EDGE); Ex.More(); Ex.Next()) 
 	{
 		TopoDS_Edge anEdge = TopoDS::Edge(Ex.Current());
-
-//  		TopoDS_Shape aFace;
-//  		if (asect.HasAncestorFaceOn1(anEdge,aFace)) 
+// 		TopoDS_Shape aFace;
+// 		if(asect.HasAncestorFaceOn1(anEdge, aFace))
 // 		{
-//  			TopoDS_Face F = TopoDS::Face(aFace);
-//  			TopoDS_Edge E = TopoDS::Edge(anEdge);
-//  			asplit.Add(E,F);
-//  		}
+// 			TopoDS_Face F = TopoDS::Face(aFace);
+// 			TopoDS_Edge E = TopoDS::Edge(anEdge);
+// 			asplit.Add(E, F);
+// 		}
 
-	for (TopExp_Explorer Ex1(S,TopAbs_FACE); Ex1.More(); Ex1.Next())
-	{
-		TopoDS_Face eachFace = TopoDS::Face(Ex1.Current());
-		Standard_Boolean isAllEdgeOnFace = this->IsAllEdgeOnFace(anEdge, eachFace);
-		if ( isAllEdgeOnFace ) 
+		for (TopExp_Explorer Ex1(S,TopAbs_FACE); Ex1.More(); Ex1.Next())
 		{
-			asplit.Add(anEdge, eachFace);
-			//ShapeUpgrade_FaceDivide myFaceDivide;
-			break;
+			TopoDS_Face eachFace = TopoDS::Face(Ex1.Current());
+			Standard_Boolean isAllEdgeOnFace = this->IsAllEdgeOnFace(anEdge, eachFace);
+			if ( isAllEdgeOnFace ) 
+			{
+				asplit.Add(anEdge, eachFace);
+				break;
+			}
 		}
-	}
-	//DisplayShape(anEdge,Quantity_NOC_RED);
 	}
 
 	asplit.Build();
 	TopoDS_Shape shape = asplit.Shape();
 	TopAbs_ShapeEnum tempShapeEnum = shape.ShapeType();
-	//DisplayShape(shape,Quantity_NOC_RED);
 
-	// 	//输出各个面
-	// 	Standard_Integer j=0;
-	// 	for (TopExp_Explorer Ex1(shape,TopAbs_FACE); Ex1.More(); Ex1.Next(),j++)
-	// 	{
-	// 		TopoDS_Face eachFace = TopoDS::Face(Ex1.Current());
-	// 		DisplayShape(eachFace,Quantity_NOC_RED);
-	// // 		if (j==2)
-	// // 		{
-	// // 			break;
-	// // 		}
-	// 	}
+// 	//输出各个面
+// 	Standard_Integer j=0;
+// 	for (TopExp_Explorer Ex1(shape,TopAbs_FACE); Ex1.More(); Ex1.Next(),j++)
+// 	{
+// 		TopoDS_Face eachFace = TopoDS::Face(Ex1.Current());
+// 		DisplayShape(eachFace,Quantity_NOC_RED);
+// 		if (j==2)
+// 		{
+// 			break;
+// 		}
+// 	}
 
 	//组成TopoDS_Compound试验
-	// 	TopoDS_Compound occCompoundS;
-	// 	BRep_Builder occBuilder;
-	// 	occBuilder.MakeCompound(occCompoundS);
-	// 	for(TopExp_Explorer exp(shape, TopAbs_SHELL); exp.More(); exp.Next()){
-	// 		TopoDS_Shell shell = TopoDS::Shell(exp.Current());
-	// 
-	// 		ShapeFix_Solid solid;
-	// 		//solid.LimitTolerance(0.01);
-	// 		TopoDS_Shape tmpS = solid.SolidFromShell(shell);
-	// 		occBuilder.Add(occCompoundS, tmpS);
-	// 	}
-	// 	DisplayShape(occCompoundS, Quantity_NOC_RED);
+// 	TopoDS_Compound occCompoundS;
+// 	BRep_Builder occBuilder;
+// 	occBuilder.MakeCompound(occCompoundS);
+// 	for(TopExp_Explorer exp(shape, TopAbs_SHELL); exp.More(); exp.Next())
+// 	{
+// 		TopoDS_Shell shell = TopoDS::Shell(exp.Current());
+// 		ShapeFix_Solid solid;
+// 		//solid.LimitTolerance(0.01);
+// 		TopoDS_Shape tmpS = solid.SolidFromShell(shell);
+// 		occBuilder.Add(occCompoundS, tmpS);
+// 	}
 
 	BRepOffsetAPI_Sewing aSewing_1;//将面拼成体
 	BRepOffsetAPI_Sewing aSewing_2;//将面拼成体
@@ -181,9 +173,7 @@ const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, 
 				theListOfDistance.Append(theDistance);
 			}
 			else
-			{
 				theListOfDistance.Append(0.);
-			}
 		}
 
 		//遍历该面的每个点的距离（有正有负有零）
@@ -233,7 +223,6 @@ const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, 
 		TopoDS_Shape tmpS = solid.SolidFromShell(shell);
 		occBuilder_1.Add(occCompoundS_1, tmpS);
 	}
-
 	for(TopExp_Explorer exp(sewedShape_2, TopAbs_SHELL); exp.More(); exp.Next())
 	{
 		TopoDS_Shell shell = TopoDS::Shell(exp.Current());
@@ -243,7 +232,6 @@ const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, 
 		TopoDS_Shape tmpS = solid.SolidFromShell(shell);
 		occBuilder_2.Add(occCompoundS_2, tmpS);
 	}
-
 	static TopTools_ListOfShape shapeList;
 	shapeList.Clear();
 	shapeList.Append(occCompoundS_1);
@@ -252,9 +240,7 @@ const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, 
 	return shapeList;
 }
 
-void ShapeCutter::Normal(const TopoDS_Face&  aFace,
-						  gp_Pnt& point,
-						  gp_Dir& NorDir)
+void ShapeCutter::Normal(const TopoDS_Face&  aFace,gp_Pnt& point, gp_Dir& norDir)
 {
 	BRepAdaptor_Surface S;
 	//Standard_Integer i;
@@ -274,26 +260,28 @@ void ShapeCutter::Normal(const TopoDS_Face&  aFace,
 	if (!S.GetType() == GeomAbs_Plane) 
 	{
 		S.D1(U,V,P,D1U,D1V);
-		CSLib::Normal(D1U,D1V,Precision::Angular(),Status,NorDir);
-		if (Status != CSLib_Done) {
+		CSLib::Normal(D1U,D1V,Precision::Angular(),Status,norDir);
+		if (Status != CSLib_Done)
+		{
 			S.D2(U,V,P,D1U,D1V,D2U,D2V,D2UV);
-			CSLib::Normal(D1U,D1V,D2U,D2V,D2UV,Precision::Angular(),OK,NStat,NorDir);
+			CSLib::Normal(D1U,D1V,D2U,D2V,D2UV,Precision::Angular(),OK,NStat,norDir);
 		}
-		if (aFace.Orientation() == TopAbs_REVERSED) (NorDir).Reverse();
+		if (aFace.Orientation() == TopAbs_REVERSED) (norDir).Reverse();
 	}
-	else {
+	else 
+	{
 		gp_Dir NPlane;
 		S.D1(U,V,P,D1U,D1V);
 		CSLib::Normal(D1U,D1V,Precision::Angular(),Status,NPlane);
-		if (Status != CSLib_Done) {
+		if (Status != CSLib_Done)
+		{
 			S.D2(U,V,P,D1U,D1V,D2U,D2V,D2UV);
 			CSLib::Normal(D1U,D1V,D2U,D2V,D2UV,Precision::Angular(),OK,NStat,NPlane);
 		}
 		if (aFace.Orientation() == TopAbs_REVERSED) NPlane.Reverse();
-		NorDir = (NPlane);
+		norDir = (NPlane);
 
 	}
-//*/
 }
 
 Standard_Boolean ShapeCutter::IsAllEdgeOnFace(const TopoDS_Edge& anEdge, const TopoDS_Face& eachFace )
@@ -306,9 +294,7 @@ Standard_Boolean ShapeCutter::IsAllEdgeOnFace(const TopoDS_Edge& anEdge, const T
 		Standard_Real tempTolerance = BRep_Tool::Tolerance(TopoDS::Edge(anEdge));
 		Standard_Real theDistance = Extrema_DistShapeShape.Value();//得到点到面的距离
 		if (theDistance>tempTolerance)
-		{
 			return Standard_False;
-		}
 	}
 	return Standard_True;
 }
@@ -316,9 +302,9 @@ Standard_Boolean ShapeCutter::IsAllEdgeOnFace(const TopoDS_Edge& anEdge, const T
 TopoDS_Shape ShapeCutter::GetBndBox( const TopoDS_Shape& theBox2 )
 {
 	Standard_Real Xmin,Xmax,Ymin,Ymax,Zmin,Zmax;
-	Bnd_Box Boite;
-	BRepBndLib::Add(theBox2, Boite,Standard_True);
-	Boite.Get(Xmin, Ymin, Zmin, Xmax, Ymax, Zmax);
+	Bnd_Box boite;
+	BRepBndLib::Add(theBox2, boite,Standard_True);
+	boite.Get(Xmin, Ymin, Zmin, Xmax, Ymax, Zmax);
 	TopoDS_Shape theBox1 = BRepPrimAPI_MakeBox( gp_Pnt(Xmin,Ymin,Zmin), Xmax-Xmin,Ymax-Ymin,Zmax-Zmin ).Solid();
 	return theBox1;
 }
@@ -331,13 +317,12 @@ void ShapeCutter::Perform()
 		//BRepMesh::Mesh(m_theBox2,1);
 	}
 
-	const TopTools_ListOfShape& theBox1_SplitShape_list = this->SplitShape(theBox1_, theFace_);
-	TopTools_ListIteratorOfListOfShape SplitShape_ite(theBox1_SplitShape_list);
-	SplitShape_ite.More();
-	halfWorld1_ = SplitShape_ite.Value();
-	SplitShape_ite.Next();
-	halfWorld2_ = SplitShape_ite.Value();
-
+	const TopTools_ListOfShape& theBox1SplitShapelist = this->SplitShape(theBox1_, theFace_);
+	TopTools_ListIteratorOfListOfShape splitShape_ite(theBox1SplitShapelist);
+	splitShape_ite.More();
+	halfWorld1_ = splitShape_ite.Value();
+	splitShape_ite.Next();
+	halfWorld2_ = splitShape_ite.Value();
 	//this->m_theResult1 = BRepAlgoAPI_Cut(m_theBox2, halfWorld_1);
 	//this->m_theResult2 = BRepAlgoAPI_Cut(m_theBox2, halfWorld_2);
 }
