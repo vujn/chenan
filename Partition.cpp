@@ -100,8 +100,10 @@ void Partition::PartitionFace()
 		FindPartitionFace(NatlHalfSpaceList_[iter], NatlHalfSpaceList_[iter + 1]);
 	}
 	SFace* partFace = ChoosePartitionFace();
-	if (partFace != nullptr)
-		OcctSplit();
+	if(partFace != nullptr)
+	{
+		OcctSplit(NatlHalfSpaceList_,partFace);
+	}
 }
 
 
@@ -462,11 +464,12 @@ stp_cartesian_point* Partition::EdgeCurveStartOrEnd(stp_vertex* ver)
 	return ROSE_CAST(stp_cartesian_point, vpt->vertex_geometry());
 }
 
-vector<SFace*> Partition::OcctSplit()
+vector<SFace*> Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
 {
 	vector<SFace*> faceTemp;
 
 	TopoDS_Face theFace;
+	CurrentStructToOCCT(splitFace, theFace);
 	TopoDS_Shape theBox;
 	ShapeCutter cutter(theBox, theFace);
 	cutter.Perform();

@@ -37,7 +37,7 @@ public:
 
 	
 	void PartitionFace();
-	vector<SFace*> OcctSplit();		//occt切割面
+	vector<SFace*> OcctSplit(vector<SFace*> faceList, SFace* splitFace);		//occt切割面
 	bool JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orientationFaceA oriA,
 		EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA);// 两个面相交或者多个面相交
 	void FindPartitionFace(SFace* Fa, SFace* Fb);
