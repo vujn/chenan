@@ -6,6 +6,9 @@
 #include <Geom2d_BSplineCurve.hxx>
 #include <TColStd_Array1OfReal.hxx>
 #include <TColStd_Array1OfInteger.hxx>
+#include <Geom2d_Parabola.hxx>
+#include <Geom2d_Hyperbola.hxx>
+
 
 //////////////////////////////////////////////////////////////////////
 // CURVE
@@ -23,14 +26,48 @@ Curve::~Curve()
 
 Curve * Curve::GenerateCoefficient()
 {
-	return NULL;
+	return nullptr;
 }
 
 Geom2d_Curve * Curve::ToOCCT()
 {
-	return NULL;
+	return nullptr;
 }
 
+
+//////////////////////////////////////////////////////////////////////
+// LINE
+//////////////////////////////////////////////////////////////////////
+LINE::LINE()
+{
+}
+
+LINE::~LINE()
+{
+
+}
+
+Curve * LINE::GenerateCoefficient(CMatrix3D RTMatrix)
+{
+	//二次曲线的一般方程为Ax^2+2Bxy+2Cx+Dy^2+2Ey+F = 0，共6个系数
+	CPoint3D direction = CPoint3D(dir_.dx, dir_.dy, dir_.dz)*RTMatrix;
+	CPoint3D point = pnt_*RTMatrix;
+	LINE * pLine = new LINE;
+	pLine->pnt_ = point;
+	pLine->dir_.dx = direction.x;
+	pLine->dir_.dy = direction.y;
+	pLine->dir_.dz = direction.z;
+	return pLine;
+}
+
+Geom2d_Curve* LINE::ToOCCT()
+{
+	gp_Vec2d Vec1(dir_.dx, dir_.dy);
+	gp_Dir2d Dir1(Vec1);
+	gp_Pnt2d Pnt1(pnt_.x, pnt_.y);
+	Geom2d_Line * pLine = new Geom2d_Line(Pnt1, Dir1);
+	return pLine;
+}
 
 //////////////////////////////////////////////////////////////////////
 // CIRCLE
@@ -91,7 +128,7 @@ Curve * ELLIPSE::GenerateCoefficient(CMatrix3D RTMatrix)
 	coefficient_[4] = -center.y / (semi_axis_2_*semi_axis_2_);  //E
 	coefficient_[5] = center.x*center.x / (semi_axis_1_*semi_axis_1_) 
 		+ center.y*center.y / (semi_axis_2_*semi_axis_2_) - 1;  //F
-	return NULL;
+	return nullptr;
 }
 
 Geom2d_Curve * ELLIPSE::ToOCCT()
@@ -104,40 +141,6 @@ Geom2d_Curve * ELLIPSE::ToOCCT()
 	return ell;
 }
 
-
-//////////////////////////////////////////////////////////////////////
-// LINE
-//////////////////////////////////////////////////////////////////////
-LINE::LINE()
-{
-}
-
-LINE::~LINE()
-{
-
-}
-
-Curve * LINE::GenerateCoefficient(CMatrix3D RTMatrix)
-{
-	//二次曲线的一般方程为Ax^2+2Bxy+2Cx+Dy^2+2Ey+F = 0，共6个系数
-	CPoint3D direction = CPoint3D(dir_.dx,dir_.dy,dir_.dz)*RTMatrix;
-	CPoint3D point = pnt_*RTMatrix;
-	LINE * pLine = new LINE;
-	pLine->pnt_ = point;
-	pLine->dir_.dx = direction.x;
-	pLine->dir_.dy = direction.y;
-	pLine->dir_.dz = direction.z;
-	return pLine;
-}
-
-Geom2d_Curve* LINE::ToOCCT()
-{
-	gp_Vec2d Vec1(dir_.dx,dir_.dy);
-	gp_Dir2d Dir1(Vec1);
-	gp_Pnt2d Pnt1(pnt_.x,pnt_.y);
-	Geom2d_Line * pLine = new Geom2d_Line(Pnt1,Dir1);
-	return pLine;
-}
 
 //////////////////////////////////////////////////////////////////////
 //B_SPLINE_CURVE_WITH_KNOTS
@@ -155,7 +158,7 @@ B_Spline_Curve_With_Knots::~B_Spline_Curve_With_Knots()
 Curve * B_Spline_Curve_With_Knots::GenerateCoefficient()
 {
 
-	return NULL;
+	return nullptr;
 }
 Geom2d_Curve * B_Spline_Curve_With_Knots::ToOCCT()
 {
@@ -175,18 +178,57 @@ Geom2d_Curve * B_Spline_Curve_With_Knots::ToOCCT()
 }
 
 
+////////////////////////////////////////////////////////////////////////////
+
+HYPERBOLA::HYPERBOLA()
+{
+
+}
+
+HYPERBOLA::~HYPERBOLA()
+{
+
+}
+
+Curve * HYPERBOLA::GenerateCoefficient(CMatrix3D RTMatrix)
+{
+	return nullptr;
+}
+
+Geom2d_Curve * HYPERBOLA::ToOCCT()
+{
+	gp_Pnt2d Pnt1(position_.point.x, position_.point.y);
+	gp_Vec2d Vec1(1, 0);
+	gp_Dir2d Dir1(Vec1);
+	gp_Ax2d Ax2d1(Pnt1, Dir1);
+	Geom2d_Hyperbola* hyperbola = new Geom2d_Hyperbola(Ax2d1, semi_axis_, semi_imag_axis_, Standard_True);
+	return hyperbola;
+}
 
 
+////////////////////////////////////////////////////////////////////////////
+PARABOLA::PARABOLA()
+{
 
+}
 
+PARABOLA::~PARABOLA()
+{
 
+}
 
+Curve * PARABOLA::GenerateCoefficient(CMatrix3D RTMatrix)
+{
 
+	return nullptr;
+}
 
-
-
-
-
-
-
-
+Geom2d_Curve * PARABOLA::ToOCCT()
+{
+	gp_Pnt2d Pnt1(position_.point.x, position_.point.y);
+	gp_Vec2d Vec1(1, 0);
+	gp_Dir2d Dir1(Vec1);
+	gp_Ax2d Ax2d1(Pnt1, Dir1);
+	Geom2d_Parabola* par = new Geom2d_Parabola(Ax2d1, focal_dist_, Standard_True);
+	return par;
+}

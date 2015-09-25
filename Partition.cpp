@@ -58,6 +58,8 @@ void Partition::StepConversionAndOutput()
 				SetOfstp_face* face = shell->cfs_faces();
 				GetSFaceInfo(face);
 
+				FindPartitionFace(NatlHalfSpaceList_);
+
 				StepEntity* step = new StepEntity(NatlHalfSpaceList_);
 				step->GenerateHalfSpaceList();
 				step->GenerateCIT();
@@ -72,6 +74,8 @@ void Partition::StepConversionAndOutput()
 					stp_closed_shell* closeShell = oriClosedShell->closed_shell_element();
 					SetOfstp_face* face = closeShell->cfs_faces();
 					GetSFaceInfo(face);
+
+					FindPartitionFace(NatlHalfSpaceList_);
 
 					StepEntity* step = new StepEntity(NatlHalfSpaceList_);
 					step->GenerateHalfSpaceList();
@@ -153,7 +157,7 @@ SFace* Partition::ChoosePartitionFace()
 	return partFace;
 }
 
-bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orientationFaceA oriA,
+bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveName, orientationFaceA oriA,
 	EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA)
 {
 	CVector3D aDir, bDir;
@@ -174,7 +178,7 @@ bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orienta
 
 	if (!strcmp(Fa->name_, "plane")&&!strcmp(Fb->name_, "plane")) //平面平面
 	{
-		double result;
+		Standard_Real result;
 		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
 		{
 			CVector3D vect(curveA.cartesianEnd.x - curveA.cartesianStart.x, 
@@ -196,7 +200,7 @@ bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orienta
 	}
 	else if( strcmp(Fa->name_, "plane")== 0 && strcmp(Fb->name_, "plane")!=0 )//平面 曲面
 	{
-		double result;
+		Standard_Real result;
 		CPoint3D P(curveA.cartesianStart.x, curveA.cartesianStart.y, curveA.cartesianStart.z);
 		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
 		{
@@ -237,11 +241,48 @@ bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orienta
 	}
 	else if(strcmp(Fa->name_, "plane") != 0 && strcmp(Fb->name_, "plane") == 0)//曲面 平面
 	{
-		return false;
+		Standard_Real result;
+		CPoint3D P(curveA.cartesianStart.x, curveA.cartesianStart.y, curveA.cartesianStart.z);
+		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
+		{
+			CVector3D PVec(pointA.x - P.x, pointA.y - P.y, pointA.z - P.z);
+			if(oriA.advancedFaceOri)
+			{
+				CVector3D RVec = PVec*bDir;
+				result = aDir | (RVec*bDir);
+			}
+			else
+			{
+				CVector3D RVec = bDir * PVec;
+				result = aDir | (RVec*bDir);
+			}
+			if(result > 0)
+				return true;
+			else
+				return false;
+		}
+		else
+		{
+			CVector3D PVec(P.x - pointA.x, P.y - pointA.y, P.z - pointA.z);
+			if(oriA.advancedFaceOri)
+			{
+				CVector3D RVec = PVec*bDir;
+				result = aDir | (RVec*bDir);
+			}
+			else
+			{
+				CVector3D RVec = bDir * PVec;
+				result = aDir | (RVec*bDir);
+			}
+			if(result > 0)
+				return true;
+			else
+				return false;
+		}
 	}
 	else if(strcmp(Fa->name_, "plane")!= 0 && strcmp(Fb->name_, "plane") != 0)//曲面 曲面
 	{
-		double result;
+		Standard_Real result;
 		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
 		{
 			CVector3D FaVector, FbVector;
@@ -295,7 +336,7 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 					oriA.orientedEdgeOri = (*ia)->orientedEdgeOri_;
 					oriA.edgeCurveOri = (*ia)->edgeCurvesameSense_;
 
-					char* curveName = (*ia)->curveName_;
+					Standard_CString curveName = (*ia)->curveName_;
 					EdgeCurveVertex curveA, curveB;
 					curveA.cartesianStart = (*ia)->edgeStart_;
 					curveA.cartesianEnd = (*ia)->edgeEnd_;
@@ -326,7 +367,7 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 
 void Partition::NatlHalfVector(stp_advanced_face* adFace)
 {
-	char* entityName = adFace->face_geometry()->className();
+	Standard_CString entityName = adFace->face_geometry()->className();
 
 	/*! get bounds to vector<FaceBounds*> faceBounds_ */
 	vector<FaceBounds*> faceBounds;
@@ -657,7 +698,8 @@ void Partition::CurrentStructToOCCT(SFace* face, TopoDS_Shape& aShape)
 					((CIRCLE*)(*itCurve))->position_.point.z );
 				gp_Ax2 ax1(P1,N1);
 				gp_Circ circle(ax1, ((CIRCLE*)(*itCurve))->radius_);
-				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(circle, start, end);
+				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(circle);
+				
 				MW.Add(edge);
 			}
 			if(!stricmp((*itCurve)->curveName_, "ellipse"))
@@ -666,7 +708,7 @@ void Partition::CurrentStructToOCCT(SFace* face, TopoDS_Shape& aShape)
 				gp_Pnt P1(((ELLIPSE*)(*itCurve))->position_.point.x, ((ELLIPSE*)(*itCurve))->position_.point.y, ((ELLIPSE*)(*itCurve))->position_.point.z);
 				gp_Ax2 ax1(P1, N1);
 				gp_Elips elips(ax1, ((ELLIPSE*)(*itCurve))->semi_axis_1_, ((ELLIPSE*)(*itCurve))->semi_axis_2_);
-				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(elips, start, end);
+				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(elips);
 				MW.Add(edge);
 			}
 		}

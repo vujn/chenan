@@ -27,6 +27,7 @@
 #include <stp_manifold_solid_brep.h>
 #include <stp_face_bound.h>
 #include <stp_path.h>
+
 #include "InfoMatrix.h"
 #include <stp_surface_curve.h>
 #include "GeomCalc.h"

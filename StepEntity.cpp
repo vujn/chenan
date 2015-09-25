@@ -354,7 +354,7 @@ void StepEntity::GenerateOffsetHalfSpaceList()
 	vector<SFace*>().swap(BackwardHalfSpaceList_);
 	for (size_t iter = 0; iter < CSGHalfSpaceList_.size(); iter++)
 	{
-		char* name = CSGHalfSpaceList_[iter]->name_;
+		Standard_CString name = CSGHalfSpaceList_[iter]->name_;
 		if (!strcmp(name, "plane"))
 		{
 			SPlane* ForwardPlane = new SPlane;
@@ -552,8 +552,8 @@ void StepEntity::PMCtest()
 				if (IntersetedNum % 2 == 1)
 				{
 					CITIndex_[i].tPosition = InSolid;
-					cout<<CITPList_[CITIndex_[i].tListIndex].x<<endl<<CITPList_[CITIndex_[i].tListIndex].y<<endl<<CITPList_[CITIndex_[i].tListIndex].z
-						<<endl<<endl;
+// 					cout<<CITPList_[CITIndex_[i].tListIndex].x<<endl<<CITPList_[CITIndex_[i].tListIndex].y<<endl<<CITPList_[CITIndex_[i].tListIndex].z
+// 						<<endl<<endl;
 				}
 				else
 					CITIndex_[i].tPosition = OutSolid;
@@ -826,9 +826,11 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 		{
 			for (auto j = (*i)->edgeLoop_.begin(); j < (*i)->edgeLoop_.end(); j++)
 			{
-				CPoint3D pPoint3D1 = face->vertex_->cartesianStart;
-				CPoint3D pPoint3D2 = face->vertex_->cartesianEnd;
-
+				CPoint3D pPoint3D1 = CPoint3D(
+					(*j)->edgeStart_.x, (*j)->edgeStart_.y, (*j)->edgeStart_.z)* rotateMatrix;
+				CPoint3D pPoint3D2 = CPoint3D(
+					(*j)->edgeEnd_.x, (*j)->edgeEnd_.y, (*j)->edgeEnd_.z)* rotateMatrix;
+				
 				ORIENTATION ori;
 				ori.orientedEdgeOri = (*j)->orientedEdgeOri_;
 				ori.edgeCurveOri = (*j)->edgeCurvesameSense_;
@@ -986,8 +988,7 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 			//如果是VERTEX_LOOP，不判断
 			if (!strcmp(faceBound_[i]->bound()->className(), "vertex_loop") )
 				continue;
-			CPoint3D pPoint3D1 = face->vertex_->cartesianStart;
-			CPoint3D pPoint3D2 = face->vertex_->cartesianEnd;
+
 			ConvexConcave cc = MakeBoundFace(face->faceBounds_[i]->edgeLoop_);
 			if (cc == 0) //凸凹实体
 			{

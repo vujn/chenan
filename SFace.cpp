@@ -83,26 +83,6 @@ PointPosition SFace::PointIsIn(CPoint3D TestPoint)
 }
 
 
-vector<Handle(Geom2d_Curve)> SFace::GetCurveList()
-{
-	vector<Handle(Geom2d_Curve)> curveList;
-	for (auto itBound = faceBounds_.begin(); itBound != faceBounds_.end(); itBound++)
-	{
-		Handle(Geom2d_Curve) HS;
-		for (auto itCurve = (*itBound)->edgeLoop_.begin(); itCurve != (*itBound)->edgeLoop_.end(); itCurve++)
-		{
-			if (!stricmp((*itCurve)->curveName_, "line"))
-				HS = ((LINE*)(*itCurve))->ToOCCT();
-			if (!stricmp((*itCurve)->curveName_, "circle"))
-				HS = ((CIRCLE*)(*itCurve))->ToOCCT();
-			if (!stricmp((*itCurve)->curveName_, "ellipse"))
-				HS = ((ELLIPSE*)(*itCurve))->ToOCCT();
-			curveList.push_back(HS);
-		}
-	}
-	return curveList;
-}
-
 //////////////////////////////////////////////////////////////////////
 // SPlane
 //////////////////////////////////////////////////////////////////////
@@ -260,7 +240,7 @@ void SConical::GenerateCoefficient()
 	vertex_[1] = cP1.y - cV1.dy * radius_*(1/tan(semi_angle_));
 	vertex_[2] = cP1.z - cV1.dz * radius_*(1/tan(semi_angle_));
 
-	double M = radius_*(1/tan(semi_angle_)) - cV1.dx*cP1.x - cV1.dy*cP1.y - cV1.dz*cP1.z;
+	Standard_Real M = radius_*(1/tan(semi_angle_)) - cV1.dx*cP1.x - cV1.dy*cP1.y - cV1.dz*cP1.z;
 
 	coefficient_[0] = cV1.dz*cV1.dz + cV1.dy*cV1.dy - cV1.dx*cV1.dx*tan(semi_angle_);  //A
 	coefficient_[1] = -cV1.dx*cV1.dy - cV1.dx*cV1.dy*tan(semi_angle_);  //B

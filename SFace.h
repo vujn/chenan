@@ -17,15 +17,13 @@ public:
 public:
 	PointPosition PointIsIn(CPoint3D TestPoint);
 
-	vector<Handle(Geom2d_Curve)> GetCurveList();
-
 public:
-	char* name_;
-	size_t entityID_;
-	BOOLEAN adFaceSameSense_;//  advanced_face of same_sense    2015/09/08
+	Standard_CString name_;
+	Standard_Boolean entityID_;
+	Standard_Byte adFaceSameSense_;//  advanced_face of same_sense    2015/09/08
 	vector<FaceBounds*> faceBounds_;
 	GeometryData* position_;
-	double coefficient_[10];//系数数组，二次曲面的一般方程为Ax^2+2Bxy+2Cxz+2Dx+Ey^2+2Fyz+2Gy+Hz^2+2Iz+J = 0，共10个系数
+	Standard_Real coefficient_[10];//系数数组，二次曲面的一般方程为Ax^2+2Bxy+2Cxz+2Dx+Ey^2+2Fyz+2Gy+Hz^2+2Iz+J = 0，共10个系数
 	EdgeCurveVertex* vertex_;
 };
 
@@ -52,7 +50,7 @@ public:
 	Geom_Surface * ToOCCT();
 
 public:
-	double radius_;
+	Standard_Real radius_;
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -66,7 +64,7 @@ public:
 	Geom_Surface * ToOCCT();
 
 public:
-	double radius_;
+	Standard_Real radius_;
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -80,9 +78,9 @@ public:
 	Geom_Surface * ToOCCT();
 
 public:
-	double radius_;
-	double semi_angle_;
-	double vertex_[3];
+	Standard_Real radius_;
+	Standard_Real semi_angle_;
+	Standard_Real vertex_[3];
 };
 
 ///////////////////////////////////////////////////////////////////////////
@@ -96,6 +94,6 @@ public:
 	Geom_Surface * ToOCCT();
 
 public:
-	double major_radius_;
-	double minor_radius_;
+	Standard_Real major_radius_;
+	Standard_Real minor_radius_;
 };

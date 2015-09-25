@@ -11,10 +11,10 @@
 
 typedef	struct Orientation
 {
-	BOOLEAN advancedFaceOri;
-	BOOLEAN boundsOri;
-	BOOLEAN orientedEdgeOri;
-	BOOLEAN edgeCurveOri;
+	Standard_Byte advancedFaceOri;
+	Standard_Byte boundsOri;
+	Standard_Byte orientedEdgeOri;
+	Standard_Byte edgeCurveOri;
 }orientationFaceA, orientationFaceB;
 
 
@@ -38,7 +38,7 @@ public:
 	
 	void FindPartitionFace(vector<SFace*> faceList);
 	vector<SFace*> OcctSplit(vector<SFace*> faceList, SFace* splitFace);		//occt切割面
-	bool JudgeIntersection(SFace* Fa, SFace* Fb, char* curveName, orientationFaceA oriA,
+	bool JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveName, orientationFaceA oriA,
 		EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA);// 两个面相交或者多个面相交
 	void FindPartitionFace(SFace* Fa, SFace* Fb);
 	SFace* ChoosePartitionFace();

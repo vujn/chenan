@@ -14,7 +14,7 @@ public:
 public:
 
 	/*! face_outer_bound orientation */
-	BOOLEAN boundsOri_; 
+	Standard_Byte boundsOri_; 
 
 	/*! save the edge_curve infors;*/
 	vector<Curve*> edgeLoop_; 
