@@ -7,7 +7,19 @@
 #define WNT
 
 #include "targetver.h"
+#include <stp_schema.h>
+#include <stix.h>
+#include <stixmesh.h>
+#include <stix_xform.h>
+#include <iostream>
+#include <vector>
+#include <list>
+#include <RoseString.h>
+#include <map>
+#include "GeomCalc.h"
 #include <stdio.h>
+#include <string>
+#include <memory>
 #include <tchar.h>
 #include <stp_schema.h>
 #include <stix.h>
@@ -27,10 +39,8 @@
 #include <stp_manifold_solid_brep.h>
 #include <stp_face_bound.h>
 #include <stp_path.h>
-
-#include "InfoMatrix.h"
 #include <stp_surface_curve.h>
-#include "GeomCalc.h"
+#include "InfoMatrix.h"
 #include "Standard_ErrorHandler.hxx" 
 #include "Geom2d_Curve.hxx"
 #include "gp_Ax2d.hxx"
@@ -78,9 +88,7 @@
 #include "BRep_Tool.hxx"
 #include "TopExp_Explorer.hxx"
 #include "TopoDS.hxx"
-#include "BRepAlgoAPI_BooleanOperation.hxx"
-#include "BRepAlgoAPI_Section.hxx"
-#include "BRepFeat_SplitShape.hxx"
+
 #include "BRep_Builder.hxx"
 #include "gp_Circ.hxx"
 #include "gp_Elips.hxx"
@@ -89,7 +97,6 @@
 #include "BRepExtrema_DistShapeShape.hxx"
 #include "TColStd_ListIteratorOfListOfReal.hxx"
 #include "TopTools_ListIteratorOfListOfShape.hxx"
-#include "BRepAlgoAPI_Common.hxx"
 #include "ShapeFix_Solid.hxx"
 #include "BRepAdaptor_Surface.hxx"
 #include "CSLib_DerivativeStatus.hxx"
@@ -100,5 +107,8 @@
 #include "BRepBndLib.hxx"
 #include "BRepAlgoAPI_Cut.hxx"
 #include "BRepPrimAPI_MakeBox.hxx"
-
+#include "Partition.h"
+#include "BRepAlgoAPI_Section.hxx"
+#include "BRepFeat_SplitShape.hxx"
+#include "BRepAlgoAPI_Common.hxx"
 // TODO: 在此处引用程序需要的其他头文件

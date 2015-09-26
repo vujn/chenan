@@ -1,11 +1,10 @@
 
 #include "stdafx.h"
-#include "InfoMatrix.h"
 #include <commdlg.h>
 #include <shlwapi.h>
 #include <map>
 #include <stplib_init.h>
-#include "Partition.h"
+#include "InfoMatrix.h"
 
 
 std::string pathName;
@@ -36,7 +35,7 @@ void _tmain(int argc, _TCHAR* argv[])
 	rose_compute_backptrs(design);
 	stix_tag_asms(design);
 
-	Partition* part = new Partition(design);
+	InfoMatrix* info = new InfoMatrix(design);
 
 }
 

@@ -28,7 +28,7 @@ public:
 public:
 
 	void GetSFaceInfo(SetOfstp_face* stpFace);
-	void StepConversionAndOutput();
+	void StepConversionAndOutput(stp_representation_item* item);
 	void NatlHalfVector(stp_advanced_face* adFace);
 	void GetAxisData(stp_axis2_placement_3d* axis, GeometryData& data);
 	stp_cartesian_point* EdgeCurveStartOrEnd(stp_vertex* ver);
@@ -58,6 +58,8 @@ private:
 	vector<SFace*> intersectionFaceList_;
 	vector<SFace*> faceInfors_;
 	RoseDesign* design_;
+	stp_representation_item* item_;
 	bool isHasPartitionFace_;
+
 };
 

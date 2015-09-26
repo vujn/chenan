@@ -1,7 +1,7 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "StepEntity.h"
 #include "GeomCalc.h"
-#include "CURVE.h"
+#include "curve.h"
 
 StepEntity::StepEntity(vector<SFace*> natlHalfSpaceList)
 	:NatlHalfSpaceList_(natlHalfSpaceList)

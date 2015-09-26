@@ -1,13 +1,13 @@
+
 #include "stdafx.h"
 #include "Partition.h"
-#include <algorithm>
 
 
 
 Partition::Partition(RoseDesign* design)
 	:design_(design)
 {
-	StepConversionAndOutput();
+	
 }
 
 
@@ -16,75 +16,61 @@ Partition::~Partition()
 	vector<string>().swap(vecOut_);
 }
 
-void Partition::StepConversionAndOutput()
+void Partition::StepConversionAndOutput(stp_representation_item* item)
 {
-	RoseCursor objects;
-	RoseObject* obj;
-	objects.traverse(design_);
-	objects.domain(ROSE_DOMAIN(stp_advanced_brep_shape_representation));
 	int m = 1;
 	int n = 1;
-	isHasPartitionFace_ = true;
-	while(obj = objects.next())
+
+	if (!strcmp("axis2_placement_3d", item->className()))
+		stp_axis2_placement_3d *axis = ROSE_CAST(stp_axis2_placement_3d, item);
+	if (!strcmp("manifold_solid_brep", item->className()))
 	{
-		stp_advanced_brep_shape_representation* pt = ROSE_CAST(stp_advanced_brep_shape_representation, obj);
-		SetOfstp_representation_item* items = pt->items();
-		stp_representation_context* item = pt->context_of_items();
-		for(size_t i = 0; i < items->size(); i++)
+		stp_manifold_solid_brep* solidBrep = ROSE_CAST(stp_manifold_solid_brep, item);
+		stp_closed_shell* shell = solidBrep->outer();
+		SetOfstp_face* face = shell->cfs_faces();
+		GetSFaceInfo(face);
+
+		FindPartitionFace(NatlHalfSpaceList_);
+
+		StepEntity* step = new StepEntity(NatlHalfSpaceList_);
+		step->GenerateHalfSpaceList();
+		step->GenerateCIT();
+		step->GenerateHalfCharacteristicPoint();
+		step->PMCtest();
+		step->Output(&m, &n, "", vecOut_, false, false, false, false);
+	}
+	if (!strcmp("brep_with_voids", item->className()))
+	{
+		stp_brep_with_voids* voidsBrep = ROSE_CAST(stp_brep_with_voids, item);
+		stp_closed_shell* shell = voidsBrep->outer();
+		SetOfstp_face* face = shell->cfs_faces();
+		GetSFaceInfo(face);
+
+		FindPartitionFace(NatlHalfSpaceList_);
+
+		StepEntity* step = new StepEntity(NatlHalfSpaceList_);
+		step->GenerateHalfSpaceList();
+		step->GenerateCIT();
+		step->GenerateHalfCharacteristicPoint();
+		step->PMCtest();
+		step->Output(&m, &n, "", vecOut_, false, false, false, false);
+
+		SetOfstp_oriented_closed_shell* orientedShell = voidsBrep->voids();
+		for (size_t i = 0; i < orientedShell->size(); i++)
 		{
-			stp_representation_item* it = items->get(i);
-			if(!strcmp("axis2_placement_3d", it->className()))
-				stp_axis2_placement_3d *axis = ROSE_CAST(stp_axis2_placement_3d, it);
-			if(!strcmp("manifold_solid_brep", it->className()))
-			{
-				stp_manifold_solid_brep* solidBrep = ROSE_CAST(stp_manifold_solid_brep, it);
-				stp_closed_shell* shell = solidBrep->outer();
-				SetOfstp_face* face = shell->cfs_faces();
-				GetSFaceInfo(face);
-				
-				FindPartitionFace(NatlHalfSpaceList_);
+			stp_oriented_closed_shell* oriClosedShell = orientedShell->get(i);
+			stp_closed_shell* closeShell = oriClosedShell->closed_shell_element();
+			SetOfstp_face* face = closeShell->cfs_faces();
+			GetSFaceInfo(face);
 
-				StepEntity* step = new StepEntity(NatlHalfSpaceList_);
-				step->GenerateHalfSpaceList();
-				step->GenerateCIT();
-				step->GenerateHalfCharacteristicPoint();
-				step->PMCtest();
-				step->Output(&m, &n, "", vecOut_, false, false, false, false);
-			}
-			if(!strcmp("brep_with_voids", it->className()))
-			{
-				stp_brep_with_voids* voidsBrep = ROSE_CAST(stp_brep_with_voids, it);
-				stp_closed_shell* shell = voidsBrep->outer();
-				SetOfstp_face* face = shell->cfs_faces();
-				GetSFaceInfo(face);
+			FindPartitionFace(NatlHalfSpaceList_);
 
-				FindPartitionFace(NatlHalfSpaceList_);
-
-				StepEntity* step = new StepEntity(NatlHalfSpaceList_);
-				step->GenerateHalfSpaceList();
-				step->GenerateCIT();
-				step->GenerateHalfCharacteristicPoint();
-				step->PMCtest();
-				step->Output(&m, &n, "", vecOut_, false, false, false, false);
-
- 				SetOfstp_oriented_closed_shell* orientedShell = voidsBrep->voids();
-				for(size_t i = 0; i < orientedShell->size(); i++)
-				{
-					stp_oriented_closed_shell* oriClosedShell = orientedShell->get(i);
-					stp_closed_shell* closeShell = oriClosedShell->closed_shell_element();
-					SetOfstp_face* face = closeShell->cfs_faces();
-					GetSFaceInfo(face);
-
-					FindPartitionFace(NatlHalfSpaceList_);
-
-					StepEntity* step = new StepEntity(NatlHalfSpaceList_);
-					step->GenerateHalfSpaceList();
-					step->GenerateCIT();
-					step->GenerateHalfCharacteristicPoint();
-					step->PMCtest();
-					step->Output(&m, &n, "", vecOut_, false, false, false, false);
-				}
-			}
+			StepEntity* step = new StepEntity(NatlHalfSpaceList_);
+			step->GenerateHalfSpaceList();
+			step->GenerateCIT();
+			step->GenerateHalfCharacteristicPoint();
+			step->PMCtest();
+			step->Output(&m, &n, "", vecOut_, false, false, false, false);
 		}
 	}
 }

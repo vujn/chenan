@@ -1,8 +1,9 @@
-#include "StdAfx.h"
+#include "stdafx.h"
 #include "InfoMatrix.h"
+#include "Partition.h"
 
-InfoMatrix::InfoMatrix(const char* stepFileName)
-	:stepFileName_(stepFileName)
+InfoMatrix::InfoMatrix(RoseDesign* roseDesign)
+	:roseDesign_(roseDesign)
 {
 	stix_find_root_products( &roots_, roseDesign_ );
 	for(size_t i = 0, sz = roots_.size(); i < sz; i++)
@@ -25,7 +26,7 @@ void InfoMatrix::GetProductInformation(stp_product_definition* proDefinition,
 	StixMgrAsmProduct* pm = StixMgrAsmProduct::find(proDefinition);
 
 	printf("ROOT PRODUCT #%lu\n", proDefinition->entity_id());
-
+	
 	for(size_t i = 0; i < pm->shapes.size(); i++)
 	{
 		stp_shape_representation * rep = pm->shapes[i];
@@ -46,11 +47,17 @@ void InfoMatrix::GetShapeInformation(stp_representation* rep,
 	{
 		stp_product_definition_formation* pdf = proDefinition-> formation();
 		stp_product* p = pdf? pdf-> of_product(): 0;
-		nestDepth++;
+		MatrixMess(rep->entity_id(), stixMtrx);
 	}
 
-	printf("Shape #%lu (%s:%s)\n", rep->entity_id(), rep->domain()->name(), rep->name());
-	MatrixMess(rep->entity_id(), stixMtrx);
+	SetOfstp_representation_item* items = rep->items();
+	Partition*	part = new Partition(roseDesign_);
+	int i, sz;
+	for (i = 0, sz = items->size(); i < sz; i++)
+	{
+		stp_representation_item* item = items->get(i);
+		part->StepConversionAndOutput(item);
+	}
 
 	StixMgrAsmShapeRep* rep_mgr = StixMgrAsmShapeRep::find(rep);
 	if (!rep_mgr) 

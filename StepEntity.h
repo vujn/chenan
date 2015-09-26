@@ -1,8 +1,7 @@
 #pragma once
-#include <memory>
+
 #include "GeomKernel.h"
 #include "InterProcess.h"
-#include "Structure.h"
 #include "SFace.h"
 #include "Curve.h"
 

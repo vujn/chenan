@@ -1,9 +1,6 @@
 
 #include "stdafx.h"
 #include "SFace.h"
-#include <Geom_ToroidalSurface.hxx>
-
-
 
 
 //////////////////////////////////////////////////////////////////////

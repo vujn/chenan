@@ -1,7 +1,6 @@
 #pragma once
 
 #include "stdafx.h"
-#include "Structure.h"
 #include "FaceBounds.h"
 
 
