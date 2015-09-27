@@ -4,7 +4,7 @@
 #include <shlwapi.h>
 #include <map>
 #include <stplib_init.h>
-#include "InfoMatrix.h"
+#include "BRepToCSG.h"
 
 
 std::string pathName;
@@ -35,7 +35,7 @@ void _tmain(int argc, _TCHAR* argv[])
 	rose_compute_backptrs(design);
 	stix_tag_asms(design);
 
-	InfoMatrix* info = new InfoMatrix(design);
+	BRepToCSG* info = new BRepToCSG(design);
 
 }
 

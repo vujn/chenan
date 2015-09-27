@@ -19,7 +19,7 @@ public:
 public:
 	Standard_CString name_;
 	Standard_Boolean entityID_;
-	Standard_Byte adFaceSameSense_;//  advanced_face of same_sense    2015/09/08
+	Standard_Byte adFaceSameSense_;
 	vector<FaceBounds*> faceBounds_;
 	GeometryData* position_;
 	Standard_Real coefficient_[10];//系数数组，二次曲面的一般方程为Ax^2+2Bxy+2Cxz+2Dx+Ey^2+2Fyz+2Gy+Hz^2+2Iz+J = 0，共10个系数

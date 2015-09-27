@@ -12,14 +12,14 @@ struct Repetition
 	StixMtrx stixMtrx;
 };
 
-class InfoMatrix
+class BRepToCSG
 {
 
 public:
 
-	InfoMatrix(RoseDesign* roseDesign);
+	BRepToCSG(RoseDesign* roseDesign);
 
-	virtual ~InfoMatrix(void);
+	virtual ~BRepToCSG(void);
 
 	void MatrixMess(size_t entityId, StixMtrx &stixMtrx);
 

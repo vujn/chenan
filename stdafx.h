@@ -40,7 +40,7 @@
 #include <stp_face_bound.h>
 #include <stp_path.h>
 #include <stp_surface_curve.h>
-#include "InfoMatrix.h"
+#include "BRepToCSG.h"
 #include "Standard_ErrorHandler.hxx" 
 #include "Geom2d_Curve.hxx"
 #include "gp_Ax2d.hxx"

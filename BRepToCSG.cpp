@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "InfoMatrix.h"
+#include "BRepToCSG.h"
 #include "Partition.h"
 
-InfoMatrix::InfoMatrix(RoseDesign* roseDesign)
+BRepToCSG::BRepToCSG(RoseDesign* roseDesign)
 	:roseDesign_(roseDesign)
 {
 	stix_find_root_products( &roots_, roseDesign_ );
@@ -13,12 +13,12 @@ InfoMatrix::InfoMatrix(RoseDesign* roseDesign)
 	}
 }
 
-InfoMatrix::~InfoMatrix(void)
+BRepToCSG::~BRepToCSG(void)
 {
 	//vector<Repetition>().swap(repetition_);
 }
 
-void InfoMatrix::GetProductInformation(stp_product_definition* proDefinition,
+void BRepToCSG::GetProductInformation(stp_product_definition* proDefinition,
 	StixMtrx& sMtrx )
 {
 	if (!proDefinition) 
@@ -34,7 +34,7 @@ void InfoMatrix::GetProductInformation(stp_product_definition* proDefinition,
 	}
 }
 
-void InfoMatrix::GetShapeInformation(stp_representation* rep,
+void BRepToCSG::GetShapeInformation(stp_representation* rep,
 	StixMtrx& stixMtrx,
 	RoseObject* rep_rel_or_mapped_item, 
 	stp_product_definition* proDefinition, 
@@ -86,7 +86,7 @@ void InfoMatrix::GetShapeInformation(stp_representation* rep,
 	}
 }
 
-void InfoMatrix::MatrixMess(size_t entityId, StixMtrx& stixMtrx)
+void BRepToCSG::MatrixMess(size_t entityId, StixMtrx& stixMtrx)
 {
 	// ∆Ω“∆–≈œ¢  
 	//			stixMtrx.get(0,3);stixMtrx.get(1,3);stixMtrx.get(2,3); 
