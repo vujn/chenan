@@ -120,7 +120,7 @@ bool Partition::IsPartitionFace(vector<SFace*> faceList)
 		return true;
 	else
 	{	
-		canSplitFaceList.push_back(faceList);
+		intersectionFaceList_.push_back(faceList);
 		return false;
 	}
 }

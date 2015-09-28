@@ -51,12 +51,12 @@ void BRepToCSG::GetShapeInformation(stp_representation* rep,
 	}
 
 	SetOfstp_representation_item* items = rep->items();
-	Partition*	part = new Partition(roseDesign_);
+	Partition part(roseDesign_);
 	int i, sz;
 	for (i = 0, sz = items->size(); i < sz; i++)
 	{
 		stp_representation_item* item = items->get(i);
-		part->StepConversionAndOutput(item);
+		part.StepConversionAndOutput(item);
 	}
 
 	StixMgrAsmShapeRep* rep_mgr = StixMgrAsmShapeRep::find(rep);
@@ -98,6 +98,10 @@ void BRepToCSG::MatrixMess(size_t entityId, StixMtrx& stixMtrx)
 
 	// 重复结构
 	//			Repetition;
+	printf("Loc: (%.6g %.6g %.6g)\n", stixMtrx.get(0, 3), stixMtrx.get(1, 3), stixMtrx.get(2, 3));//平移信息
+	printf("xdir (%.3f %.3f %.3f)\n", stixMtrx.get(0, 0), stixMtrx.get(1, 0), stixMtrx.get(2, 0));//新的X轴
+	printf("ydir (%.3f %.3f %.3f)\n", stixMtrx.get(0, 1), stixMtrx.get(1, 1), stixMtrx.get(2, 1));//新的Y轴
+	printf("zdir (%.3f %.3f %.3f)\n", stixMtrx.get(0, 2), stixMtrx.get(1, 2), stixMtrx.get(2, 2));//新的Z轴
 	Repetition repe;
 	repe.entityId = entityId;
 	repe.stixMtrx = stixMtrx;

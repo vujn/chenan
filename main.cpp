@@ -35,7 +35,7 @@ void _tmain(int argc, _TCHAR* argv[])
 	rose_compute_backptrs(design);
 	stix_tag_asms(design);
 
-	BRepToCSG* info = new BRepToCSG(design);
+	BRepToCSG csg(design);
 
 }
 
