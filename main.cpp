@@ -45,7 +45,7 @@ bool GetStepFileDialog()
 	OPENFILENAME ofn = { 0 };
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = nullptr;
-	ofn.lpstrFilter = _T("stp文件(*.stp)\0*.stp\0step文件(*.step)\0*.step\0所有文件*.*)\0*.*\0");
+	ofn.lpstrFilter = _T("step文件(*.step)\0*.step\0stp文件(*.stp)\0*.stp\0所有文件*.*)\0*.*\0");
 	ofn.lpstrInitialDir = _T("D:\\stepmod");
 	ofn.lpstrFile = szBuffer;
 	ofn.nMaxFile = sizeof(szBuffer) / sizeof(*szBuffer);
