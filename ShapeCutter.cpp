@@ -9,8 +9,8 @@ ShapeCutter::ShapeCutter()
 ShapeCutter::ShapeCutter(const TopoDS_Shape& theBox1,
 	const TopoDS_Shape& theBox2,
 	const TopoDS_Face& theFace,
-	Standard_Boolean Optimization )
-: theBox1_(theBox1), theBox2_(theBox2), theFace_(theFace), optimization_(Optimization)
+	Standard_Boolean optimization )
+: theBox1_(theBox1), theBox2_(theBox2), theFace_(theFace), optimization_(optimization)
 {
 
 }
@@ -45,18 +45,18 @@ void ShapeCutter::Init3( const TopoDS_Face& theFace )
 	theFace_ = theFace;
 }
 
-void ShapeCutter::SetOptimization( Standard_Boolean Optimization/*=Standard_True*/ )
+void ShapeCutter::SetOptimization( Standard_Boolean optimization/*=Standard_True*/ )
 {
-	optimization_ = Optimization;
+	optimization_ = optimization;
 }
 
 const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, const TopoDS_Shape& shape2)
 {
 	TopoDS_Shape S = shape1;
 
-	//gp_Pln theplane(gp_Pnt(90,90,90),gp_Dir(1,1,1));
-	//gp_Pln theplane = plane1;
-	//TopoDS_Face theface = BRepBuilderAPI_MakeFace(theplane);
+	//gp_Pln thePlane(gp_Pnt(90,90,90),gp_Dir(1,1,1));
+	//gp_Pln thePlane = plane1;
+	//TopoDS_Face theFace = BRepBuilderAPI_MakeFace(thePlane);
 	BRepAlgoAPI_Section asect(S, shape2, Standard_False);
 	asect.ComputePCurveOn1(Standard_True);
 	asect.Approximation(Standard_True);
@@ -270,16 +270,16 @@ void ShapeCutter::Normal(const TopoDS_Face&  aFace,gp_Pnt& point, gp_Dir& norDir
 	}
 	else 
 	{
-		gp_Dir NPlane;
+		gp_Dir nPlane;
 		S.D1(U,V,P,D1U,D1V);
-		CSLib::Normal(D1U,D1V,Precision::Angular(),Status,NPlane);
+		CSLib::Normal(D1U,D1V,Precision::Angular(),Status,nPlane);
 		if (Status != CSLib_Done)
 		{
 			S.D2(U,V,P,D1U,D1V,D2U,D2V,D2UV);
-			CSLib::Normal(D1U,D1V,D2U,D2V,D2UV,Precision::Angular(),OK,NStat,NPlane);
+			CSLib::Normal(D1U,D1V,D2U,D2V,D2UV,Precision::Angular(),OK,NStat,nPlane);
 		}
-		if (aFace.Orientation() == TopAbs_REVERSED) NPlane.Reverse();
-		norDir = (NPlane);
+		if (aFace.Orientation() == TopAbs_REVERSED) nPlane.Reverse();
+		norDir = (nPlane);
 
 	}
 }
@@ -289,10 +289,10 @@ Standard_Boolean ShapeCutter::IsAllEdgeOnFace(const TopoDS_Edge& anEdge, const T
 	for (TopExp_Explorer ex1(anEdge,TopAbs_VERTEX); ex1.More(); ex1.Next())
 	{
 		TopoDS_Vertex aVertex = TopoDS::Vertex( ex1.Current() );
-		BRepExtrema_DistShapeShape Extrema_DistShapeShape(aVertex, eachFace);
-		Extrema_DistShapeShape.Perform();
+		BRepExtrema_DistShapeShape extremaDistShapeShape(aVertex, eachFace);
+		extremaDistShapeShape.Perform();
 		Standard_Real tempTolerance = BRep_Tool::Tolerance(TopoDS::Edge(anEdge));
-		Standard_Real theDistance = Extrema_DistShapeShape.Value();//得到点到面的距离
+		Standard_Real theDistance = extremaDistShapeShape.Value();//得到点到面的距离
 		if (theDistance>tempTolerance)
 			return Standard_False;
 	}
@@ -314,17 +314,14 @@ void ShapeCutter::Perform()
 	//若有优化选项，进行Mesh操作
 	if (optimization_)
 	{
-		//BRepMesh::Mesh(m_theBox2,1);
+		//BRepMesh::Mesh(theBox2_,1);
 	}
-
 	const TopTools_ListOfShape& theBox1SplitShapelist = this->SplitShape(theBox1_, theFace_);
-	TopTools_ListIteratorOfListOfShape splitShape_ite(theBox1SplitShapelist);
-	splitShape_ite.More();
-	halfWorld1_ = splitShape_ite.Value();
-	splitShape_ite.Next();
-	halfWorld2_ = splitShape_ite.Value();
-	//this->m_theResult1 = BRepAlgoAPI_Cut(m_theBox2, halfWorld_1);
-	//this->m_theResult2 = BRepAlgoAPI_Cut(m_theBox2, halfWorld_2);
+	TopTools_ListIteratorOfListOfShape splitShapeIte(theBox1SplitShapelist);
+	splitShapeIte.More();
+	halfWorld1_ = splitShapeIte.Value();
+	splitShapeIte.Next();
+	halfWorld2_ = splitShapeIte.Value();
 }
 
 const TopoDS_Shape& ShapeCutter::CalcResult1()

@@ -10,10 +10,36 @@ Partition::Partition(RoseDesign* design)
 	
 }
 
-
 Partition::~Partition()
 {
-	vector<string>().swap(vecOut_);
+
+}
+
+template < class T>
+string ConvertToString(T value)
+{
+	stringstream ss;
+	ss << value;
+	return ss.str();
+}
+
+void Partition::replace_all(std::string & s, std::string const & t, std::string const & w)
+{
+	string::size_type pos = s.find(t), t_size = t.size(), r_size = w.size();
+	while (pos != std::string::npos)
+	{ // found   
+		s.replace(pos, t_size, w);
+		pos = s.find(t, pos + r_size);
+	}
+}
+void Partition::SplitString(const char* str, const char* c, vector<string>& vecSplit)
+{
+	char *p = strtok(const_cast<char*>(str), c);
+	while (p)
+	{
+		vecSplit.push_back(p);
+		p = strtok(NULL, c);
+	}
 }
 
 void Partition::StepConversionAndOutput(stp_representation_item* item)
@@ -96,6 +122,66 @@ void Partition::StepConversionAndOutput(stp_representation_item* item)
 			vector<vector<SFace*>>().swap(intersectionFaceList_);
 		}
 	}
+	ofstream result;
+	result.open("test.txt");
+	string voidExpression = "";
+	voidExpression += ConvertToString(m) + " 0 ";
+	string str2;
+	string str1;
+	for (int i = 1; i < m; i++)
+	{
+		voidExpression += "#" + ConvertToString(i);
+		if (i != m - 1)
+			voidExpression += ":";
+		else
+			voidExpression += " $ NULL \n";
+	}
+	str1 += voidExpression;
+	str2 += " \n";
+	vecOut_.push_back(str1);
+	vecOut_.push_back(str2);
+	int iSize = vecOut_.size() / 2;
+	for (int i = 0; i < iSize; i++)
+	{
+		std::string& str = vecOut_[2 * i];
+		replace_all(str, "\n", "");
+		string outfile;
+		vector<string> vecSplitOut;
+		SplitString(str.c_str(), " ", vecSplitOut);
+		int ivecSize = vecSplitOut.size();
+		int iCount = ivecSize / 15;
+		int imod = ivecSize % 15;
+		for (int n = 0; n < iCount; n++)
+		{
+			for (int k = 0; k < 15; k++)
+			{
+				outfile.append(vecSplitOut[n * 15 + k]);
+				outfile.append(" ");
+			}
+
+			if ((0 == imod) && (n == iCount - 1))
+				outfile += "\n";
+			else
+				outfile += "&\n     ";
+		}
+
+		int iStart = iCount * 15;
+		for (int s = iStart; s < ivecSize; s++)
+		{
+			outfile.append(vecSplitOut[s]);
+			outfile.append(" ");
+		}
+
+		if (0 != imod)
+			outfile += "\n";
+		result << outfile;
+	}
+	result << endl;
+	for (int i = 0; i < iSize; i++)
+	{
+		result << vecOut_[2 * i + 1];
+	}
+	result.close();
 }
 
 void Partition::GetSFaceInfo(SetOfstp_face* stpFace)
@@ -139,7 +225,10 @@ void Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
 	}
 	solid.Perform();
 	TopoDS_Shape sewedShape = solid.SewedShape();
-	ShapeCutter cutter(sewedShape, theFace);
+
+	TopoDS_Shape theBox;
+
+	ShapeCutter cutter(theBox, sewedShape, theFace);
 	cutter.Perform();
 	TopoDS_Shape S1 = cutter.CalcResult1();
 	TopoDS_Shape S2 = cutter.CalcResult2();
@@ -228,14 +317,16 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 					EdgeCurveVertex curveA, curveB;
 					curveA.cartesianStart = (*ia)->edgeStart_;
 					curveA.cartesianEnd = (*ia)->edgeEnd_;
-					curveA.cartesianStart = (*jb)->edgeStart_;
-					curveA.cartesianEnd = (*jb)->edgeEnd_;
+					curveB.cartesianStart = (*jb)->edgeStart_;
+					curveB.cartesianEnd = (*jb)->edgeEnd_;
+
 					CPoint3D pointA = ((CIRCLE*)(*ia))->position_.point;//圆心
+					CPoint3D pointB = ((CIRCLE*)(*jb))->position_.point;
 					if (curveFaceBId == curveFaceAId)
 					{
 						//判断是否是分割面
 						bool isPartitionFace = JudgeIntersection(Fa, Fb, curveName,
-							oriA, curveA, curveB, pointA);
+							oriA, curveA, curveB, pointA, pointB);
 						if (isPartitionFace)
 						{
 							pair<size_t, SFace*> pa(Fa->entityID_, Fa);
@@ -253,7 +344,7 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 }
 
 bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveName, orientationFaceA oriA,
-	EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA)
+	EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA, CPoint3D pointB)
 {
 	CVector3D aDir, bDir;
 	if(Fa->adFaceSameSense_)// 根据面的same_sense 判断该面的法线方向 1: 正向  0:反向
@@ -337,10 +428,10 @@ bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveNa
 	else if(strcmp(Fa->name_, "plane") != 0 && strcmp(Fb->name_, "plane") == 0)//曲面 平面
 	{
 		Standard_Real result;
-		CPoint3D P(curveA.cartesianStart.x, curveA.cartesianStart.y, curveA.cartesianStart.z);
+		CPoint3D P(curveB.cartesianStart.x, curveB.cartesianStart.y, curveB.cartesianStart.z);
 		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
 		{
-			CVector3D PVec(pointA.x - P.x, pointA.y - P.y, pointA.z - P.z);
+			CVector3D PVec(pointB.x - P.x, pointB.y - P.y, pointB.z - P.z);
 			if(oriA.advancedFaceOri)
 			{
 				CVector3D RVec = PVec*bDir;
@@ -432,6 +523,7 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 			stp_oriented_edge* oriEdge = oriList->get(j);
 			stp_edge_curve* curve = ROSE_CAST(stp_edge_curve, oriEdge->edge_element());
 			stp_curve* pcurve = curve->edge_geometry();//line, circle,ellipse,surface_curve
+			
 			if(!strcmp(pcurve->className(), "line"))
 			{
 				LINE* temp = new LINE;
@@ -487,6 +579,35 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 				temp->position_ = tempGepmetry;
 				temp->semi_axis_1_ = ell->semi_axis_1();
 				temp->semi_axis_2_ = ell->semi_axis_2();
+				temp->curveName_ = pcurve->className();
+				stp_cartesian_point* eStart = EdgeCurveStartOrEnd(curve->edge_start());
+				stp_cartesian_point* eEnd = EdgeCurveStartOrEnd(curve->edge_end());
+				CPoint3D start(eStart->coordinates()->get(0), eStart->coordinates()->get(1), eStart->coordinates()->get(2));
+				CPoint3D end(eEnd->coordinates()->get(0), eEnd->coordinates()->get(1), eEnd->coordinates()->get(2));
+				temp->edgeCurveId_ = pcurve->entity_id();
+				temp->edgeStart_ = start;
+				temp->edgeEnd_ = end;
+				temp->edgeCurvesameSense_ = curve->same_sense();
+				temp->orientedEdgeOri_ = oriEdge->orientation();
+				curveTemp.push_back(temp);
+			}
+			if (!strcmp(pcurve->className(), "surface_curve"))
+			{
+				LINE* temp = new LINE;
+				stp_surface_curve* p = ROSE_CAST(stp_surface_curve, pcurve);
+				stp_curve * cur = p->curve_3d();
+				stp_line* line = ROSE_CAST(stp_line, cur);
+				size_t num = line->entity_id();
+				CPoint3D point(line->pnt()->coordinates()->get(0),
+					line->pnt()->coordinates()->get(1),
+					line->pnt()->coordinates()->get(2));
+				temp->pnt_ = point;
+				CVector3D dir(line->dir()->orientation()->direction_ratios()->get(0),
+					line->dir()->orientation()->direction_ratios()->get(1),
+					line->dir()->orientation()->direction_ratios()->get(2)
+					);
+				temp->dir_ = dir;
+				temp->magnitude_ = line->dir()->magnitude();
 				temp->curveName_ = pcurve->className();
 				stp_cartesian_point* eStart = EdgeCurveStartOrEnd(curve->edge_start());
 				stp_cartesian_point* eEnd = EdgeCurveStartOrEnd(curve->edge_end());

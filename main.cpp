@@ -105,81 +105,81 @@ bool GetStepFileDialog();
 // 
 //    return 0;
 // 
-void dumpVertex(const TopoDS_Vertex& vertex)
-{
-	gp_Pnt pnt = BRep_Tool::Pnt(vertex);
-
-	std::cout << "(" << pnt.X() << ", " << pnt.Y() << ", " << pnt.Z() << ")" << std::endl;
-}
-
-int main(void)
-{
-	Standard_Integer nCount = 0;
-	TopoDS_Shape aBox = BRepPrimAPI_MakeBox(100, 150, 200);
-	
-	TopTools_IndexedDataMapOfShapeListOfShape shapeMap;
-	TopTools_ListOfShape edges;
-	TopTools_ListIteratorOfListOfShape edgeItr;
-	
-	// Use TopExp_Explorer to access subshapes.
-	TopExp_Explorer vertexExp(aBox, TopAbs_VERTEX);
-	
-	const TopoDS_Vertex& aVertex = TopoDS::Vertex(vertexExp.Current());
-
-	// Use TopExp::MapShapesAndAncestors() to access parent shapes.
-	TopExp::MapShapesAndAncestors(aBox, TopAbs_VERTEX, TopAbs_EDGE, shapeMap);
-	
-	edges = shapeMap.FindFromKey(aVertex);
-	
-	dumpVertex(aVertex);
-	
-	for(edgeItr.Initialize(edges); edgeItr.More(); edgeItr.Next())
-	{
-		const TopoDS_Edge& anEdge = TopoDS::Edge(edgeItr.Value());
-
-		std::cout << "Vertex belong to the Edge: " << std::endl;
-		dumpVertex(TopExp::FirstVertex(anEdge));
-		dumpVertex(TopExp::LastVertex(anEdge));
-		std::cout << "---------------------------" << std::endl;
-	}
-	
-	return 0;
-}
-
-
-
-
-
-
-
-
-
-
-// void _tmain(int argc, _TCHAR* argv[])
+// void dumpVertex(const TopoDS_Vertex& vertex)
 // {
-// 	bool isOpen = GetStepFileDialog();
-// 	if(!isOpen)
-// 	{
-// 		printf("打开文件错误!\n");
-// 		exit(1);
-// 	}
-// 	ROSE.quiet(1);	// console show;
-// 	stplib_init();	// initialize merged cad library
-// 	stixmesh_init();
-// 	RoseDesign* design = ROSE.findDesign(pathName.c_str());
-// 	//RoseDesign* design = ROSE.findDesign("11.STEP"); 
+// 	gp_Pnt pnt = BRep_Tool::Pnt(vertex);
 // 
-// 	if (!design)
-// 	{
-// 		printf("Could not open STEP file %s\n", pathName.c_str());
-// 		exit(1);
-// 	}
-// 	rose_compute_backptrs(design);
-// 	stix_tag_asms(design);
-// 
-// 	BRepToCSG csg(design);
-// 
+// 	std::cout << "(" << pnt.X() << ", " << pnt.Y() << ", " << pnt.Z() << ")" << std::endl;
 // }
+// 
+// int main(void)
+// {
+// 	Standard_Integer nCount = 0;
+// 	TopoDS_Shape aBox = BRepPrimAPI_MakeBox(100, 150, 200);
+// 	
+// 	TopTools_IndexedDataMapOfShapeListOfShape shapeMap;
+// 	TopTools_ListOfShape edges;
+// 	TopTools_ListIteratorOfListOfShape edgeItr;
+// 	
+// 	// Use TopExp_Explorer to access subshapes.
+// 	TopExp_Explorer vertexExp(aBox, TopAbs_VERTEX);
+// 	
+// 	const TopoDS_Vertex& aVertex = TopoDS::Vertex(vertexExp.Current());
+// 
+// 	// Use TopExp::MapShapesAndAncestors() to access parent shapes.
+// 	TopExp::MapShapesAndAncestors(aBox, TopAbs_VERTEX, TopAbs_EDGE, shapeMap);
+// 	
+// 	edges = shapeMap.FindFromKey(aVertex);
+// 	
+// 	dumpVertex(aVertex);
+// 	
+// 	for(edgeItr.Initialize(edges); edgeItr.More(); edgeItr.Next())
+// 	{
+// 		const TopoDS_Edge& anEdge = TopoDS::Edge(edgeItr.Value());
+// 
+// 		std::cout << "Vertex belong to the Edge: " << std::endl;
+// 		dumpVertex(TopExp::FirstVertex(anEdge));
+// 		dumpVertex(TopExp::LastVertex(anEdge));
+// 		std::cout << "---------------------------" << std::endl;
+// 	}
+// 	
+// 	return 0;
+// }
+
+
+
+
+
+
+
+
+
+
+void _tmain(int argc, _TCHAR* argv[])
+{
+	bool isOpen = GetStepFileDialog();
+	if(!isOpen)
+	{
+		printf("打开文件错误!\n");
+		exit(1);
+	}
+	ROSE.quiet(1);	// console show;
+	stplib_init();	// initialize merged cad library
+	stixmesh_init();
+	RoseDesign* design = ROSE.findDesign(pathName.c_str());
+
+	if (!design)
+	{
+		printf("Could not open STEP file %s\n", pathName.c_str());
+		exit(1);
+	}
+	rose_compute_backptrs(design);
+	stix_tag_asms(design);
+
+	BRepToCSG csg(design);
+	
+	system("pause");
+}
 
 bool GetStepFileDialog()
 {
@@ -187,7 +187,7 @@ bool GetStepFileDialog()
 	OPENFILENAME ofn = { 0 };
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = nullptr;
-	ofn.lpstrFilter = _T("step文件(*.step)\0*.step\0stp文件(*.stp)\0*.stp\0所有文件*.*)\0*.*\0");
+	ofn.lpstrFilter = _T("stp文件(*.stp)\0*.stp\0step文件(*.step)\0*.step\0所有文件*.*)\0*.*\0");
 	ofn.lpstrInitialDir = _T("D:\\stepmod");
 	ofn.lpstrFile = szBuffer;
 	ofn.nMaxFile = sizeof(szBuffer) / sizeof(*szBuffer);
