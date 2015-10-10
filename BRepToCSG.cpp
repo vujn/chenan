@@ -11,6 +11,67 @@ BRepToCSG::BRepToCSG(RoseDesign* roseDesign)
 		StixMtrx rootPlacement;
 		GetProductInformation(roots_[i], rootPlacement);
 	}
+
+	ofstream result;
+	result.open("test.txt");
+	string voidExpression = "";
+	voidExpression += ConvertToString(m_p) + " 0 ";
+	string str2;
+	string str1;
+	for (int i = 1; i < m_p; i++)
+	{
+		voidExpression += "#" + ConvertToString(i);
+		if (i != m_p - 1)
+			voidExpression += ":";
+		else
+			voidExpression += " $ NULL \n";
+	}
+	str1 += voidExpression;
+	str2 += " \n";
+	outFile_.push_back(str1);
+	outFile_.push_back(str2);
+	int iSize = outFile_.size() / 2;
+	for (int i = 0; i < iSize; i++)
+	{
+		std::string& str = outFile_[2 * i];
+		replace_all(str, "\n", "");
+		string outfile;
+		vector<string> vecSplitOut;
+		SplitString(str.c_str(), " ", vecSplitOut);
+		int ivecSize = vecSplitOut.size();
+		int iCount = ivecSize / 15;
+		int imod = ivecSize % 15;
+		for (int n = 0; n < iCount; n++)
+		{
+			for (int k = 0; k < 15; k++)
+			{
+				outfile.append(vecSplitOut[n * 15 + k]);
+				outfile.append(" ");
+			}
+
+			if ((0 == imod) && (n == iCount - 1))
+				outfile += "\n";
+			else
+				outfile += "&\n     ";
+		}
+
+		int iStart = iCount * 15;
+		for (int s = iStart; s < ivecSize; s++)
+		{
+			outfile.append(vecSplitOut[s]);
+			outfile.append(" ");
+		}
+
+		if (0 != imod)
+			outfile += "\n";
+		result << outfile;
+	}
+	result << endl;
+	for (int i = 0; i < iSize; i++)
+	{
+		result << outFile_[2 * i + 1];
+	}
+	result.close();
 }
 
 BRepToCSG::~BRepToCSG(void)
@@ -42,11 +103,13 @@ void BRepToCSG::GetShapeInformation(stp_representation* rep,
 {
 	if ( !rep ) 
 		return;
-	
+	string nameShape;
 	if ( proDefinition ) 
 	{
 		stp_product_definition_formation* pdf = proDefinition-> formation();
 		stp_product* p = pdf? pdf-> of_product(): 0;
+		const char * pname = p ? p->name() : 0;
+		nameShape = pname;
 		MatrixMess(rep->entity_id(), stixMtrx);
 	}
 
@@ -56,7 +119,14 @@ void BRepToCSG::GetShapeInformation(stp_representation* rep,
 	for (i = 0, sz = items->size(); i < sz; i++)
 	{
 		stp_representation_item* item = items->get(i);
-		part.StepConversionAndOutput(item);
+		if (!strcmp("axis2_placement_3d", item->className()))
+			continue;
+		else
+		{
+			part.StepConversionAndOutput(item, nameShape);
+			m_p = part.mp_;
+			outFile_.insert(outFile_.begin(), part.vecOut_.begin(), part.vecOut_.end());
+		}
 	}
 
 	StixMgrAsmShapeRep* rep_mgr = StixMgrAsmShapeRep::find(rep);
@@ -83,6 +153,28 @@ void BRepToCSG::GetShapeInformation(stp_representation* rep,
 		StixMtrx child_xform = stix_get_shape_usage_xform (rel);
 		child_xform = child_xform * stixMtrx;
 		GetShapeInformation(child, child_xform, rel, cpd, nestDepth);
+	}
+}
+
+
+void BRepToCSG::replace_all(std::string & s, std::string const & t, std::string const & w)
+{
+	string::size_type pos = s.find(t), t_size = t.size(), r_size = w.size();
+	while (pos != std::string::npos)
+	{ // found   
+		s.replace(pos, t_size, w);
+		pos = s.find(t, pos + r_size);
+	}
+}
+
+
+void BRepToCSG::SplitString(const char* str, const char* c, vector<string>& vecSplit)
+{
+	char *p = strtok(const_cast<char*>(str), c);
+	while (p)
+	{
+		vecSplit.push_back(p);
+		p = strtok(NULL, c);
 	}
 }
 

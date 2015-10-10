@@ -24,6 +24,7 @@ public:
 	void GenerateHalfCharacteristicPoint();			//规范相交项组件特征点集合,包括CITCPList和CITPList
 	void GenerateOffsetHalfSpaceList();				//生成偏移半空间队列,并生成所有半空间的系数数组
 	void PMCtest();				//PMC测试，确定哪些规范相交项在实体内
+	LOGICAL logical_;
 
 	//生成MCNP几何输入文件
 	void Output(int * p_m, int * p_n, string p_shpnm, vector<string>& vecOut,
@@ -70,7 +71,7 @@ private:
 //	void GetAxisData(stp_axis2_placement_3d* axis, GeometryData& data);
 	CPoint3D GetPoint(stp_cartesian_point* pt);
 
-private:
+public:
 
 	RoseDesign* design_;
 	vector<EdgeCurveVertex*> axisVertex_;
@@ -87,6 +88,5 @@ private:
 	InterProcess MP_;				//用于三维求交
 	InterProcess MP2D_;				//二维求交
 	bool muticp_;					//是否复杂实体
-	LOGICAL logical_;
 	vector<stp_face_bound*> faceBound_;
 };

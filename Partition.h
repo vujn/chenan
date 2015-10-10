@@ -28,12 +28,11 @@ public:
 public:
 
 	void GetSFaceInfo(SetOfstp_face* stpFace);
-	void StepConversionAndOutput(stp_representation_item* item);
+	void StepConversionAndOutput(stp_representation_item* item, string shapeName);
 	void NatlHalfVector(stp_advanced_face* adFace);
 	void GetAxisData(stp_axis2_placement_3d* axis, GeometryData& data);
 	stp_cartesian_point* EdgeCurveStartOrEnd(stp_vertex* ver);
-	void replace_all(std::string & s, std::string const & t, std::string const & w);
-	void SplitString(const char* str, const char* c, vector<string>& vecSplit);
+	
 public:
 
 	
@@ -49,6 +48,7 @@ public:
 
 public:
 	std::vector<std::string> vecOut_;//输出的信息列表
+	int mp_;
 
 public:
 	vector<SFace*> NatlHalfSpaceList_;			//自然半空间队列
@@ -61,6 +61,5 @@ private:
 	RoseDesign* design_;
 	stp_representation_item* item_;
 	bool isHasPartitionFace_;
-
 };
 

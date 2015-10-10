@@ -37,9 +37,23 @@ private:
 		stp_product_definition* proDefinition,
 		size_t nestDepth);
 
+	void replace_all(std::string & s, std::string const & t, std::string const & w);
+	void SplitString(const char* str, const char* c, vector<string>& vecSplit);
+
 	RoseDesign* roseDesign_;
 	StpAsmProductDefVec roots_;
 	StixMtrx stixMtrx_;
+	vector<string> outFile_;
+	int m_p;
+
+	template < class T>
+	string ConvertToString(T value)
+	{
+		stringstream ss;
+		ss << value;
+		return ss.str();
+	}
+
 	
 };
 

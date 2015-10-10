@@ -18,34 +18,7 @@ Partition::~Partition()
 
 }
 
-template < class T>
-string ConvertToString(T value)
-{
-	stringstream ss;
-	ss << value;
-	return ss.str();
-}
-
-void Partition::replace_all(std::string & s, std::string const & t, std::string const & w)
-{
-	string::size_type pos = s.find(t), t_size = t.size(), r_size = w.size();
-	while (pos != std::string::npos)
-	{ // found   
-		s.replace(pos, t_size, w);
-		pos = s.find(t, pos + r_size);
-	}
-}
-void Partition::SplitString(const char* str, const char* c, vector<string>& vecSplit)
-{
-	char *p = strtok(const_cast<char*>(str), c);
-	while (p)
-	{
-		vecSplit.push_back(p);
-		p = strtok(NULL, c);
-	}
-}
-
-void Partition::StepConversionAndOutput(stp_representation_item* item)
+void Partition::StepConversionAndOutput(stp_representation_item* item,string shapeName)
 {
 	int m = 1;
 	int n = 1;
@@ -57,6 +30,7 @@ void Partition::StepConversionAndOutput(stp_representation_item* item)
 		stp_closed_shell* shell = solidBrep->outer();
 		SetOfstp_face* face = shell->cfs_faces();
 		GetSFaceInfo(face);
+		size_t t  = shell->entity_id();
 
 		if (IsPartitionFace(NatlHalfSpaceList_))
 		{
@@ -70,7 +44,7 @@ void Partition::StepConversionAndOutput(stp_representation_item* item)
 			step->GenerateCIT();
 			step->GenerateHalfCharacteristicPoint();
 			step->PMCtest();
-			step->Output(&m, &n, "", vecOut_, false, false, false, false);
+			step->Output(&m, &n, shapeName, vecOut_, false, false, false, false);
 		}
 		vector<vector<SFace*>>().swap(intersectionFaceList_);
 	}
@@ -95,7 +69,7 @@ void Partition::StepConversionAndOutput(stp_representation_item* item)
 			step->GenerateCIT();
 			step->GenerateHalfCharacteristicPoint();
 			step->PMCtest();
-			step->Output(&m, &n, "", vecOut_, false, false, false, false);
+			step->Output(&m, &n, shapeName, vecOut_, true, true, true, false);
 		}
 		vector<vector<SFace*>>().swap(intersectionFaceList_);
 
@@ -120,71 +94,15 @@ void Partition::StepConversionAndOutput(stp_representation_item* item)
 				step->GenerateCIT();
 				step->GenerateHalfCharacteristicPoint();
 				step->PMCtest();
-				step->Output(&m, &n, "", vecOut_, false, false, false, false);
+				if (step->logical_)
+					step->Output(&m, &n, shapeName, vecOut_, true, true, false, (i == orientedShell->size() - 1));
+				else
+					step->Output(&m, &n, shapeName, vecOut_, true, false, false, (i == orientedShell->size() - 1));
 			}
+			mp_ = m;
 			vector<vector<SFace*>>().swap(intersectionFaceList_);
 		}
 	}
-	ofstream result;
-	result.open("test.txt");
-	string voidExpression = "";
-	voidExpression += ConvertToString(m) + " 0 ";
-	string str2;
-	string str1;
-	for (int i = 1; i < m; i++)
-	{
-		voidExpression += "#" + ConvertToString(i);
-		if (i != m - 1)
-			voidExpression += ":";
-		else
-			voidExpression += " $ NULL \n";
-	}
-	str1 += voidExpression;
-	str2 += " \n";
-	vecOut_.push_back(str1);
-	vecOut_.push_back(str2);
-	int iSize = vecOut_.size() / 2;
-	for (int i = 0; i < iSize; i++)
-	{
-		std::string& str = vecOut_[2 * i];
-		replace_all(str, "\n", "");
-		string outfile;
-		vector<string> vecSplitOut;
-		SplitString(str.c_str(), " ", vecSplitOut);
-		int ivecSize = vecSplitOut.size();
-		int iCount = ivecSize / 15;
-		int imod = ivecSize % 15;
-		for (int n = 0; n < iCount; n++)
-		{
-			for (int k = 0; k < 15; k++)
-			{
-				outfile.append(vecSplitOut[n * 15 + k]);
-				outfile.append(" ");
-			}
-
-			if ((0 == imod) && (n == iCount - 1))
-				outfile += "\n";
-			else
-				outfile += "&\n     ";
-		}
-
-		int iStart = iCount * 15;
-		for (int s = iStart; s < ivecSize; s++)
-		{
-			outfile.append(vecSplitOut[s]);
-			outfile.append(" ");
-		}
-
-		if (0 != imod)
-			outfile += "\n";
-		result << outfile;
-	}
-	result << endl;
-	for (int i = 0; i < iSize; i++)
-	{
-		result << vecOut_[2 * i + 1];
-	}
-	result.close();
 }
 
 void Partition::GetSFaceInfo(SetOfstp_face* stpFace)
