@@ -111,4 +111,5 @@
 #include "BRepAlgoAPI_Section.hxx"
 #include "BRepFeat_SplitShape.hxx"
 #include "BRepAlgoAPI_Common.hxx"
+#include "BRepPrimAPI_MakeCylinder.hxx"
 // TODO: 在此处引用程序需要的其他头文件

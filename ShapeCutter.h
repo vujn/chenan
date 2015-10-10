@@ -49,13 +49,3 @@ private:
 	TopoDS_Shape halfWorld2_;
 	Standard_Boolean optimization_;
 };
-
-
-//Usage method 
-/*
-	//theFace cut theBox2
-	ShapeCutter ShapeCutter(theBox2, theFace);
-	ShapeCutter.Perform();
-	TopoDS_Shape S1 = CalcResult1();
-	TopoDS_Shape S2 = CalcResult2();
-//*/

@@ -1,6 +1,9 @@
 
 #include "stdafx.h"
 #include "Partition.h"
+#include <BRepPrimAPI_MakeSphere.hxx>
+#include <BRepPrimAPI_MakeCylinder.hxx>
+#include <BRepPrimAPI_MakeCone.hxx>
 
 
 
@@ -215,6 +218,7 @@ bool Partition::IsPartitionFace(vector<SFace*> faceList)
 void Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
 {
 	TopoDS_Face theFace;
+	
 	CurrentStructToOCCT(splitFace, theFace);
 	BRepOffsetAPI_Sewing solid;
 	for (auto iter = faceList.begin(); iter != faceList.end(); iter++)
@@ -225,10 +229,7 @@ void Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
 	}
 	solid.Perform();
 	TopoDS_Shape sewedShape = solid.SewedShape();
-
-	TopoDS_Shape theBox;
-
-	ShapeCutter cutter(theBox, sewedShape, theFace);
+	ShapeCutter cutter(sewedShape, theFace);
 	cutter.Perform();
 	TopoDS_Shape S1 = cutter.CalcResult1();
 	TopoDS_Shape S2 = cutter.CalcResult2();
@@ -236,7 +237,6 @@ void Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
 	vector<SFace*> faceList2 = OcctToCurrentStruct(S2);
 	canSplitFaceList.push_back(faceList1);
 	canSplitFaceList.push_back(faceList2);
-
 	if (!canSplitFaceList.empty())
 	{
 		vector<SFace*> tempList;

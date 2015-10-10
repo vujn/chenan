@@ -20,8 +20,8 @@ ShapeCutter::ShapeCutter( const TopoDS_Shape& theBox2,
 	Standard_Boolean optimization )
 : theBox2_(theBox2), theFace_(theFace), optimization_(optimization)
 {
-	//得到最小外接box的坐标，并生成世界1
-	theBox1_ = this->GetBndBox(theBox2);
+// 	//得到最小外接box的坐标，并生成世界1
+// 	theBox1_ = this->GetBndBox(theBox2);
 }
 
 ShapeCutter::~ShapeCutter()
@@ -305,7 +305,8 @@ TopoDS_Shape ShapeCutter::GetBndBox( const TopoDS_Shape& theBox2 )
 	Bnd_Box boite;
 	BRepBndLib::Add(theBox2, boite,Standard_True);
 	boite.Get(Xmin, Ymin, Zmin, Xmax, Ymax, Zmax);
-	TopoDS_Shape theBox1 = BRepPrimAPI_MakeBox( gp_Pnt(Xmin,Ymin,Zmin), Xmax-Xmin,Ymax-Ymin,Zmax-Zmin ).Solid();
+	TopoDS_Shape theBox1 =
+		BRepPrimAPI_MakeBox( gp_Pnt(Xmin,Ymin,Zmin), Xmax-Xmin,Ymax-Ymin,Zmax-Zmin );
 	return theBox1;
 }
 
@@ -316,7 +317,7 @@ void ShapeCutter::Perform()
 	{
 		//BRepMesh::Mesh(theBox2_,1);
 	}
-	const TopTools_ListOfShape& theBox1SplitShapelist = this->SplitShape(theBox1_, theFace_);
+	const TopTools_ListOfShape& theBox1SplitShapelist = this->SplitShape(theBox2_, theFace_);
 	TopTools_ListIteratorOfListOfShape splitShapeIte(theBox1SplitShapelist);
 	splitShapeIte.More();
 	halfWorld1_ = splitShapeIte.Value();
@@ -326,13 +327,13 @@ void ShapeCutter::Perform()
 
 const TopoDS_Shape& ShapeCutter::CalcResult1()
 {
-	theResult1_ = BRepAlgoAPI_Cut(theBox2_, halfWorld1_);
+	theResult1_ = halfWorld1_;
 	return theResult1_;
 }
 
 const TopoDS_Shape& ShapeCutter::CalcResult2()
 {
-	theResult2_ = BRepAlgoAPI_Cut(theBox2_, halfWorld2_);
+	theResult2_ = halfWorld2_;
 	return theResult2_;
 }
 

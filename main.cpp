@@ -8,6 +8,7 @@
 #include "BRepPrimAPI_MakeSphere.hxx"
 #include <TopExp.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
+#include "BRepPrimAPI_MakeCone.hxx"
 
 std::string pathName;
 

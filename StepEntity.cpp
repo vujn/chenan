@@ -971,6 +971,7 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 // 					tempCurve.bSpline = GenerateCoefficient(RotateMatrix, spline);
 // 					tempCurve.bSpline = spline;
 // 					mP.SetInterPointList(tempCurve, pRay2d);
+					continue;
 				}
 			}
 		}
@@ -985,10 +986,6 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 		int pIsInBound;
 		for(size_t i = 0; i < face->faceBounds_.size(); i++)
 		{
-			//如果是VERTEX_LOOP，不判断
-			if (!strcmp(faceBound_[i]->bound()->className(), "vertex_loop") )
-				continue;
-
 			ConvexConcave cc = MakeBoundFace(face->faceBounds_[i]->edgeLoop_);
 			if (cc == 0) //凸凹实体
 			{
