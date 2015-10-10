@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "ShapeCutter.h"
+#include <BRepPrimAPI_MakeBox.hxx>
 
 ShapeCutter::ShapeCutter()
 {
