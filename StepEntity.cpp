@@ -744,6 +744,7 @@ ConvexConcave StepEntity::MakeBoundFace(vector<Curve*> edgeLoop_)
 {
 	vector<CPoint3D> boundPtarray;
 	vector<CTriChip*> triList;
+	vector<EdgeCurveVertex*>().swap(axisVertex_);
 
 	for(auto j = edgeLoop_.begin(); j != edgeLoop_.end(); j++)
 	{
@@ -805,7 +806,7 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 	{
 		int intersetedNum;
 		int plusMinus;
-		if (logical_)
+		if (face->adFaceSameSense_)
 			plusMinus = 1;
 		else
 			plusMinus = -1;
@@ -992,7 +993,7 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 				printf("实体凸凹性不一致，暂不能处理！");
 				exit(1);
 			}
-			if (logical_)
+			if (face->adFaceSameSense_)
 			{
 				pIsInBound = 1;
 				if (cc == convex)
@@ -1040,8 +1041,12 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 					pIsInBound = 1;
 					for(size_t j = 0; j < axisVertex_.size(); j++)
 					{
-						CVector3D test(axisVertex_[j]->cartesianStart.x, axisVertex_[j]->cartesianStart.y, axisVertex_[j]->cartesianStart.z);
-						CVector3D pVector3D1(testPoint.x - axisVertex_[j]->cartesianStart.x, testPoint.y - axisVertex_[j]->cartesianStart.x, testPoint.z - axisVertex_[j]->cartesianStart.x);
+						CVector3D test(axisVertex_[j]->cartesianStart.x, 
+							axisVertex_[j]->cartesianStart.y,
+							axisVertex_[j]->cartesianStart.z);
+						CVector3D pVector3D1(testPoint.x - axisVertex_[j]->cartesianStart.x,
+							testPoint.y - axisVertex_[j]->cartesianStart.y, 
+							testPoint.z - axisVertex_[j]->cartesianStart.z);
 						CVector3D pVector3D2 = axisVertex_[j]->axisDirection;
 						if (IS_POSITIVE((pVector3D1 | pVector3D2)))
 							pIsInBound = -1;

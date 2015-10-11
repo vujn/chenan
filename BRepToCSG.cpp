@@ -5,6 +5,8 @@
 BRepToCSG::BRepToCSG(RoseDesign* roseDesign)
 	:roseDesign_(roseDesign)
 {
+	mNum_ = 1;
+	nNum_ = 1;
 	stix_find_root_products( &roots_, roseDesign_ );
 	for(size_t i = 0, sz = roots_.size(); i < sz; i++)
 	{
@@ -103,13 +105,13 @@ void BRepToCSG::GetShapeInformation(stp_representation* rep,
 {
 	if ( !rep ) 
 		return;
-	string nameShape;
+	
 	if ( proDefinition ) 
 	{
 		stp_product_definition_formation* pdf = proDefinition-> formation();
 		stp_product* p = pdf? pdf-> of_product(): 0;
 		const char * pname = p ? p->name() : 0;
-		nameShape = pname;
+		nameShape_ = pname;
 		MatrixMess(rep->entity_id(), stixMtrx);
 	}
 
@@ -123,9 +125,10 @@ void BRepToCSG::GetShapeInformation(stp_representation* rep,
 			continue;
 		else
 		{
-			part.StepConversionAndOutput(item, nameShape);
+			part.StepConversionAndOutput(item, nameShape_, mNum_, nNum_);
 			m_p = part.mp_;
-			outFile_.insert(outFile_.begin(), part.vecOut_.begin(), part.vecOut_.end());
+			outFile_.insert(outFile_.end(), part.vecOut_.begin(), part.vecOut_.end());
+			vector<string>().swap(part.vecOut_);
 		}
 	}
 

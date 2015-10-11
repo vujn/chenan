@@ -45,6 +45,7 @@ private:
 	StixMtrx stixMtrx_;
 	vector<string> outFile_;
 	int m_p;
+	string nameShape_;
 
 	template < class T>
 	string ConvertToString(T value)
@@ -54,6 +55,8 @@ private:
 		return ss.str();
 	}
 
-	
+public:
+	int mNum_;
+	int nNum_;
 };
 

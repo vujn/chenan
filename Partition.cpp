@@ -18,19 +18,14 @@ Partition::~Partition()
 
 }
 
-void Partition::StepConversionAndOutput(stp_representation_item* item,string shapeName)
+void Partition::StepConversionAndOutput(stp_representation_item* item,string shapeName, int& m, int& n)
 {
-	int m = 1;
-	int n = 1;
-	if (!strcmp("axis2_placement_3d", item->className()))
-		return;
 	if (!strcmp("manifold_solid_brep", item->className()))
 	{
 		stp_manifold_solid_brep* solidBrep = ROSE_CAST(stp_manifold_solid_brep, item);
 		stp_closed_shell* shell = solidBrep->outer();
 		SetOfstp_face* face = shell->cfs_faces();
 		GetSFaceInfo(face);
-		size_t t  = shell->entity_id();
 
 		if (IsPartitionFace(NatlHalfSpaceList_))
 		{
@@ -94,7 +89,7 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 				step->GenerateCIT();
 				step->GenerateHalfCharacteristicPoint();
 				step->PMCtest();
-				if (step->logical_)
+				if (oriClosedShell->orientation())
 					step->Output(&m, &n, shapeName, vecOut_, true, true, false, (i == orientedShell->size() - 1));
 				else
 					step->Output(&m, &n, shapeName, vecOut_, true, false, false, (i == orientedShell->size() - 1));
@@ -462,8 +457,8 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 				CPoint3D start(eStart->coordinates()->get(0), eStart->coordinates()->get(1), eStart->coordinates()->get(2));
 				CPoint3D end(eEnd->coordinates()->get(0), eEnd->coordinates()->get(1), eEnd->coordinates()->get(2));
 				temp->edgeCurveId_ = pcurve->entity_id();
-				temp->edgeStart_ = start;
-				temp->edgeEnd_ = end;
+				temp->edgeStart_ = start/ZOOMTIME;
+				temp->edgeEnd_ = end/ZOOMTIME;
 				temp->edgeCurvesameSense_ = curve->same_sense();
 				temp->orientedEdgeOri_ = oriEdge->orientation();
 				curveTemp.push_back(temp);
@@ -483,8 +478,8 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 				CPoint3D start(eStart->coordinates()->get(0), eStart->coordinates()->get(1), eStart->coordinates()->get(2));
 				CPoint3D end(eEnd->coordinates()->get(0), eEnd->coordinates()->get(1), eEnd->coordinates()->get(2));
 				temp->edgeCurveId_ = pcurve->entity_id();
-				temp->edgeStart_ = start;
-				temp->edgeEnd_ = end;
+				temp->edgeStart_ = start / ZOOMTIME;
+				temp->edgeEnd_ = end / ZOOMTIME;
 				temp->edgeCurvesameSense_ = curve->same_sense();
 				temp->orientedEdgeOri_ = oriEdge->orientation();
 				curveTemp.push_back(temp);
@@ -503,8 +498,8 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 				CPoint3D start(eStart->coordinates()->get(0), eStart->coordinates()->get(1), eStart->coordinates()->get(2));
 				CPoint3D end(eEnd->coordinates()->get(0), eEnd->coordinates()->get(1), eEnd->coordinates()->get(2));
 				temp->edgeCurveId_ = pcurve->entity_id();
-				temp->edgeStart_ = start;
-				temp->edgeEnd_ = end;
+				temp->edgeStart_ = start / ZOOMTIME;
+				temp->edgeEnd_ = end / ZOOMTIME;
 				temp->edgeCurvesameSense_ = curve->same_sense();
 				temp->orientedEdgeOri_ = oriEdge->orientation();
 				curveTemp.push_back(temp);
@@ -532,8 +527,8 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 				CPoint3D start(eStart->coordinates()->get(0), eStart->coordinates()->get(1), eStart->coordinates()->get(2));
 				CPoint3D end(eEnd->coordinates()->get(0), eEnd->coordinates()->get(1), eEnd->coordinates()->get(2));
 				temp->edgeCurveId_ = pcurve->entity_id();
-				temp->edgeStart_ = start;
-				temp->edgeEnd_ = end;
+				temp->edgeStart_ = start / ZOOMTIME;
+				temp->edgeEnd_ = end / ZOOMTIME;
 				temp->edgeCurvesameSense_ = curve->same_sense();
 				temp->orientedEdgeOri_ = oriEdge->orientation();
 				curveTemp.push_back(temp);
@@ -730,15 +725,15 @@ void Partition::CurrentStructToOCCT(SFace* face, TopoDS_Shape& aShape)
 		for(auto itCurve = (*itBound)->edgeLoop_.begin(); itCurve != (*itBound)->edgeLoop_.end(); itCurve++)
 		{
 			//vertex satrt and vertex end
-			gp_Pnt start((*itCurve)->edgeStart_.x, (*itCurve)->edgeStart_.y, (*itCurve)->edgeStart_.z);
-			gp_Pnt end((*itCurve)->edgeEnd_.x, (*itCurve)->edgeEnd_.y, (*itCurve)->edgeEnd_.z);
-			
+// 			gp_Pnt start((*itCurve)->edgeStart_.x, (*itCurve)->edgeStart_.y, (*itCurve)->edgeStart_.z);
+// 			gp_Pnt end((*itCurve)->edgeEnd_.x, (*itCurve)->edgeEnd_.y, (*itCurve)->edgeEnd_.z);
+// 			
 			if(!stricmp((*itCurve)->curveName_, "line"))
 			{
 				gp_Dir Dir1(((LINE*)(*itCurve))->dir_.dx, ((LINE*)(*itCurve))->dir_.dy, ((LINE*)(*itCurve))->dir_.dz );
 				gp_Pnt Pnt1(((LINE*)(*itCurve))->pnt_.x, ((LINE*)(*itCurve))->pnt_.y, ((LINE*)(*itCurve))->pnt_.z);
 				gp_Lin pLine(Pnt1, Dir1);
-				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(pLine, start, end);
+				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(pLine);
 				MW.Add(edge);
 			}
 			if(!stricmp((*itCurve)->curveName_, "circle"))

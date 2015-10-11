@@ -28,7 +28,7 @@ public:
 public:
 
 	void GetSFaceInfo(SetOfstp_face* stpFace);
-	void StepConversionAndOutput(stp_representation_item* item, string shapeName);
+	void StepConversionAndOutput(stp_representation_item* item, string shapeName, int& m, int& n);
 	void NatlHalfVector(stp_advanced_face* adFace);
 	void GetAxisData(stp_axis2_placement_3d* axis, GeometryData& data);
 	stp_cartesian_point* EdgeCurveStartOrEnd(stp_vertex* ver);
