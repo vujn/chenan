@@ -42,6 +42,7 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 			step->PMCtest();
 			step->Output(&m, &n, shapeName, vecOut_, false, false, false, false);
 		}
+		mp_ = m;
 		vector<vector<SFace*>>().swap(intersectionFaceList_);
 	}
 	if (!strcmp("brep_with_voids", item->className()))
