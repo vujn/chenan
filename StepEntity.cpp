@@ -1373,6 +1373,8 @@ void StepEntity::UniqueHalfSpaceList()
 			if(CompareSTEPEntity(CSGHalfSpaceList_[i], CSGHalfSpaceList_[j]))
 			{
 				//移除重复半空间时也要生成系数数组，因为移除的很可能是原有的自然半空间
+// 				if (CSGHalfSpaceList_[i]->entityID_ != CSGHalfSpaceList_[j]->entityID_)
+// 					continue;
 				CSGHalfSpaceList_[j]->GenerateCoefficient();
 				CSGHalfSpaceList_.erase(CSGHalfSpaceList_.begin() + j);
 				j--;

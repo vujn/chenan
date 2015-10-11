@@ -30,7 +30,8 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 		if (IsPartitionFace(NatlHalfSpaceList_))
 		{
 			SFace* partFace = ChoosePartitionFace();
-			OcctSplit(NatlHalfSpaceList_, partFace);
+//			OcctSplit(NatlHalfSpaceList_, partFace);
+			intersectionFaceList_.push_back(NatlHalfSpaceList_);
 		}
 		for (auto iter = intersectionFaceList_.begin(); iter != intersectionFaceList_.end(); iter++)
 		{
@@ -54,7 +55,7 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 		if (IsPartitionFace(NatlHalfSpaceList_))
 		{
 			SFace* partFace = ChoosePartitionFace();
-			OcctSplit(NatlHalfSpaceList_, partFace);
+//			OcctSplit(NatlHalfSpaceList_, partFace);
 		}
 
 		for (auto iter = intersectionFaceList_.begin(); iter != intersectionFaceList_.end(); iter++)
@@ -80,7 +81,7 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 			if(IsPartitionFace(NatlHalfSpaceList_))
 			{
 				SFace* partFace = ChoosePartitionFace();
-				OcctSplit(NatlHalfSpaceList_, partFace);
+//				OcctSplit(NatlHalfSpaceList_, partFace);
 			}
 			for (auto iter = intersectionFaceList_.begin(); iter != intersectionFaceList_.end(); iter++)
 			{
