@@ -6,7 +6,7 @@
 #include "ShapeCutter.h"
 
 
-#define ZOOMTIME 10.0
+#define ZOOMTIME 1.0
 
 
 typedef	struct Orientation
@@ -38,14 +38,16 @@ public:
 	
 	bool IsPartitionFace(vector<SFace*> faceList);
 	void OcctSplit(vector<SFace*> faceList, SFace* splitFace);		//occt切割面
-	bool JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveName, orientationFaceA oriA,
+	bool JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveName, orientationFaceA oriA, orientationFaceB oriB,
 		EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA, CPoint3D pointB);// 两个面相交或者多个面相交
 	void FindPartitionFace(SFace* Fa, SFace* Fb);
 	SFace* ChoosePartitionFace();
 	void CurrentStructToOCCT( SFace* face, TopoDS_Shape& aShape );
 	vector<SFace*> OcctToCurrentStruct(TopoDS_Shape aShape);
 //	void AddNewSplit(TopoDS_Shape Stock, Handle(Geom_Surface)& plane1);
-
+	SFace* CloneFace(SFace* face);
+	GeometryData* CloneEntity(GeometryData* geo);
+	void GetFaceList(vector<SFace*> faceList, SFace* splitFace);
 public:
 	std::vector<std::string> vecOut_;//输出的信息列表
 	int mp_;
@@ -57,9 +59,11 @@ private:
 	multimap<size_t, SFace*> partitionFaceList_;
 	vector<vector<SFace*>> canSplitFaceList;
 	vector<vector<SFace*>> intersectionFaceList_;
+	vector<SFace*> test_;
 	vector<SFace*> faceInfors_;
 	RoseDesign* design_;
 	stp_representation_item* item_;
 	bool isHasPartitionFace_;
+	
 };
 

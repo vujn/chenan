@@ -147,15 +147,6 @@ bool GetStepFileDialog();
 // 	return 0;
 // }
 
-
-
-
-
-
-
-
-
-
 void _tmain(int argc, _TCHAR* argv[])
 {
 	bool isOpen = GetStepFileDialog();
@@ -178,6 +169,7 @@ void _tmain(int argc, _TCHAR* argv[])
 	stix_tag_asms(design);
 
 	BRepToCSG csg(design);
+/*	system("pause");*/
 }
 
 bool GetStepFileDialog()

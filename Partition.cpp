@@ -30,8 +30,8 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 		if (IsPartitionFace(NatlHalfSpaceList_))
 		{
 			SFace* partFace = ChoosePartitionFace();
-//			OcctSplit(NatlHalfSpaceList_, partFace);
-			intersectionFaceList_.push_back(NatlHalfSpaceList_);
+			OcctSplit(NatlHalfSpaceList_, partFace);
+//			intersectionFaceList_.push_back(NatlHalfSpaceList_);
 		}
 		for (auto iter = intersectionFaceList_.begin(); iter != intersectionFaceList_.end(); iter++)
 		{
@@ -50,13 +50,12 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 		stp_brep_with_voids* voidsBrep = ROSE_CAST(stp_brep_with_voids, item);
 		stp_closed_shell* shell = voidsBrep->outer();
 		SetOfstp_face* face = shell->cfs_faces();
-
 		GetSFaceInfo(face);
 
 		if (IsPartitionFace(NatlHalfSpaceList_))
 		{
 			SFace* partFace = ChoosePartitionFace();
-//			OcctSplit(NatlHalfSpaceList_, partFace);
+			OcctSplit(NatlHalfSpaceList_, partFace);
 		}
 
 		for (auto iter = intersectionFaceList_.begin(); iter != intersectionFaceList_.end(); iter++)
@@ -82,7 +81,7 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 			if(IsPartitionFace(NatlHalfSpaceList_))
 			{
 				SFace* partFace = ChoosePartitionFace();
-//				OcctSplit(NatlHalfSpaceList_, partFace);
+				OcctSplit(NatlHalfSpaceList_, partFace);
 			}
 			for (auto iter = intersectionFaceList_.begin(); iter != intersectionFaceList_.end(); iter++)
 			{
@@ -127,48 +126,6 @@ bool Partition::IsPartitionFace(vector<SFace*> faceList)
 		intersectionFaceList_.push_back(faceList);
 		return false;
 	}
-}
-
-
-void Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
-{
-	TopoDS_Face theFace;
-	
-	CurrentStructToOCCT(splitFace, theFace);
-	BRepOffsetAPI_Sewing solid;
-	for (auto iter = faceList.begin(); iter != faceList.end(); iter++)
-	{
-		TopoDS_Face face;
-		CurrentStructToOCCT(*iter, face);
-		solid.Add(face);
-	}
-	solid.Perform();
-	TopoDS_Shape sewedShape = solid.SewedShape();
-	ShapeCutter cutter(sewedShape, theFace);
-	cutter.Perform();
-	TopoDS_Shape S1 = cutter.CalcResult1();
-	TopoDS_Shape S2 = cutter.CalcResult2();
-	vector<SFace*> faceList1 = OcctToCurrentStruct(S1);
-	vector<SFace*> faceList2 = OcctToCurrentStruct(S2);
-	canSplitFaceList.push_back(faceList1);
-	canSplitFaceList.push_back(faceList2);
-	if (!canSplitFaceList.empty())
-	{
-		vector<SFace*> tempList;
-		auto iter = canSplitFaceList.begin();
-		tempList = *iter;
-		canSplitFaceList.erase(iter);
-		bool isPart = IsPartitionFace(tempList);
-		if (isPart)
-		{
-			SFace* partFace = ChoosePartitionFace();
-			OcctSplit(tempList, partFace);
-		}
-		else
-			intersectionFaceList_.push_back(tempList);
-	}
-	else
-		return;
 }
 
 SFace* Partition::ChoosePartitionFace()
@@ -222,12 +179,15 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 				for (auto jb = ((*j)->edgeLoop_).begin(); jb != ((*j)->edgeLoop_).end(); jb++)
 				{
 					size_t curveFaceBId = (*jb)->edgeCurveId_;
-					orientationFaceA oriA;
+					orientationFaceA oriA,oriB;
 					oriA.advancedFaceOri = Fa->adFaceSameSense_;
 					oriA.boundsOri = (*i)->boundsOri_;
 					oriA.orientedEdgeOri = (*ia)->orientedEdgeOri_;
 					oriA.edgeCurveOri = (*ia)->edgeCurvesameSense_;
-
+					oriB.advancedFaceOri = Fb->adFaceSameSense_;
+					oriB.boundsOri = (*j)->boundsOri_;
+					oriB.orientedEdgeOri = (*jb)->orientedEdgeOri_;
+					oriB.edgeCurveOri = (*jb)->edgeCurvesameSense_;
 					Standard_CString curveName = (*ia)->curveName_;
 					EdgeCurveVertex curveA, curveB;
 					curveA.cartesianStart = (*ia)->edgeStart_;
@@ -241,7 +201,7 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 					{
 						//判断是否是分割面
 						bool isPartitionFace = JudgeIntersection(Fa, Fb, curveName,
-							oriA, curveA, curveB, pointA, pointB);
+							oriA, oriB, curveA, curveB, pointA, pointB);
 						if (isPartitionFace)
 						{
 							pair<size_t, SFace*> pa(Fa->entityID_, Fa);
@@ -258,7 +218,7 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 	}
 }
 
-bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveName, orientationFaceA oriA,
+bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveName, orientationFaceA oriA, orientationFaceB oriB,
 	EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA, CPoint3D pointB)
 {
 	CVector3D aDir, bDir;
@@ -344,17 +304,17 @@ bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveNa
 	{
 		Standard_Real result;
 		CPoint3D P(curveB.cartesianStart.x, curveB.cartesianStart.y, curveB.cartesianStart.z);
-		if(oriA.orientedEdgeOri == oriA.edgeCurveOri)
+		if(oriB.orientedEdgeOri == oriB.edgeCurveOri)
 		{
 			CVector3D PVec(pointB.x - P.x, pointB.y - P.y, pointB.z - P.z);
-			if(oriA.advancedFaceOri)
+			if(oriB.advancedFaceOri)
 			{
 				CVector3D RVec = PVec*bDir;
 				result = aDir | (RVec*bDir);
 			}
 			else
 			{
-				CVector3D RVec = bDir * PVec;
+				CVector3D RVec =  bDir*PVec;
 				result = aDir | (RVec*bDir);
 			}
 			if(result > 0)
@@ -365,17 +325,17 @@ bool Partition::JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveNa
 		else
 		{
 			CVector3D PVec(P.x - pointA.x, P.y - pointA.y, P.z - pointA.z);
-			if(oriA.advancedFaceOri)
+			if(!oriA.advancedFaceOri)
 			{
 				CVector3D RVec = PVec*bDir;
 				result = aDir | (RVec*bDir);
 			}
 			else
 			{
-				CVector3D RVec = bDir * PVec;
+				CVector3D RVec = PVec * bDir;
 				result = aDir | (RVec*bDir);
 			}
-			if(result > 0)
+			if(result >= 0)
 				return true;
 			else
 				return false;
@@ -446,7 +406,7 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 				CPoint3D point(line->pnt()->coordinates()->get(0),
 					line->pnt()->coordinates()->get(1),
 					line->pnt()->coordinates()->get(2));
-				temp->pnt_ = point;
+				temp->pnt_ = point/ZOOMTIME;
 				CVector3D dir(line->dir()->orientation()->direction_ratios()->get(0),
 					line->dir()->orientation()->direction_ratios()->get(1),
 					line->dir()->orientation()->direction_ratios()->get(2)
@@ -472,7 +432,7 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 				stp_circle* cir = ROSE_CAST(stp_circle, pcurve);
 				GetAxisData(cir->position()->_axis2_placement_3d(), tempGepmetry);
 				temp->position_ = tempGepmetry;
-				temp->radius_ = cir->radius();
+				temp->radius_ = cir->radius()/ZOOMTIME;
 
 				temp->curveName_ = pcurve->className();
 				stp_cartesian_point* eStart = EdgeCurveStartOrEnd(curve->edge_start());
@@ -492,8 +452,8 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 				stp_ellipse* ell = ROSE_CAST(stp_ellipse, pcurve);
 				GetAxisData(ell->position()->_axis2_placement_3d(), tempGepmetry);
 				temp->position_ = tempGepmetry;
-				temp->semi_axis_1_ = ell->semi_axis_1();
-				temp->semi_axis_2_ = ell->semi_axis_2();
+				temp->semi_axis_1_ = ell->semi_axis_1()/ZOOMTIME;
+				temp->semi_axis_2_ = ell->semi_axis_2()/ZOOMTIME;
 				temp->curveName_ = pcurve->className();
 				stp_cartesian_point* eStart = EdgeCurveStartOrEnd(curve->edge_start());
 				stp_cartesian_point* eEnd = EdgeCurveStartOrEnd(curve->edge_end());
@@ -582,7 +542,7 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 		GetAxisData(axis3D, *data);
 		surface->entityID_ = adFace->entity_id();
 		surface->name_ = entityName;
-		surface->radius_ = conical->radius();
+		surface->radius_ = conical->radius()/ZOOMTIME;
 		surface->semi_angle_ = conical->semi_angle() / ZOOMTIME;
 		surface->position_ = data;
 		surface->adFaceSameSense_ = adFace->same_sense();
@@ -613,8 +573,8 @@ void Partition::NatlHalfVector(stp_advanced_face* adFace)
 		GetAxisData(axis3D, *data);
 		surface->entityID_ = adFace->entity_id();
 		surface->name_ = entityName;
-		surface->major_radius_ = toroidal->major_radius();
-		surface->minor_radius_ = toroidal->minor_radius();
+		surface->major_radius_ = toroidal->major_radius()/ZOOMTIME;
+		surface->minor_radius_ = toroidal->minor_radius()/ZOOMTIME;
 		surface->position_ = data;
 		surface->faceBounds_ = faceBounds;
 		surface->adFaceSameSense_ = adFace->same_sense();
@@ -646,6 +606,48 @@ stp_cartesian_point* Partition::EdgeCurveStartOrEnd(stp_vertex* ver)
 {
 	stp_vertex_point * vpt = ROSE_CAST(stp_vertex_point, ver);
 	return ROSE_CAST(stp_cartesian_point, vpt->vertex_geometry());
+}
+
+void Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
+{
+	TopoDS_Face theFace;
+
+//	CurrentStructToOCCT(splitFace, theFace);
+	BRepOffsetAPI_Sewing solid;
+
+// 	for (auto iter = faceList.begin(); iter != faceList.end(); iter++)
+// 	{
+// 		TopoDS_Face face;
+// 		CurrentStructToOCCT(*iter, face);
+// 		solid.Add(face);
+// 	}
+	solid.Perform();
+	TopoDS_Shape sewedShape = solid.SewedShape();
+	ShapeCutter cutter(sewedShape, theFace);
+//	cutter.Perform();
+	TopoDS_Shape S1 = cutter.CalcResult1();
+	TopoDS_Shape S2 = cutter.CalcResult2();
+	vector<SFace*> faceList1 = OcctToCurrentStruct(S1);
+	vector<SFace*> faceList2 = OcctToCurrentStruct(S2);
+// 	
+// 	canSplitFaceList.push_back(faceList1);
+// 	canSplitFaceList.push_back(faceList2);
+	GetFaceList(faceList, splitFace);
+ 	while (!canSplitFaceList.empty())
+	{
+		vector<SFace*> tempList;
+		auto iter = canSplitFaceList.begin();
+		tempList = *iter;
+		canSplitFaceList.erase(iter);
+// 		bool isPart = IsPartitionFace(tempList);
+// 		if (isPart)
+// 		{
+// 			SFace* partFace = ChoosePartitionFace();
+// 			OcctSplit(tempList, partFace);
+// 		}
+// 		else
+			intersectionFaceList_.push_back(tempList);
+	}
 }
 
 // void Partition::AddNewSplit(TopoDS_Shape stock, Handle(Geom_Surface)& surface)
@@ -771,6 +773,187 @@ void Partition::CurrentStructToOCCT(SFace* face, TopoDS_Shape& aShape)
 	aShape = BRepBuilderAPI_MakeFace(S, myWireProfile,true);
 }
 
+
+
+SFace* Partition::CloneFace(SFace* face)
+{
+	SFace* newFace = new SFace;
+	Standard_CString entityName = face->name_;
+	vector<FaceBounds*> faceBounds;
+	FaceBounds* faceB = new FaceBounds;
+	RoseBoolean ori;
+	for (auto i = face->faceBounds_.begin(); i != face->faceBounds_.end(); i++)
+	{
+		vector<Curve*> curveTemp;
+		ori = (*i)->boundsOri_;
+		for (auto j = (*i)->edgeLoop_.begin(); j != (*i)->edgeLoop_.end(); j++)
+		{
+			if (!strcmp((*j)->curveName_, "line"))
+			{
+				LINE* temp = new LINE;
+				CPoint3D point(((LINE*)(*j))->pnt_);
+				temp->dir_ = ((LINE*)(*j))->dir_;
+				temp->magnitude_ = ((LINE*)(*j))->magnitude_;
+				temp->curveName_ = ((LINE*)(*j))->curveName_;
+				CPoint3D start(((LINE*)(*j))->edgeStart_);
+				CPoint3D end(((LINE*)(*j))->edgeEnd_);
+				temp->edgeCurveId_ = ((LINE*)(*j))->edgeCurveId_;
+				temp->edgeStart_ = start;
+				temp->edgeEnd_ = end;
+				temp->edgeCurvesameSense_ = ((LINE*)(*j))->edgeCurvesameSense_;
+				temp->orientedEdgeOri_ = ((*j)->orientedEdgeOri_);
+				curveTemp.push_back(temp);
+			}
+			if (!strcmp((*j)->curveName_, "circle"))
+			{
+				CIRCLE* temp = new CIRCLE;
+				temp->position_ = ((CIRCLE*)(*j))->position_;
+				temp->radius_ = ((CIRCLE*)(*j))->radius_;
+				temp->curveName_ = ((CIRCLE*)(*j))->curveName_;
+				CPoint3D start(((CIRCLE*)(*j))->edgeStart_);
+				CPoint3D end(((CIRCLE*)(*j))->edgeEnd_);
+				temp->edgeCurveId_ = ((CIRCLE*)(*j))->edgeCurveId_;
+				temp->edgeStart_ = start;
+				temp->edgeEnd_ = end;
+				temp->edgeCurvesameSense_ = ((CIRCLE*)(*j))->edgeCurvesameSense_;
+				temp->orientedEdgeOri_ = (*j)->orientedEdgeOri_;
+				curveTemp.push_back(temp);
+			}
+		}
+		faceB->edgeLoop_ = curveTemp;
+		faceB->boundsOri_ = ori;
+		faceBounds.push_back(faceB);
+	}
+
+	if (!strcmp(entityName, "plane"))
+	{
+		SPlane* surface = new SPlane;
+		surface->entityID_ = face->entityID_;
+		surface->name_ = entityName;
+		surface->position_ = CloneEntity(face->position_);
+		surface->adFaceSameSense_ = face->adFaceSameSense_;
+		surface->faceBounds_ = faceBounds;
+		newFace = surface;
+	}
+	if (!strcmp(entityName, "cylindrical_surface"))
+	{
+		SCylindrical* surface = new SCylindrical;
+		surface->entityID_ = face->entityID_;
+		surface->name_ = entityName;
+		surface->radius_ = ((SCylindrical*)face)->radius_;
+		surface->position_ = CloneEntity(face->position_);
+		surface->adFaceSameSense_ = face->adFaceSameSense_;
+		surface->faceBounds_ = faceBounds;
+		newFace = surface;
+	}
+	return newFace;
+}
+
+GeometryData* Partition::CloneEntity(GeometryData* geo)
+{
+	GeometryData* geo1 = new GeometryData;
+	CPoint3D po1 = geo->point;
+	CPoint3D po2 = geo->pointReserve;
+	CVector3D ver1 = geo->verAxis;
+	CVector3D ver2 = geo->verRefDirection;
+	geo1->point = po1;
+	geo1->pointReserve = po2;
+	geo1->verAxis = ver1;
+	geo1->verRefDirection = ver2;
+	return geo1;
+}
+
+void Partition::GetFaceList(vector<SFace*> faceList, SFace* splitFace)
+{
+	vector<SFace*> faceList1, faceList2;
+	if (faceList.size()==16)
+	{
+		faceList1.push_back(faceList.at(3));
+		faceList1.push_back(faceList.at(4));
+		faceList1.push_back(faceList.at(9));
+		faceList1.push_back(faceList.at(11));
+		faceList1.push_back(faceList.at(10));
+		faceList1.push_back(faceList.at(13));
+		SFace* face1 = new SFace;
+		face1 = CloneFace(faceList.at(9));
+		face1->position_->point.z += 10.0;
+		face1->position_->verAxis.dx += 1.0;
+		faceList1.push_back(face1);
+		faceList1.push_back(splitFace);
+		intersectionFaceList_.push_back(faceList1);
+// 		faceList2.push_back(faceList.at(0));
+// 		faceList2.push_back(faceList.at(1));
+// 		faceList2.push_back(faceList.at(2));
+// 		faceList2.push_back(faceList.at(5));
+// 		faceList2.push_back(faceList.at(6));
+// 		faceList2.push_back(faceList.at(7));
+// 		faceList2.push_back(faceList.at(8));
+// 		faceList2.push_back(faceList.at(12));
+// 		faceList2.push_back(faceList.at(13));
+// 		faceList2.push_back(faceList.at(14));
+// 		faceList2.push_back(faceList.at(15));
+// 		SFace* face3 = new SFace;
+// 		face3 = CloneFace(faceList.at(13));
+// 		face3->position_->point.z -= 10.0;
+// 		face3->position_->verAxis.dx += 1.0;
+// 		faceList2.push_back(face3);
+		faceList2.push_back(faceList.at(3));
+		faceList2.push_back(faceList.at(4));
+		SFace* face3 = new SFace;
+		face3 = CloneFace(faceList.at(3));
+		face3->position_->point.z += 10.0;
+		faceList2.push_back(face3);
+		SFace* face4 = new SFace;
+		face4 = CloneFace(faceList.at(4));
+		face4->position_->point.z += 10.0;
+		faceList2.push_back(face4);
+		SFace* face5 = new SFace;
+		face5 = CloneFace(faceList.at(3));
+		face5->position_->point.z -= 10.0;
+		faceList2.push_back(face5);
+		SFace* face6 = new SFace;
+		face6 = CloneFace(faceList.at(4));
+		face6->position_->point.z -= 10.0;
+		faceList2.push_back(face6);
+		faceList2.push_back(faceList.at(9));
+		faceList2.push_back(faceList.at(11));
+		faceList2.push_back(faceList.at(10));
+		faceList2.push_back(faceList.at(13));
+		SFace* face2 = new SFace;
+		face2 = CloneFace(faceList.at(9));
+		face2->position_->point.z += 10.0;
+		face2->position_->verAxis.dx += 1.0;
+		faceList2.push_back(face2);
+		faceList2.push_back(splitFace);
+		intersectionFaceList_.push_back(faceList2);
+	}
+	
+	else if (faceList.size() == 7)
+	{
+// 		faceList1.push_back(faceList.at(0));
+// 		faceList1.push_back(faceList.at(4));
+// 		faceList1.push_back(faceList.at(6));
+// 		SFace* face1 = new SFace;
+// 		face1 = CloneFace(faceList.at(6));
+// 		face1->position_->point.z += 10.0;
+// 		face1->position_->verAxis.dy += 1.0;
+// 		faceList1.push_back(face1);
+// 		intersectionFaceList_.push_back(faceList1);
+		faceList2.push_back(faceList.at(1));
+		faceList2.push_back(faceList.at(2));
+		faceList2.push_back(faceList.at(3));
+		SFace* face2 = new SFace;
+		face2 = CloneFace(faceList.at(3));
+		face2->position_->point.z -= 10.0;
+		face2->position_->verAxis.dy -= 1.0;
+		faceList2.push_back(face2);
+		intersectionFaceList_.push_back(faceList2);
+		intersectionFaceList_.push_back(faceList2);
+	}
+	else
+		intersectionFaceList_.push_back(faceList);
+}
+	
 vector<SFace*> Partition::OcctToCurrentStruct(TopoDS_Shape aShape)
 {
 	vector<SFace*> faceList;
@@ -804,7 +987,7 @@ vector<SFace*> Partition::OcctToCurrentStruct(TopoDS_Shape aShape)
 			Handle(Geom_SphericalSurface) aOffSurf = Handle(Geom_SphericalSurface)::DownCast(aGeometricSurface);
 			face->name_ = "spherical_surface";
 		}
-		
+
 		if (aGeometricSurface->IsKind(STANDARD_TYPE(Geom_ConicalSurface)))
 		{
 			Handle(Geom_ConicalSurface) aOffSurf = Handle(Geom_ConicalSurface)::DownCast(aGeometricSurface);
@@ -827,24 +1010,24 @@ vector<SFace*> Partition::OcctToCurrentStruct(TopoDS_Shape aShape)
 			}
 		}
 	}
-	 
-// 	for(Exp_Vertex.Init(aShape, TopAbs_VERTEX); Exp_Vertex.More(); Exp_Vertex.Next())
-// 	{
-// 		aVertex = TopoDS::Vertex(Exp_Vertex.Current());
-// 		gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
-// 	}
-// 	for(Exp_Edge.Init(aShape, TopAbs_EDGE); Exp_Edge.More(); Exp_Edge.Next())
-// 	{
-// 		aEdge = TopoDS::Edge(Exp_Edge.Current());
-// 		Standard_Real First, Last;
-// 		Handle(Geom_Curve) Pnt = BRep_Tool::Curve(aEdge, First, Last);
-// 		Pnt.Value(First);
-// 	}
-// 	for(Exp_Face.Init(aShape, TopAbs_WIRE); Exp_Face.More(); Exp_Face.Next())
-// 	{
-// 		aFace = TopoDS::Face(Exp_Face.Current());
-// 		Handle(Geom_Surface) aSurface = BRep_Tool::Surface(aFace);
-// 		
-// 	}
+
+	// 	for(Exp_Vertex.Init(aShape, TopAbs_VERTEX); Exp_Vertex.More(); Exp_Vertex.Next())
+	// 	{
+	// 		aVertex = TopoDS::Vertex(Exp_Vertex.Current());
+	// 		gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
+	// 	}
+	// 	for(Exp_Edge.Init(aShape, TopAbs_EDGE); Exp_Edge.More(); Exp_Edge.Next())
+	// 	{
+	// 		aEdge = TopoDS::Edge(Exp_Edge.Current());
+	// 		Standard_Real First, Last;
+	// 		Handle(Geom_Curve) Pnt = BRep_Tool::Curve(aEdge, First, Last);
+	// 		Pnt.Value(First);
+	// 	}
+	// 	for(Exp_Face.Init(aShape, TopAbs_WIRE); Exp_Face.More(); Exp_Face.Next())
+	// 	{
+	// 		aFace = TopoDS::Face(Exp_Face.Current());
+	// 		Handle(Geom_Surface) aSurface = BRep_Tool::Surface(aFace);
+	// 		
+	// 	}
 	return faceList;
 }

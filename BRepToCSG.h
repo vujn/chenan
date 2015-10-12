@@ -23,8 +23,9 @@ public:
 
 	void MatrixMess(size_t entityId, StixMtrx &stixMtrx);
 
-	typedef std::vector<Repetition> repetitionStructure;
-	repetitionStructure repetition_;
+	Repetition repe_;
+// 	typedef std::vector<Repetition> repetitionStructure;
+// 	repetitionStructure repetition_;
 	
 private:
 
@@ -44,9 +45,13 @@ private:
 	StpAsmProductDefVec roots_;
 	StixMtrx stixMtrx_;
 	vector<string> outFile_;
+	vector<string> TR_;
 	int m_p;
 	string nameShape_;
-
+	int productId_;
+	set<int> checkRepetitionStructure_;
+	map<int, int> repeNum_;
+	int count_;
 	template < class T>
 	string ConvertToString(T value)
 	{

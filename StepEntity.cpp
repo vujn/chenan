@@ -672,11 +672,24 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 		str1 += " $ " + p_shpnm + "\n";
 	vecOut.push_back(str1);
 
+	int test;
 	for (size_t i = 0; i < CSGHalfSpaceList_.size(); i++)
 	{
+		if (!strcmp(p_shpnm.c_str(), "L-BRACKET"))
+			test = 3;
+		else if (!strcmp(p_shpnm.c_str(), "BOLT"))
+			test = 1;
+		else if (!strcmp(p_shpnm.c_str(), "NUT"))
+			test = 2;
+		else if (!strcmp(p_shpnm.c_str(), "cylinder1"))
+			test = 1;
+		else
+			test = 0;
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "plane"))
 		{
-			str2 += ConvertToString((*p_n)) + " " + "P"
+			str2 += ConvertToString((*p_n)) + " " 
+				+ ConvertToString(test) + " " 
+				+ "P"
 				+ " " + ConvertToString(((SPlane*)CSGHalfSpaceList_[i])->coefficient_[3] * 2.0)
 				+ " " + ConvertToString(((SPlane*)CSGHalfSpaceList_[i])->coefficient_[6] * 2.0)
 				+ " " + ConvertToString(((SPlane*)CSGHalfSpaceList_[i])->coefficient_[8] * 2.0)
@@ -686,7 +699,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "spherical_surface"))
 		{
-			str2 += ConvertToString((*p_n)) + " " + "S"
+			str2 += ConvertToString((*p_n)) + " " + ConvertToString(test) + " " + "S"
 				+ " " + ConvertToString(((SSpherical*)CSGHalfSpaceList_[i])->position_->point.x)
 				+ " " + ConvertToString(((SSpherical*)CSGHalfSpaceList_[i])->position_->point.y)
 				+ " " + ConvertToString(((SSpherical*)CSGHalfSpaceList_[i])->position_->point.z)
@@ -696,7 +709,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "conical_surface"))
 		{
-			str2 += ConvertToString((*p_n)) + " " + "GQ" + " "
+			str2 += ConvertToString((*p_n)) + " " + ConvertToString(test) + " " + "GQ" + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->coefficient_[0]) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->coefficient_[4]) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->coefficient_[7]) + " "
@@ -710,7 +723,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 				+ "\n";
 			//加一个辅助平面
 			double* vertex = ((SConical*)CSGHalfSpaceList_[i])->vertex_;
-			str2 += ConvertToString(++(*p_n)) + " " + "P" + " "
+			str2 += ConvertToString(++(*p_n)) + " " + ConvertToString(test) + " " + "P" + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->position_->verAxis.dx) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->position_->verAxis.dy) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->position_->verAxis.dz) + " "
@@ -722,7 +735,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "cylindrical_surface"))
 		{
-			str2 += ConvertToString((*p_n)) + " " + "GQ" + " "
+			str2 += ConvertToString((*p_n)) + " " + ConvertToString(test) + " " + "GQ" + " "
 				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[0]) + " "
 				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[4]) + " "
 				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[7]) + " "
@@ -1000,8 +1013,12 @@ int StepEntity::IsInBound(SFace* face, CPoint3D testPoint, InterProcess &mP)
 				{
 					for(size_t j = 0; j < axisVertex_.size(); j++)
 					{
-						CVector3D test(axisVertex_[j]->cartesianStart.x, axisVertex_[j]->cartesianStart.y, axisVertex_[j]->cartesianStart.z);
-						CVector3D pVector3D1(testPoint.x - axisVertex_[j]->cartesianStart.x, testPoint.y - axisVertex_[j]->cartesianStart.y, testPoint.z - axisVertex_[j]->cartesianStart.z);
+						CVector3D test(axisVertex_[j]->cartesianStart.x, 
+							axisVertex_[j]->cartesianStart.y, 
+							axisVertex_[j]->cartesianStart.z);
+						CVector3D pVector3D1(testPoint.x - axisVertex_[j]->cartesianStart.x,
+							testPoint.y - axisVertex_[j]->cartesianStart.y,
+							testPoint.z - axisVertex_[j]->cartesianStart.z);
 						CVector3D pVector3D2 = axisVertex_[j]->axisDirection;
 						double test2 = pVector3D1 | pVector3D2;
 						if (IS_NEGATIVE((pVector3D1 | pVector3D2)))

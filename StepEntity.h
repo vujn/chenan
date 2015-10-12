@@ -7,8 +7,6 @@
 
 using namespace std;
 
-#define ZOOMTIME 10.0
-
 class StepEntity
 {
 public:
