@@ -140,7 +140,7 @@ void SCylindrical::GenerateCoefficient()
 
 	CVector3D cV1(position_->verAxis.dx, position_->verAxis.dy, position_->verAxis.dz);
 	cV1.Normalize();
-	CPoint3D cP1(position_->point.x, position_->verAxis.dy, position_->verAxis.dz);
+	CPoint3D cP1(position_->point.x, position_->point.y, position_->point.z);
 	coefficient_[0] = cV1.dz * cV1.dz + cV1.dy * cV1.dy;  //A
 	coefficient_[1] = -cV1.dx * cV1.dy;  //B
 	coefficient_[2] = -cV1.dx * cV1.dz;  //C

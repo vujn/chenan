@@ -5,7 +5,7 @@
 static int NUM = 1;
 
 BRepToCSG::BRepToCSG(RoseDesign* roseDesign)
-	:roseDesign_(roseDesign)
+:roseDesign_(roseDesign), intex_(1)
 {
 	mNum_ = 1;
 	nNum_ = 1;
@@ -71,6 +71,7 @@ BRepToCSG::BRepToCSG(RoseDesign* roseDesign)
 		result << outfile;
 	}
 	result << endl;
+
 	for (int i = 0; i < iSize; i++)
 	{
 		result << outFile_[2 * i + 1];
@@ -79,6 +80,9 @@ BRepToCSG::BRepToCSG(RoseDesign* roseDesign)
 	{
 		result << TR_[i];
 	}
+// 	set<string>::iterator it;
+// 	for (it = TR_.begin(); it != TR_.end(); it++)
+// 		result << *it;
 	result.close();
 }
 
@@ -120,13 +124,11 @@ void BRepToCSG::GetShapeInformation(stp_representation* rep,
 		nameShape_ = pname;
 		productId_ = p->entity_id();
 		MatrixMess(p->entity_id(), stixMtrx);
-		
 	}
 	SetOfstp_representation_item* items = rep->items();
 	Partition part(roseDesign_);
 	int i, sz;
 
-	
 	for (i = 0, sz = items->size(); i < sz; i++)
 	{
 		stp_representation_item* item = items->get(i);
@@ -134,37 +136,34 @@ void BRepToCSG::GetShapeInformation(stp_representation* rep,
 			continue;
 		else
 		{
+			part.StepConversionAndOutput(item, nameShape_, mNum_, nNum_);
+			m_p = part.mp_;
+			outFile_.insert(outFile_.end(), part.vecOut_.begin(), part.vecOut_.end());
+			vector<string>().swap(part.vecOut_);
 			pair<set<int>::iterator, bool> iter = checkRepetitionStructure_.insert(productId_);
-			if (iter.second)
+			if (!iter.second)
 			{
-				printf("success\n");
-				part.StepConversionAndOutput(item, nameShape_, mNum_, nNum_);
-				m_p = part.mp_;
-				outFile_.insert(outFile_.end(), part.vecOut_.begin(), part.vecOut_.end());
-				vector<string>().swap(part.vecOut_);
-			}
-			else
-			{
-				string str;
-				auto isTrue = repeNum_.insert(pair<int, int>(productId_, NUM));
-				if (isTrue.second)
-					NUM++;
-				auto resultNum = repeNum_.find(productId_);
+ 				string str;
+// 				auto isTrue = repeNum_.insert(pair<int, int>(productId_, NUM));
+// 				if (isTrue.second)
+// 					NUM++;
+// 				auto resultNum = repeNum_.find(productId_);
 				str = "TR"
-					+ ConvertToString(resultNum->second) + " "
-					+ ConvertToString(repe_.stixMtrx.get(0, 3)) + " "
-					+ ConvertToString(repe_.stixMtrx.get(1, 3)) + " "
-					+ ConvertToString(repe_.stixMtrx.get(2, 3)) + " "
-					+ ConvertToString(repe_.stixMtrx.get(0, 0)) + " "
-					+ ConvertToString(repe_.stixMtrx.get(1, 0)) + " "
-					+ ConvertToString(repe_.stixMtrx.get(2, 0)) + " "
-					+ ConvertToString(repe_.stixMtrx.get(0, 1)) + " "
-					+ ConvertToString(repe_.stixMtrx.get(1, 1)) + " "
-					+ ConvertToString(repe_.stixMtrx.get(2, 1)) + " "
-					+ ConvertToString(repe_.stixMtrx.get(0, 2)) + " "
-					+ ConvertToString(repe_.stixMtrx.get(1, 2)) + " "
-					+ ConvertToString(repe_.stixMtrx.get(2, 2)) + " " + "1";
+					+ ConvertToString(intex_) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 3))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 3))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 3))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 0))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 0))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 0))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 1))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 1))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 1))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 2))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 2))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 2))) + " " + "1";
 				str += "\n";
+				intex_++;
 				TR_.push_back(str);
 			}
 		}
@@ -220,6 +219,14 @@ void BRepToCSG::SplitString(const char* str, const char* c, vector<string>& vecS
 	}
 }
 
+double BRepToCSG::CompareNum(double matrix)
+{
+	if (matrix < CAD_ZERO)
+		return 0.0;
+	else
+		return matrix;
+}
+
 void BRepToCSG::MatrixMess(size_t entityId, StixMtrx& stixMtrx)
 {
 	// Æ½ÒÆÐÅÏ¢  
@@ -239,4 +246,3 @@ void BRepToCSG::MatrixMess(size_t entityId, StixMtrx& stixMtrx)
 	repe_.entityId = entityId;
 	repe_.stixMtrx = stixMtrx;
 }
-

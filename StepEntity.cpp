@@ -3,6 +3,8 @@
 #include "GeomCalc.h"
 #include "curve.h"
 
+static int testNum = 0;
+set<string> setString_;
 StepEntity::StepEntity(vector<SFace*> natlHalfSpaceList)
 	:NatlHalfSpaceList_(natlHalfSpaceList)
 {
@@ -17,20 +19,21 @@ StepEntity::~StepEntity(void)
 void StepEntity::GenerateCIT()
 {
 	CIT_ = (HalfSpaceOrientation**)malloc(pow(((double)2.0), ((int)CSGHalfSpaceList_.size()))*sizeof(HalfSpaceOrientation*)); //第一维 
-	for (size_t i = 0; i < pow(((double)2.0), ((int)CSGHalfSpaceList_.size())); i++)
+	for (int i = 0; i < pow(((double)2.0), ((int)CSGHalfSpaceList_.size())); i++)
 		CIT_[i] = (HalfSpaceOrientation*)malloc(CSGHalfSpaceList_.size()* sizeof(HalfSpaceOrientation));//第二维
 
 	CITIndex_ = (TermIndex*)malloc(pow(((double)2.0), ((int)CSGHalfSpaceList_.size()))* sizeof(TermIndex));//第一维
 
-	for (size_t i = 0; i < pow(((double)2.0), ((int)CSGHalfSpaceList_.size())); i++)
+	for (int i = 0; i < pow(((double)2.0), ((int)CSGHalfSpaceList_.size())); i++)
 	{
-		for (size_t j = 0; j < CSGHalfSpaceList_.size(); j++)
+		for (int j = 0; j < CSGHalfSpaceList_.size(); j++)
 		{
 			if (i&((int)pow(2.0, j)))
 				CIT_[i][CSGHalfSpaceList_.size() - j - 1] = POSITIVE;
 			else
 				CIT_[i][CSGHalfSpaceList_.size() - j - 1] = NEGATIVE;
 		}
+
 		CITIndex_[i].tListIndex = -1;
 		CITIndex_[i].isNotNull = false;
 		CITIndex_[i].tPosition = Undetermined;
@@ -513,6 +516,7 @@ void StepEntity::PMCtest()
 					else
 						isTangency = false;
 				}
+	
 				for (size_t k = 0; k < MP_.interPointList_.size(); k++)
 				{
 					//射线范围之外的点不计算
@@ -527,6 +531,7 @@ void StepEntity::PMCtest()
 						IntersetedNum++;
 						continue;
 					}
+					
 					int isInBound = IsInBound(NatlHalfSpaceList_[j], MP_.interPointList_[k], MP2D_);
 					if (isInBound == 1)
 					{
@@ -672,23 +677,23 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 		str1 += " $ " + p_shpnm + "\n";
 	vecOut.push_back(str1);
 
-	int test;
+	auto tt = setString_.insert(p_shpnm);
+	int aaa;
+	if (tt.second)
+		aaa = 0;
+	else
+	{
+		testNum++;
+		aaa = testNum/2;
+	}
+
 	for (size_t i = 0; i < CSGHalfSpaceList_.size(); i++)
 	{
-		if (!strcmp(p_shpnm.c_str(), "L-BRACKET"))
-			test = 3;
-		else if (!strcmp(p_shpnm.c_str(), "BOLT"))
-			test = 1;
-		else if (!strcmp(p_shpnm.c_str(), "NUT"))
-			test = 2;
-		else if (!strcmp(p_shpnm.c_str(), "cylinder1"))
-			test = 1;
-		else
-			test = 0;
+
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "plane"))
 		{
 			str2 += ConvertToString((*p_n)) + " " 
-				+ ConvertToString(test) + " " 
+				+ ConvertToString(aaa) + " "
 				+ "P"
 				+ " " + ConvertToString(((SPlane*)CSGHalfSpaceList_[i])->coefficient_[3] * 2.0)
 				+ " " + ConvertToString(((SPlane*)CSGHalfSpaceList_[i])->coefficient_[6] * 2.0)
@@ -699,7 +704,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "spherical_surface"))
 		{
-			str2 += ConvertToString((*p_n)) + " " + ConvertToString(test) + " " + "S"
+			str2 += ConvertToString((*p_n)) + " " + ConvertToString(aaa) + " " + "S"
 				+ " " + ConvertToString(((SSpherical*)CSGHalfSpaceList_[i])->position_->point.x)
 				+ " " + ConvertToString(((SSpherical*)CSGHalfSpaceList_[i])->position_->point.y)
 				+ " " + ConvertToString(((SSpherical*)CSGHalfSpaceList_[i])->position_->point.z)
@@ -709,7 +714,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "conical_surface"))
 		{
-			str2 += ConvertToString((*p_n)) + " " + ConvertToString(test) + " " + "GQ" + " "
+			str2 += ConvertToString((*p_n)) + " " + ConvertToString(aaa) + " " + "GQ" + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->coefficient_[0]) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->coefficient_[4]) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->coefficient_[7]) + " "
@@ -723,7 +728,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 				+ "\n";
 			//加一个辅助平面
 			double* vertex = ((SConical*)CSGHalfSpaceList_[i])->vertex_;
-			str2 += ConvertToString(++(*p_n)) + " " + ConvertToString(test) + " " + "P" + " "
+			str2 += ConvertToString(++(*p_n)) + " " + ConvertToString(aaa) + " " + "P" + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->position_->verAxis.dx) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->position_->verAxis.dy) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->position_->verAxis.dz) + " "
@@ -735,7 +740,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "cylindrical_surface"))
 		{
-			str2 += ConvertToString((*p_n)) + " " + ConvertToString(test) + " " + "GQ" + " "
+			str2 += ConvertToString((*p_n)) + " " + ConvertToString(aaa) + " " + "GQ" + " "
 				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[0]) + " "
 				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[4]) + " "
 				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[7]) + " "
@@ -750,6 +755,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 		}
 		(*p_n)++;
 	}
+	
 	vecOut.push_back(str2);
 }
 
@@ -1264,16 +1270,16 @@ void StepEntity::TriangleSeparate(vector<CPoint3D>& pArray, vector<CTriChip*>& v
 void StepEntity::UniqueHalfCharacteristicPoint()
 {
 	vector<CPoint3D>().swap(CITPList_);
-	for(size_t i = 0; i < CITCPList_.size(); i++)
+	for(int i = 0; i < CITCPList_.size(); i++)
 	{
 		int index = 0;
 		if(i == 46)
 			int we = 1;
-		for(size_t j = 0; j < CSGHalfSpaceList_.size(); j++)
+		for(int j = 0; j < CSGHalfSpaceList_.size(); j++)
 		{
 			PointPosition PP = CSGHalfSpaceList_[j]->PointIsIn(CITCPList_[i]);
 			if(PP == OUT_FACE)
-				index += (int)pow(2.0, j);
+				index += pow(2.0, j);
 			else if(PP == IN_FACE)
 				continue;
 			else if(PP == ON_FACE)
@@ -1284,6 +1290,9 @@ void StepEntity::UniqueHalfCharacteristicPoint()
 				break;
 			}
 		}
+
+		if (index == 1055)
+			printf("");
 		if((index != -1) && (CITIndex_[index].tListIndex == -1))
 		{
 			CITIndex_[index].tListIndex = CITPList_.size();
@@ -1568,7 +1577,7 @@ void StepEntity::SetSurfaceIntersectPoints(SFace* Surf1, SFace* Surf2, SFace* Su
 	{
 		CPoint3D vertex = ((SConical*)Surf1)->vertex_;
 		CVector3D pVector3D1 = Surf1->position_->verAxis;
-		for (size_t i = 0; i < MP_.interPointList_.size(); i++)
+		for (int i = 0; i < MP_.interPointList_.size(); i++)
 		{
 			CVector3D pVector3D2(MP_.interPointList_[i].x - vertex.x, MP_.interPointList_[i].y - vertex.y, MP_.interPointList_[i].z - vertex.z );
 			if (!IS_ZERO(pVector3D1 | pVector3D2) && (pVector3D1 | pVector3D2) < 0)
@@ -1582,7 +1591,7 @@ void StepEntity::SetSurfaceIntersectPoints(SFace* Surf1, SFace* Surf2, SFace* Su
 	{
 		CPoint3D vertex = ((SConical*)Surf2)->vertex_;
 		CVector3D pVector3D1 = Surf2->position_->verAxis;
-		for (size_t i = 0; i < MP_.interPointList_.size(); i++)
+		for (int i = 0; i < MP_.interPointList_.size(); i++)
 		{
 			CVector3D pVector3D2(MP_.interPointList_[i].x - vertex.x, 
 				MP_.interPointList_[i].y - vertex.y,
@@ -1598,7 +1607,7 @@ void StepEntity::SetSurfaceIntersectPoints(SFace* Surf1, SFace* Surf2, SFace* Su
 	{
 		CPoint3D vertex = ((SConical*)Surf3)->vertex_;
 		CVector3D pVector3D1 = Surf3->position_->verAxis;
-		for (size_t i = 0; i < MP_.interPointList_.size(); i++)
+		for (int i = 0; i < MP_.interPointList_.size(); i++)
 		{
 			CVector3D pVector3D2(MP_.interPointList_[i].x - vertex.x,
 				MP_.interPointList_[i].y - vertex.y,

@@ -6,7 +6,7 @@
 #include "ShapeCutter.h"
 
 
-#define ZOOMTIME 1.0
+#define ZOOMTIME 10.0
 
 
 typedef	struct Orientation
