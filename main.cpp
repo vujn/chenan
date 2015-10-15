@@ -169,7 +169,7 @@ void _tmain(int argc, _TCHAR* argv[])
 	stix_tag_asms(design);
 
 	BRepToCSG csg(design);
-/*	system("pause");*/
+	system("pause");
 }
 
 bool GetStepFileDialog()
@@ -179,7 +179,7 @@ bool GetStepFileDialog()
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = nullptr;
 	ofn.lpstrFilter = _T("所有文件*.*)\0*.*\0");
-	ofn.lpstrInitialDir = _T("D:\\stepmod");
+	ofn.lpstrInitialDir = _T("C:\\Users\\hekaifa\\Desktop\\Test Step");
 	ofn.lpstrFile = szBuffer;
 	ofn.nMaxFile = sizeof(szBuffer) / sizeof(*szBuffer);
 	ofn.nFilterIndex = 0;

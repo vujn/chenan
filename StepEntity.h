@@ -25,7 +25,7 @@ public:
 	LOGICAL logical_;
 
 	//生成MCNP几何输入文件
-	void Output(int * p_m, int * p_n, string p_shpnm, vector<string>& vecOut,
+	void Output(int * p_m, int * p_n, int splitRepetitionNum, string p_shpnm, vector<string>& vecOut,
 		bool p_withvoid, bool p_spdir, bool is_outer, bool is_last);
 	
 	ConvexConcave MakeBoundFace(vector<Curve*> edgeLoop_);
@@ -68,6 +68,7 @@ private:
 	void EllipseInfo(ELLIPSE* cur, ORIENTATION ori, CPoint3D eStart, CPoint3D eEnd);
 //	void GetAxisData(stp_axis2_placement_3d* axis, GeometryData& data);
 	CPoint3D GetPoint(stp_cartesian_point* pt);
+	double CompareNum(double matrix);
 
 public:
 

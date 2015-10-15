@@ -575,7 +575,7 @@ string ConvertToString(T value)
 	return ss.str();
 }
 
-void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& vecOut, bool p_withvoid, bool p_spdir, bool is_outer, bool is_last)
+void StepEntity::Output(int * p_m, int * p_n,int splitRepetitionNum, string p_shpnm, vector<string>& vecOut, bool p_withvoid, bool p_spdir, bool is_outer, bool is_last)
 {
 	string str1, str2;
 	if (p_withvoid && (!is_outer))
@@ -678,23 +678,31 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 	vecOut.push_back(str1);
 
 	auto tt = setString_.insert(p_shpnm);
-	int aaa;
+
+	string num;
 	if (tt.second)
-		aaa = 0;
+		num = " ";
 	else
 	{
-		testNum++;
-		aaa = testNum/2;
+		if(splitRepetitionNum == 0)
+		{
+			testNum++;
+			num = " " + ConvertToString(testNum) + " ";
+		}
+		if(testNum == 0)
+			num = " ";
+		else		
+			num = " " + ConvertToString(testNum) + " ";
 	}
+
 
 	for (size_t i = 0; i < CSGHalfSpaceList_.size(); i++)
 	{
 
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "plane"))
 		{
-			str2 += ConvertToString((*p_n)) + " " 
-				+ ConvertToString(aaa) + " "
-				+ "P"
+			str2 += ConvertToString((*p_n)) + ""
+				+ num + "P"
 				+ " " + ConvertToString(((SPlane*)CSGHalfSpaceList_[i])->coefficient_[3] * 2.0)
 				+ " " + ConvertToString(((SPlane*)CSGHalfSpaceList_[i])->coefficient_[6] * 2.0)
 				+ " " + ConvertToString(((SPlane*)CSGHalfSpaceList_[i])->coefficient_[8] * 2.0)
@@ -704,7 +712,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "spherical_surface"))
 		{
-			str2 += ConvertToString((*p_n)) + " " + ConvertToString(aaa) + " " + "S"
+			str2 += ConvertToString((*p_n)) + "" + num + "S"
 				+ " " + ConvertToString(((SSpherical*)CSGHalfSpaceList_[i])->position_->point.x)
 				+ " " + ConvertToString(((SSpherical*)CSGHalfSpaceList_[i])->position_->point.y)
 				+ " " + ConvertToString(((SSpherical*)CSGHalfSpaceList_[i])->position_->point.z)
@@ -714,7 +722,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "conical_surface"))
 		{
-			str2 += ConvertToString((*p_n)) + " " + ConvertToString(aaa) + " " + "GQ" + " "
+			str2 += ConvertToString((*p_n)) + "" + num + "GQ" + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->coefficient_[0]) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->coefficient_[4]) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->coefficient_[7]) + " "
@@ -728,7 +736,7 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 				+ "\n";
 			//加一个辅助平面
 			double* vertex = ((SConical*)CSGHalfSpaceList_[i])->vertex_;
-			str2 += ConvertToString(++(*p_n)) + " " + ConvertToString(aaa) + " " + "P" + " "
+			str2 += ConvertToString(++(*p_n)) + "" + num + "P" + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->position_->verAxis.dx) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->position_->verAxis.dy) + " "
 				+ ConvertToString(((SConical*)CSGHalfSpaceList_[i])->position_->verAxis.dz) + " "
@@ -740,23 +748,31 @@ void StepEntity::Output(int * p_m, int * p_n, string p_shpnm, vector<string>& ve
 
 		if (!strcmp(CSGHalfSpaceList_[i]->name_, "cylindrical_surface"))
 		{
-			str2 += ConvertToString((*p_n)) + " " + ConvertToString(aaa) + " " + "GQ" + " "
-				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[0]) + " "
-				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[4]) + " "
-				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[7]) + " "
-				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[1] * 2.0) + " "
-				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[5] * 2.0) + " "
-				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[2] * 2.0) + " "
-				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[3] * 2.0) + " "
-				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[6] * 2.0) + " "
-				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[8] * 2.0) + " "
-				+ ConvertToString(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[9]) + " "
+			str2 += ConvertToString((*p_n)) + "" + num + "GQ" + " "
+				+ ConvertToString(CompareNum(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[0])) + " "
+				+ ConvertToString(CompareNum(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[4])) + " "
+				+ ConvertToString(CompareNum(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[7])) + " "
+				+ ConvertToString(CompareNum(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[1] * 2.0)) + " "
+				+ ConvertToString(CompareNum(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[5] * 2.0)) + " "
+				+ ConvertToString(CompareNum(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[2] * 2.0)) + " "
+				+ ConvertToString(CompareNum(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[3] * 2.0)) + " "
+				+ ConvertToString(CompareNum(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[6] * 2.0)) + " "
+				+ ConvertToString(CompareNum(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[8] * 2.0)) + " "
+				+ ConvertToString(CompareNum(((SCylindrical*)CSGHalfSpaceList_[i])->coefficient_[9])) + " "
 				+ "\n";
 		}
 		(*p_n)++;
 	}
 	
 	vecOut.push_back(str2);
+}
+
+double StepEntity::CompareNum(double matrix)
+{
+	if(IS_ZERO(matrix))
+		return 0.0;
+	else
+		return matrix;
 }
 
 ConvexConcave StepEntity::MakeBoundFace(vector<Curve*> edgeLoop_)
