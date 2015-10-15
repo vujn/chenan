@@ -159,7 +159,7 @@ void _tmain(int argc, _TCHAR* argv[])
 	stplib_init();	// initialize merged cad library
 	stixmesh_init();
 	RoseDesign* design = ROSE.findDesign(pathName.c_str());
-	int io = 0;
+	
 	if (!design)
 	{
 		printf("Could not open STEP file %s\n", pathName.c_str());
