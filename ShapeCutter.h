@@ -6,19 +6,6 @@ class ShapeCutter
 {
 public:
 
-// 	void* operator new(size_t, void* anAddress)
-// 	{
-// 		return anAddress;
-// 	}
-// 	void* operator new(size_t size)
-// 	{
-// 		return Standard::Allocate(size);
-// 	}
-// 	void  operator delete(void *anAddress)
-// 	{
-// 		if(anAddress) Standard::Free((Standard_Address&)anAddress);
-// 	}
-
 	//Default Constructs
 	ShapeCutter();
 

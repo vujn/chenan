@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "ShapeCutter.h"
+#include <BRepPrimAPI_MakeWedge.hxx>
 
 
 ShapeCutter::ShapeCutter()
@@ -792,17 +793,16 @@ Standard_Boolean ShapeCutter::IsAllEdgeOnFace(const TopoDS_Edge& anEdge, const T
 TopoDS_Shape ShapeCutter::GetBndBox( const TopoDS_Shape& theBox2 )
 {
 
-	gp_Ax2 axe(gp_Pnt(10, 10, 10), gp_Dir(1, 2, 1));
-	TopoDS_Shape theBox = BRepPrimAPI_MakeBox(axe, 60, 80, 100);
-	TopoDS_Shape theWedge = BRepPrimAPI_MakeWedge(60., 100., 80., 20.);
-	TopoDS_Shape theCommonSurface = BRepAlgoAPI_Common(theBox, theWedge);
+	TopoDS_Shape S2 = BRepPrimAPI_MakeWedge(gp_Ax2(gp_Pnt(100., 100., 0.), gp_Dir(0., 0., 1.)),
+		60., 50., 80., 25., -10., 40., 70.);
 
-	BRepTools::Write(theBox2_, "E:\\test.txt");
+	BRepTools::Write(S2, "E:\\test.txt");
 	Standard_Real Xmin,Xmax,Ymin,Ymax,Zmin,Zmax;
 	Bnd_Box boite;
-	BRepBndLib::Add(theCommonSurface, boite);
+	BRepBndLib::Add(S2, boite);
 	boite.SetGap(1000.0);
 	boite.Get(Xmin, Ymin, Zmin, Xmax, Ymax, Zmax);
+
 	TopoDS_Shape theBox1 =
 		BRepPrimAPI_MakeBox(gp_Pnt(Xmin, Ymin, Zmin), gp_Pnt(Xmax, Ymax, Zmax)).Shape();
 	if(theBox1.IsNull())

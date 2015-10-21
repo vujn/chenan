@@ -623,6 +623,7 @@ void Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
 	gp_Pln plane(Pnt, dir);
 	theFace = BRepBuilderAPI_MakeFace(plane);
 	
+	TopoDS_Shape test = theFace;
 	BRepOffsetAPI_Sewing solid;
 
 	for (auto iter = faceList.begin(); iter != faceList.end(); iter++)
