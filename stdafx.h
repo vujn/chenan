@@ -111,4 +111,19 @@
 #include "BRepFeat_SplitShape.hxx"
 #include "BRepAlgoAPI_Common.hxx"
 #include "BRepPrimAPI_MakeCylinder.hxx"
+
+#include "BRepTools.hxx"
+#include "BRepAlgoAPI_Fuse.hxx"
+#include <BRepBuilderAPI_MakeShell.hxx>
+#include "BRepPrimAPI_MakeWedge.hxx"
+#include <BRepPrimAPI_MakeCone.hxx>
+#include <BRepPrimAPI_MakeSphere.hxx>
+#include "BRepPrimAPI_MakeTorus.hxx"
+#include <BRepPrimAPI_MakeHalfSpace.hxx>
+#include <TCollection_AsciiString.hxx>
+#include <BRepCheck_Analyzer.hxx>
+#include <ShapeFix_ShapeTolerance.hxx>
+#include <BRepCheck_Shell.hxx>
+#include <BRepBuilderAPI_MakeSolid.hxx>
+#include <BRepClass3d_SolidClassifier.hxx>
 // TODO: 在此处引用程序需要的其他头文件
