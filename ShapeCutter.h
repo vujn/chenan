@@ -27,7 +27,7 @@ public:
 	
 public:
 
-	void Init(const TopoDS_Shape& theSolid, const TopoDS_Shape& theExtFace);
+	void Init(const TopoDS_Shape& theSolid, const TopoDS_Face& theExtFace);
 	void Init1(const TopoDS_Shape& theBox1);
 	void Init2(const TopoDS_Shape& theBox2);
 	void Init3(const TopoDS_Face& theFace);

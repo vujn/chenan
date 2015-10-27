@@ -4,6 +4,9 @@
 #include <BRepPrimAPI_MakeSphere.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakeCone.hxx>
+#include "GC_MakePlane.hxx"
+#include "BRepBuilderAPI_MakeVertex.hxx"
+#include <TopoDS.hxx>
 
 
 
@@ -27,16 +30,12 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 		SetOfstp_face* face = shell->cfs_faces();
 		GetSFaceInfo(face);
 
-		if(shell->entity_id() != 1226)
-			return;
-
-
-		if (IsPartitionFace(NatlHalfSpaceList_))
-		{
+// 		if (IsPartitionFace(NatlHalfSpaceList_))
+// 		{
 			SFace* partFace = ChoosePartitionFace();
 			OcctSplit(NatlHalfSpaceList_, partFace);
-//			intersectionFaceList_.push_back(NatlHalfSpaceList_);
-		}
+			intersectionFaceList_.push_back(NatlHalfSpaceList_);
+//		}
 		for (auto iter = 0; iter < intersectionFaceList_.size(); iter++)
 		{
 			StepEntity* step = new StepEntity(intersectionFaceList_[iter]);
@@ -614,30 +613,46 @@ stp_cartesian_point* Partition::EdgeCurveStartOrEnd(stp_vertex* ver)
 
 void Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
 {
-	TopoDS_Face theFace;
+	TopoDS_Face useFace;
 
-//	CurrentStructToOCCT(splitFace, theFace);
-
-	gp_Pnt Pnt(splitFace->position_->point.x, splitFace->position_->point.y, splitFace->position_->point.z);
-	gp_Dir dir(splitFace->position_->verAxis.dx, splitFace->position_->verAxis.dy, splitFace->position_->verAxis.dz);
-	gp_Pln plane(Pnt, dir);
-	theFace = BRepBuilderAPI_MakeFace(plane);
+//  	TopoDS_Face test;
+//  	CurrentStructToOCCT(splitFace, test);
+// 		BRepTools::Write(test, "e:\\test.brep");
 	
-	TopoDS_Shape test = theFace;
-	BRepOffsetAPI_Sewing solid;
+// 	gp_Pnt Pnt(splitFace->position_->point.x, splitFace->position_->point.y, splitFace->position_->point.z);
+// 	gp_Dir dir(splitFace->position_->verAxis.dx, splitFace->position_->verAxis.dy, splitFace->position_->verAxis.dz);
+// 	gp_Pln plane(Pnt, dir);
+// 	useFace = BRepBuilderAPI_MakeFace(plane).Face();
+	gp_Pnt Pnt(0, 0, 0);
+	gp_Dir dir(0, 1, 0);
+	gp_Pln plane(Pnt, dir);
+	useFace = BRepBuilderAPI_MakeFace(plane).Face();
 
+
+	BRepOffsetAPI_Sewing solid; 
+	TopoDS_Face face;
 	for (auto iter = faceList.begin(); iter != faceList.end(); iter++)
 	{
-		TopoDS_Face face;
 		CurrentStructToOCCT(*iter, face);
 		solid.Add(face);
 	}
 	solid.Perform();
 	TopoDS_Shape sewedShape = solid.SewedShape();
-	ShapeCutter cutter(sewedShape, theFace);
+
+	BRepTools::Write(sewedShape, "E:\\test.brep");
+
+
+	if (sewedShape.IsNull())
+	{
+		printf("error\n");
+	}
+	ShapeCutter cutter(sewedShape, useFace);
+	cutter.Init(sewedShape, useFace);
 	cutter.Perform();
 	TopoDS_Shape S1 = cutter.CalcResult1();
 	TopoDS_Shape S2 = cutter.CalcResult2();
+	BRepTools::Write(S1, "E:\\test1.brep");
+	BRepTools::Write(S2, "E:\\test2.brep");
 	vector<SFace*> faceList1 = OcctToCurrentStruct(S1);
 	vector<SFace*> faceList2 = OcctToCurrentStruct(S2);
 	
@@ -718,23 +733,44 @@ void Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
 // 	}
 // }
 
-void Partition::CurrentStructToOCCT(SFace* face, TopoDS_Shape& aShape)
+void Partition::CurrentStructToOCCT(SFace* face, TopoDS_Face& aFace)
 {
 	//step一个实体中的advanced_face->OCC中的Shape
 	TopoDS_Wire wire;
-	Handle(Geom_Surface) S;
+	Handle(Geom_Surface) surface;
 
-	if(!strcmp(face->name_, "plane"))
-		S = ((SPlane*)face)->ToOCCT();
-	if(!strcmp(face->name_, "spherical_surface"))
-		S = ((SSpherical*)face)->ToOCCT();
-	if(!strcmp(face->name_, "conical_surface"))
-		S = ((SConical*)face)->ToOCCT();
-	if(!strcmp(face->name_, "cylindrical_surface"))
-		S = ((SCylindrical*)face)->ToOCCT();
-	if(!strcmp(face->name_, "toroidal_surface"))
-		S = ((SToroidal*)face)->ToOCCT();
-
+	gp_Sphere SS;
+	gp_Cylinder CY;
+	if (!strcmp(face->name_, "plane"))
+	{
+		surface = ((SPlane*)face)->ToOCCT();
+	}
+	if (!strcmp(face->name_, "cylindrical_surface"))
+	{
+		surface = ((SCylindrical*)face)->ToOCCT();
+		gp_Pnt P1(face->position_->point.x, face->position_->point.y, face->position_->point.z);
+		gp_Vec Vec1(face->position_->verAxis.dx, face->position_->verAxis.dy, face->position_->verAxis.dz);
+		gp_Dir Dir1(Vec1);
+		gp_Ax3 Ax31(P1, Dir1);
+		CY = gp_Cylinder(Ax31, ((SCylindrical*)face)->radius_);
+	}
+	if (!strcmp(face->name_, "spherical_surface"))
+	{
+		surface = ((SSpherical*)face)->ToOCCT();
+		gp_Pnt P1(face->position_->point.x, face->position_->point.y, face->position_->point.z);
+		gp_Vec Vec1(face->position_->verAxis.dx, face->position_->verAxis.dy, face->position_->verAxis.dz);
+		gp_Dir Dir1(Vec1);
+		gp_Ax3 Ax31(P1, Dir1);
+		SS = gp_Sphere(Ax31, ((SSpherical*)face)->radius_);
+	}
+	if (!strcmp(face->name_, "conical_surface"))
+	{
+		surface = ((SConical*)face)->ToOCCT();
+	}
+	if (!strcmp(face->name_, "toroidal_surface"))
+	{
+		surface = ((SToroidal*)face)->ToOCCT();
+	}
 	for(auto itBound = face->faceBounds_.begin(); itBound != face->faceBounds_.end(); itBound++)
 	{
 		BRepBuilderAPI_MakeWire MW;
@@ -743,13 +779,16 @@ void Partition::CurrentStructToOCCT(SFace* face, TopoDS_Shape& aShape)
 			//vertex satrt and vertex end
 			gp_Pnt start((*itCurve)->edgeStart_.x, (*itCurve)->edgeStart_.y, (*itCurve)->edgeStart_.z);
 			gp_Pnt end((*itCurve)->edgeEnd_.x, (*itCurve)->edgeEnd_.y, (*itCurve)->edgeEnd_.z);
-			
+			TopoDS_Vertex vertex1 = BRepBuilderAPI_MakeVertex(start);
+			TopoDS_Vertex vertex2 = BRepBuilderAPI_MakeVertex(end);
 			if(!stricmp((*itCurve)->curveName_, "line"))
 			{
 				gp_Dir Dir1(((LINE*)(*itCurve))->dir_.dx, ((LINE*)(*itCurve))->dir_.dy, ((LINE*)(*itCurve))->dir_.dz );
 				gp_Pnt Pnt1(((LINE*)(*itCurve))->pnt_.x, ((LINE*)(*itCurve))->pnt_.y, ((LINE*)(*itCurve))->pnt_.z);
 				gp_Lin pLine(Pnt1, Dir1);
-				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(pLine, start,end);
+				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(pLine, vertex1, vertex2).Edge();
+				if (!((*itCurve)->orientedEdgeOri_))
+					edge.Reverse();
 				MW.Add(edge);
 			}
 			if(!stricmp((*itCurve)->curveName_, "circle"))
@@ -762,8 +801,9 @@ void Partition::CurrentStructToOCCT(SFace* face, TopoDS_Shape& aShape)
 					((CIRCLE*)(*itCurve))->position_.point.z );
 				gp_Ax2 ax1(P1,N1);
 				gp_Circ circle(ax1, ((CIRCLE*)(*itCurve))->radius_);
-				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(circle,start,end);
-				
+				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(circle, vertex1, vertex2).Edge();
+				if (!((*itCurve)->orientedEdgeOri_))
+					edge.Reverse();
 				MW.Add(edge);
 			}
 			if(!stricmp((*itCurve)->curveName_, "ellipse"))
@@ -772,17 +812,26 @@ void Partition::CurrentStructToOCCT(SFace* face, TopoDS_Shape& aShape)
 				gp_Pnt P1(((ELLIPSE*)(*itCurve))->position_.point.x, ((ELLIPSE*)(*itCurve))->position_.point.y, ((ELLIPSE*)(*itCurve))->position_.point.z);
 				gp_Ax2 ax1(P1, N1);
 				gp_Elips elips(ax1, ((ELLIPSE*)(*itCurve))->semi_axis_1_, ((ELLIPSE*)(*itCurve))->semi_axis_2_);
-				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(elips, start, end);
+				TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(elips, vertex1, vertex2).Edge();
+				if (!((*itCurve)->orientedEdgeOri_))
+					edge.Reverse();
 				MW.Add(edge);
 			}
+
 		}
 		if (MW.IsDone())
 			wire = MW.Wire();
+		if (!face->adFaceSameSense_)
+			wire.Reverse();
+		TopoDS_Wire myWireProfile = TopoDS::Wire(MW);
+		aFace = BRepBuilderAPI_MakeFace(surface, myWireProfile, true);
+// 		BRepBuilderAPI_MakeFace MF(SS);
+// 		MF.Add(myWireProfile);
+// 		MF.Build();
+// 		if (MF.IsDone())
+// 			aFace = MF.Face();
+		BRepTools::Write(aFace, "D:\\test.brep");
 	}
-	BRepBuilderAPI_MakeWire mkWire;
-	mkWire.Add(wire);
-	TopoDS_Wire myWireProfile = mkWire.Wire();
-	aShape = BRepBuilderAPI_MakeFace(S, myWireProfile,true);
 }
 
 

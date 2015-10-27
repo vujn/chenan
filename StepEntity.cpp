@@ -1347,25 +1347,25 @@ ConvexConcave StepEntity::UniqueBoundFaceList()
 		if ( IS_NEGATIVE(( pVector3D2 | pVector3D3 )) )
 			cc = concave;
 		else if ( IS_POSITIVE(( pVector3D2 | pVector3D3 )) )
-				cc = convex;
+			cc = convex;
 		else
 		{
 			if (IS_NEGATIVE((pVector3D2 | pVector3D4)))
 				cc = concave;
 			else if (IS_POSITIVE((pVector3D2 | pVector3D4)))
-					cc = convex;
+				cc = convex;
 			else
 			{
 				if (IS_NEGATIVE((pVector3D2 | pVector3D5)))
 					cc = concave;
 				else if (IS_POSITIVE((pVector3D2 | pVector3D5)))
-						cc = convex;
+					cc = convex;
 				else
 				{
 					if (IS_NEGATIVE((pVector3D2 | pVector3D6)))
 						cc = concave;
 					else if (IS_POSITIVE((pVector3D2 | pVector3D6)))
-							cc = convex;
+						cc = convex;
 					else
 						cc = convex;
 				}

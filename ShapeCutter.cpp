@@ -58,10 +58,11 @@ Standard_Boolean ShapeCutter::IsLastCut() const
 	return myLastCut_;
 }
 
-void ShapeCutter::Init(const TopoDS_Shape& theSolid, const TopoDS_Shape& theExtFace)
+void ShapeCutter::Init(const TopoDS_Shape& theSolid, const TopoDS_Face& theExtFace)
 {
 	myIsDone_ = Standard_False;
 	mySolid_ = theSolid;
+	
 	gp_Pnt posPnt(0, 0, 0);
 //	posPnt = myExtFace_->GetPosPnt();
 	gp_Pnt negPnt(0, 0, 0);
@@ -70,21 +71,21 @@ void ShapeCutter::Init(const TopoDS_Shape& theSolid, const TopoDS_Shape& theExtF
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////
 	//  this is a test for extents and evaluation
-	TopoDS_Face aFace;
-//	TopoDS_Face aFace = myExtFace_->GetFace();
+// 	TopoDS_Face aFace;
+// 	TopoDS_Face aFace = myExtFace_->GetFace();
 
-	BRepAdaptor_Surface BS(aFace, Standard_True);
+	BRepAdaptor_Surface BS(theExtFace, Standard_True);
 	GeomAdaptor_Surface theAdaptFaceSurface = BS.Surface();
 
 	////////////////////////////////////////////////////////////////
 	// construct cutting half spaces
-	TopoDS_Shape PosHSol = BRepPrimAPI_MakeHalfSpace(aFace, posPnt).Solid(); //positive cutting half space SOLID
+	TopoDS_Shape PosHSol = BRepPrimAPI_MakeHalfSpace(theExtFace, posPnt).Solid(); //positive cutting half space SOLID
 	if(PosHSol.IsNull())
 	{
 		printf("\n_#_ShapeCutter.cxx :: Solid of positive cutting half space is empty!!!");
 		return;
 	}
-	TopoDS_Shape NegHSol = BRepPrimAPI_MakeHalfSpace(aFace, negPnt).Solid(); //negative cutting half space SOLID
+	TopoDS_Shape NegHSol = BRepPrimAPI_MakeHalfSpace(theExtFace, negPnt).Solid(); //negative cutting half space SOLID
 	if(NegHSol.IsNull())
 	{
 		printf("\n_#_ShapeCutter.cxx :: Solid of negative cutting half space is empty!!!");
@@ -188,7 +189,7 @@ MASTER: //goto label; if cutting fails: try again using a higher tolerance
 		try
 		{
 			BRepAlgoAPI_Cut negCut(mySolid_, PosHSol);
-
+			BRepTools::Write(negCut, "E:\\test.brep");
 			if(negCut.IsDone())
 			{
 				nHalfCut = Standard_True;
@@ -329,7 +330,7 @@ MASTER: //goto label; if cutting fails: try again using a higher tolerance
 		try
 		{
 			BRepAlgoAPI_Common negCommon(mySolid_, NegHSol);
-
+			BRepTools::Write(negCommon, "E:\\test.brep");
 			if(negCommon.IsDone())
 			{
 				nHalfCut = Standard_True;
@@ -538,19 +539,21 @@ const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, 
 {
 	TopoDS_Shape S = shape1;
 	////////////////////////////test///////////////////////////////////
-// 	gp_Pln thePlane(gp_Pnt(90,90,90),gp_Dir(1,1,1));
+// 	gp_Pln thePlane(gp_Pnt(3,-2.5,-5),gp_Dir(0,0,1));
 // 	TopoDS_Shape SS = BRepBuilderAPI_MakeFace(thePlane);
-// 	BRepTools::Write(shape1, "E:\\test.txt");
-	////////////////////////////test///////////////////////////////////
-//	BRepTools::Write(S, "E:\\test.txt");
+// 	BRepTools::Write(SS, "E:\\test1.brep");
+// 	////////////////////////////test///////////////////////////////////
+// 
+// 	BRepAlgoAPI_Common jjj(shape1, the);
+// 	BRepTools::Write(jjj, "E:\\test.brep");
 
-// 	BRepAlgoAPI_Cut jjj(shape1, shape2);
-// 	BRepTools::Write(jjj, "E:\\test.txt");
 	BRepAlgoAPI_Section asect(S, shape2, Standard_False);
 	asect.ComputePCurveOn1(Standard_True);
 	asect.Approximation(Standard_True);
 	asect.Build();
 	TopoDS_Shape R = asect.Shape();
+
+	BRepTools::Write(R, "E:\\test.brep");
 
 	BRepFeat_SplitShape asplit(S);
 
@@ -792,19 +795,13 @@ Standard_Boolean ShapeCutter::IsAllEdgeOnFace(const TopoDS_Edge& anEdge, const T
 
 TopoDS_Shape ShapeCutter::GetBndBox( const TopoDS_Shape& theBox2 )
 {
-
-	TopoDS_Shape S2 = BRepPrimAPI_MakeWedge(gp_Ax2(gp_Pnt(100., 100., 0.), gp_Dir(0., 0., 1.)),
-		60., 50., 80., 25., -10., 40., 70.);
-
-	BRepTools::Write(S2, "E:\\test.txt");
 	Standard_Real Xmin,Xmax,Ymin,Ymax,Zmin,Zmax;
 	Bnd_Box boite;
-	BRepBndLib::Add(S2, boite);
-	boite.SetGap(1000.0);
+	BRepBndLib::Add(theBox2, boite);
+//	boite.SetGap(1000.0);
 	boite.Get(Xmin, Ymin, Zmin, Xmax, Ymax, Zmax);
-
-	TopoDS_Shape theBox1 =
-		BRepPrimAPI_MakeBox(gp_Pnt(Xmin, Ymin, Zmin), gp_Pnt(Xmax, Ymax, Zmax)).Shape();
+	TopoDS_Shape theBox1 = BRepPrimAPI_MakeBox(gp_Pnt(Xmin, Ymin, Zmin), gp_Pnt(Xmax, Ymax, Zmax)).Shape();
+	BRepTools::Write(theBox1, "E:\\test.brep");
 	if(theBox1.IsNull())
 	{
 		printf("Get world failed!\n");
