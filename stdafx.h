@@ -141,4 +141,5 @@
 #include <BRepTools.hxx> 
 #include <STEPControl_StepModelType.hxx>
 #include "Interface_Static.hxx"
+#include "Geom_CartesianPoint.hxx"
 // TODO: 在此处引用程序需要的其他头文件

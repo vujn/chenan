@@ -34,7 +34,6 @@ int main()
 	for (Standard_Integer i = 1; i <= nbs; i++)
 	{
 		TopoDS_Shape test = reader.Shape(i);
-		BRepTools::Write(test, "E:\\t.brep");
 	}
 	Standard_Integer NbTrans = reader.TransferRoots();  
 	TopoDS_Shape result = reader.OneShape();  

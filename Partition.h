@@ -42,6 +42,7 @@ public:
 	
 	bool IsPartitionFace(vector<SFace*> faceList);
 	void OcctSplit(vector<SFace*> faceList, SFace* splitFace);		//occt切割面
+	bool JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb);
 	bool JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveName, orientationFaceA oriA, orientationFaceB oriB,
 		EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA, CPoint3D pointB);// 两个面相交或者多个面相交
 	void FindPartitionFace(SFace* Fa, SFace* Fb);
@@ -52,6 +53,9 @@ public:
 	SFace* CloneFace(SFace* face);
 	GeometryData* CloneEntity(GeometryData* geo);
 	void GetFaceList(vector<SFace*> faceList, SFace* splitFace);
+
+	//获取面的法向量及其他
+	gp_Vec GetFaceAxis(TopoDS_Face face);
 public:
 	std::vector<std::string> vecOut_;//输出的信息列表
 	int mp_;
