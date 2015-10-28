@@ -22,10 +22,14 @@ class Partition
 {
 public:
 	Partition(RoseDesign* design);
+	Partition(TopoDS_Shape& shapes);
 	~Partition();
 
 
 public:
+
+	void LoadStepFromOCCT();
+	std::string Partition::DumpOrientation(const TopAbs_Orientation& orient);
 
 	void GetSFaceInfo(SetOfstp_face* stpFace);
 	void StepConversionAndOutput(stp_representation_item* item, string shapeName, int& m, int& n);
@@ -56,6 +60,7 @@ public:
 	vector<SFace*> NatlHalfSpaceList_;			//自然半空间队列
 
 private:
+	TopoDS_Shape shapes_;
 	multimap<size_t, SFace*> partitionFaceList_;
 	vector<vector<SFace*>> canSplitFaceList;
 	vector<vector<SFace*>> intersectionFaceList_;

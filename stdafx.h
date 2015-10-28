@@ -126,4 +126,19 @@
 #include <BRepCheck_Shell.hxx>
 #include <BRepBuilderAPI_MakeSolid.hxx>
 #include <BRepClass3d_SolidClassifier.hxx>
+#include <commdlg.h>
+#include <shlwapi.h>
+#include <map>
+#include <stplib_init.h>
+#include "BRepToCSG.h"
+#include "BRepPrimAPI_MakeSphere.hxx"
+#include <TopExp.hxx>
+#include <BRepPrimAPI_MakeBox.hxx>
+#include "BRepPrimAPI_MakeCone.hxx"
+#include "IFSelect_ReturnStatus.hxx"
+#include <STEPControl_Reader.hxx>
+#include <TopoDS_Shape.hxx>
+#include <BRepTools.hxx> 
+#include <STEPControl_StepModelType.hxx>
+#include "Interface_Static.hxx"
 // TODO: 在此处引用程序需要的其他头文件

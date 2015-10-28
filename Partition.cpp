@@ -15,10 +15,135 @@ Partition::Partition(RoseDesign* design)
 {
 	
 }
+Partition::Partition(TopoDS_Shape& shapes)
+		: shapes_(shapes)
+{
+	LoadStepFromOCCT();
+}
 
 Partition::~Partition()
 {
 
+}
+
+void Partition::LoadStepFromOCCT()
+{
+	TopoDS_Solid solid;
+	TopoDS_Shell shell;
+	TopoDS_Face aFace;
+	TopoDS_Wire aWire;
+	TopoDS_Edge aEdge;
+	TopoDS_Vertex aVertex;
+	TopExp_Explorer expSolid, expShell, expEdge, expWire, expFace, expVertex;
+
+	for (expSolid.Init(shapes_, TopAbs_SOLID); expSolid.More(); expSolid.Next())
+	{
+		solid = TopoDS::Solid(expSolid.Current());
+
+		BRepTools::Write(solid, "e:\\test.brep");
+
+		////////////////////////////旋转平移信息////////////////////////////
+		TopLoc_Location so = solid.Location();
+		gp_Trsf trsf = so.Transformation();
+		gp_XYZ xyz;
+		trsf.Transforms(xyz);
+		gp_Mat matrix = trsf.VectorialPart();
+		Standard_Real matrix1 = matrix.Value(3, 3);
+		printf("%.3f %.3f %.3f\n", xyz.X(), xyz.Y(), xyz.Z());
+		//////////////////////////旋转平移信息//////////////////////////////
+
+		for (expShell.Init(solid, TopAbs_SHELL); expShell.More(); expShell.Next())
+		{
+			shell = TopoDS::Shell(expShell.Current());
+			BRepTools::Write(shell, "e:\\test1.brep");
+			for (expFace.Init(shell, TopAbs_FACE); expFace.More(); expFace.Next())
+			{
+				aFace = TopoDS::Face(expFace.Current());
+				for (expWire.Init(aFace, TopAbs_WIRE); expWire.More(); expWire.Next())
+				{
+					aWire = TopoDS::Wire(expWire.Current());
+					BRepTools::Write(aWire, "e:\\test.brep");
+
+					for (expEdge.Init(aWire, TopAbs_EDGE); expEdge.More(); expEdge.Next())
+					{
+						aEdge = TopoDS::Edge(expEdge.Current());
+						TopAbs_Orientation orientEdge = aEdge.Orientation();
+						vector<CPoint3D> pointL;
+						for (expVertex.Init(aEdge, TopAbs_VERTEX); expVertex.More(); expVertex.Next())
+						{
+							gp_Pnt startPnt1 = BRep_Tool::Pnt(TopExp::FirstVertex(aEdge, Standard_True));
+							gp_Pnt endPnt1 = BRep_Tool::Pnt(TopExp::LastVertex(aEdge, Standard_True));
+							aVertex = TopoDS::Vertex(expVertex.Current());
+							gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
+							CPoint3D point(Pnt.X(), Pnt.Y(), Pnt.Z());
+						}
+					}
+				}
+
+				/////////////////////face///////////////////////////////
+				BRepTools::Write(aFace, "e:\\test.brep");
+				TopLoc_Location location;
+				TopAbs_Orientation orient = aFace.Orientation();
+				Handle(Geom_Surface) aGeometricSurface = BRep_Tool::Surface(aFace, location);
+				GeomAdaptor_Surface msurface(aGeometricSurface);
+				if (GeomAbs_Plane == msurface.GetType())//plane
+				{
+					gp_Pln agpPlane = msurface.Plane();
+					gp_Ax1 norm = agpPlane.Axis();
+					gp_Dir dir = norm.Direction();
+					gp_Vec move(dir);
+				}
+				else if (GeomAbs_Cylinder == msurface.GetType())//cylinder
+				{
+					gp_Cylinder aCy = msurface.Cylinder();
+					gp_Ax1 ax1 = aCy.Axis();
+					gp_Dir dir = ax1.Direction();
+					Standard_Real radius = aCy.Radius();
+					gp_Vec move(dir);
+				}
+				else if (GeomAbs_Sphere == msurface.GetType())//sphere
+				{
+					gp_Sphere sph = msurface.Sphere();
+					Standard_Real radius = sph.Radius();
+					gp_Ax3 ax3 = sph.Position();
+					gp_Dir dir = ax3.Direction();
+					gp_Vec vec(dir);
+					gp_Pnt pnt = ax3.Location();
+				}
+				else if (GeomAbs_Cone == msurface.GetType())//cone
+				{
+					gp_Cone cone = msurface.Cone();
+					Standard_Real radius = cone.RefRadius();
+					Standard_Real ang = cone.SemiAngle();
+				}
+				else
+				{
+
+				}
+			}
+		}
+	}
+}
+
+std::string Partition::DumpOrientation(const TopAbs_Orientation& orient)
+{
+	std::string strType;
+	switch (orient)
+	{
+	case TopAbs_FORWARD:
+		strType = "TopAbs_FORWARD";
+		break;
+	case TopAbs_REVERSED:
+		strType = "TopAbs_REVERSED";
+		break;
+	case TopAbs_INTERNAL:
+		strType = "TopAbs_INTERNAL";
+		break;
+	case TopAbs_EXTERNAL:
+		strType = "TopAbs_EXTERNAL";
+		break;
+	}
+	return strType;
 }
 
 void Partition::StepConversionAndOutput(stp_representation_item* item,string shapeName, int& m, int& n)
