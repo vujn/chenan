@@ -898,15 +898,15 @@ void Partition::GetFaceList(vector<SFace*> faceList, SFace* splitFace)
 	
 	else if (faceList.size() == 7)
 	{
-		faceList1.push_back(faceList.at(0));
-		faceList1.push_back(faceList.at(4));
-		faceList1.push_back(faceList.at(6));
-		SFace* face1 = new SFace;
-		face1 = CloneFace(faceList.at(6));
-		face1->position_->point.z += 10.0;
-		face1->position_->verAxis.dy += 1.0;
-		faceList1.push_back(face1);
-		intersectionFaceList_.push_back(faceList1);
+// 		faceList1.push_back(faceList.at(0));
+// 		faceList1.push_back(faceList.at(4));
+// 		faceList1.push_back(faceList.at(6));
+// 		SFace* face1 = new SFace;
+// 		face1 = CloneFace(faceList.at(6));
+// 		face1->position_->point.z += 10.0;
+// 		face1->position_->verAxis.dy += 1.0;
+// 		faceList1.push_back(face1);
+// 		intersectionFaceList_.push_back(faceList1);
 		faceList2.push_back(faceList.at(1));
 		faceList2.push_back(faceList.at(2));
 		faceList2.push_back(faceList.at(3));
@@ -915,7 +915,7 @@ void Partition::GetFaceList(vector<SFace*> faceList, SFace* splitFace)
 		face2->position_->point.z -= 10.0;
 		face2->position_->verAxis.dy -= 1.0;
 		faceList2.push_back(face2);
-//		intersectionFaceList_.push_back(faceList2);
+		intersectionFaceList_.push_back(faceList2);
 		intersectionFaceList_.push_back(faceList2);
 	}
 	else
