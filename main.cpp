@@ -1,5 +1,6 @@
 
 #include "stdafx.h"
+#include "StepToTopoDS_Builder.hxx"
 
 
 std::string pathName;
@@ -15,30 +16,43 @@ int main()
 		printf("打开文件错误!\n");
 		exit(1);
 	}
+// 	Standard_Boolean failsonly = Standard_False;
+// 	STEPControl_Reader reader; 
+// 	IFSelect_ReturnStatus status = reader.ReadFile(pathName.c_str());
+// 	reader.PrintCheckLoad(failsonly, IFSelect_ItemsByEntity);
+// 	Standard_Integer NbRoots = reader.NbRootsForTransfer();  
+// 	reader.PrintCheckTransfer(failsonly, IFSelect_ItemsByEntity);
+// 	for (Standard_Integer n = 1; n <= NbRoots; n++)
+// 	{
+// 		Standard_Boolean ok = reader.TransferRoot(n);
+// 	}
+// 	Standard_Integer nbs = reader.NbShapes();
+// 	if (nbs == 0) 
+// 	{
+// 		return IFSelect_RetVoid; 
+// 	}
+// 	for (Standard_Integer i = 1; i <= nbs; i++)
+// 	{
+// 		TopoDS_Shape test = reader.Shape(i);
+// 	}
+// 	Standard_Integer NbTrans = reader.TransferRoots();  
+// 	TopoDS_Shape result = reader.OneShape();  
+// 	Partition part(result);
 
-	Standard_Boolean failsonly = Standard_False;
-	STEPControl_Reader reader; 
-	IFSelect_ReturnStatus status = reader.ReadFile(pathName.c_str());
-	reader.PrintCheckLoad(failsonly, IFSelect_ItemsByEntity);
-	Standard_Integer NbRoots = reader.NbRootsForTransfer();  
-	reader.PrintCheckTransfer(failsonly, IFSelect_ItemsByEntity);
-	for (Standard_Integer n = 1; n <= NbRoots; n++)
+	ROSE.quiet(1);	// console show;
+	stplib_init();	// initialize merged cad library
+	stixmesh_init();
+	RoseDesign* design = ROSE.findDesign(pathName.c_str());
+	
+	if (!design)
 	{
-		Standard_Boolean ok = reader.TransferRoot(n);
+		printf("Could not open STEP file %s\n", pathName.c_str());
+		exit(1);
 	}
-	Standard_Integer nbs = reader.NbShapes();
-	if (nbs == 0) 
-	{
-		return IFSelect_RetVoid; 
-	}
-	for (Standard_Integer i = 1; i <= nbs; i++)
-	{
-		TopoDS_Shape test = reader.Shape(i);
-	}
-	Standard_Integer NbTrans = reader.TransferRoots();  
-	TopoDS_Shape result = reader.OneShape();  
+	rose_compute_backptrs(design);
+	stix_tag_asms(design);
 
-	Partition part(result);
+	BRepToCSG csg(design);
 
 	return 0;
 } 

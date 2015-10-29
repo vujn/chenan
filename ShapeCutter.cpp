@@ -62,11 +62,16 @@ void ShapeCutter::Init(const TopoDS_Shape& theSolid, const TopoDS_Face& theExtFa
 {
 	myIsDone_ = Standard_False;
 	mySolid_ = theSolid;
-	
-	gp_Pnt posPnt(0, 0, 0);
+	Handle_TColgp_HSequenceOfPnt myPosPoints;
+	Handle_TColgp_HSequenceOfPnt myNegPoints;
+	myPosPoints = new TColgp_HSequenceOfPnt;
+	myNegPoints = new TColgp_HSequenceOfPnt;
+//	gp_Pnt posPnt(0, 0, 0);
 //	posPnt = myExtFace_->GetPosPnt();
 	gp_Pnt negPnt(0, 0, 0);
 //	negPnt = myExtFace_->GetNegPnt();
+	gp_Pnt posPnt(1000, 1000, 1000);
+	
 
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,18 +84,24 @@ void ShapeCutter::Init(const TopoDS_Shape& theSolid, const TopoDS_Face& theExtFa
 
 	////////////////////////////////////////////////////////////////
 	// construct cutting half spaces
-	TopoDS_Shape PosHSol = BRepPrimAPI_MakeHalfSpace(theExtFace, posPnt).Solid(); //positive cutting half space SOLID
+	TopoDS_Shape PosHSol;
+	TopoDS_Shape posHSol = BRepPrimAPI_MakeHalfSpace(theExtFace, posPnt).Solid(); //positive cutting half space SOLID
+	BRepTools::Write(posHSol, "e:\\test1.brep");
+	PosHSol = posHSol;
 	if(PosHSol.IsNull())
 	{
 		printf("\n_#_ShapeCutter.cxx :: Solid of positive cutting half space is empty!!!");
 		return;
 	}
-	TopoDS_Shape NegHSol = BRepPrimAPI_MakeHalfSpace(theExtFace, negPnt).Solid(); //negative cutting half space SOLID
-	if(NegHSol.IsNull())
-	{
-		printf("\n_#_ShapeCutter.cxx :: Solid of negative cutting half space is empty!!!");
-		return;
-	}
+	posHSol.Reverse();
+	TopoDS_Shape NegHSol = posHSol;
+	BRepTools::Write(NegHSol, "e:\\test2.brep");
+// 	TopoDS_Shape NegHSol = BRepPrimAPI_MakeHalfSpace(theExtFace, negPnt).Solid(); //negative cutting half space SOLID
+// 	if(NegHSol.IsNull())
+// 	{
+// 		printf("\n_#_ShapeCutter.cxx :: Solid of negative cutting half space is empty!!!");
+// 		return;
+// 	}
 
 	Standard_Boolean pHalfCut = Standard_False;
 	Standard_Boolean nHalfCut = Standard_False;
@@ -211,8 +222,6 @@ MASTER: //goto label; if cutting fails: try again using a higher tolerance
 			Standard_Failure::Caught()->Print(cout); cout << endl;
 		}
 	}
-
-
 	int sCount = 0;
 
 	////////////////////////////////////////////////////////////////

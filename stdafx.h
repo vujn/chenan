@@ -32,6 +32,9 @@
 #include <roseHdefs.h>
 #include <stix_asm.h>
 #include "stp_closed_shell.h"
+#include "Handle_Geom_Line.hxx"
+#include "Handle_Geom_Circle.hxx"
+#include "TColgp_HSequenceOfPnt.hxx"
 #include "stixmesh_nurbs.h"
 #include <stp_axis1_placement.h>
 #include <stp_advanced_brep_shape_representation.h>
@@ -89,6 +92,7 @@
 #include "TopExp_Explorer.hxx"
 #include "TopoDS.hxx"
 #include "BRep_Builder.hxx"
+#include "GeomAbs_CurveType.hxx"
 #include "gp_Circ.hxx"
 #include "gp_Elips.hxx"
 #include "BRepOffsetAPI_Sewing.hxx"
@@ -142,4 +146,5 @@
 #include <STEPControl_StepModelType.hxx>
 #include "Interface_Static.hxx"
 #include "Geom_CartesianPoint.hxx"
+#include "GeomAdaptor_Curve.hxx"
 // TODO: 在此处引用程序需要的其他头文件

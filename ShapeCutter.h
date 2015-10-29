@@ -45,6 +45,9 @@ protected:
 	TopoDS_Shape GetBndBox(const TopoDS_Shape& theBox2);//get Box1
 
 
+public:
+	TopTools_HSequenceOfShape myResultSolids_;
+
 private:
 	TopoDS_Shape theBox1_;
 	TopoDS_Shape theBox2_; 
@@ -56,7 +59,6 @@ private:
 	Standard_Boolean optimization_;
 
 	TopoDS_Shape mySolid_;
-	TopTools_HSequenceOfShape myResultSolids_;
 	Standard_Boolean myIsDone_;
 	TopoDS_Shape myExtFace_;
 	TopoDS_Shape myPosPartSol_;
