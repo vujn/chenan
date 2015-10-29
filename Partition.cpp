@@ -33,14 +33,14 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 			OcctSplit(NatlHalfSpaceList_, partFace);
 //			intersectionFaceList_.push_back(NatlHalfSpaceList_);
 		}
-		for (auto iter = intersectionFaceList_.begin(); iter != intersectionFaceList_.end(); iter++)
+		for (auto iter = 0; iter < intersectionFaceList_.size(); iter++)
 		{
-			StepEntity* step = new StepEntity(*iter);
+			StepEntity* step = new StepEntity(intersectionFaceList_[iter]);
 			step->GenerateHalfSpaceList();
 			step->GenerateCIT();
 			step->GenerateHalfCharacteristicPoint();
 			step->PMCtest();
-			step->Output(&m, &n, shapeName, vecOut_, false, false, false, false);
+			step->Output(&m, &n, iter, shapeName, vecOut_, false, false, false, false);
 		}
 		mp_ = m;
 		vector<vector<SFace*>>().swap(intersectionFaceList_);
@@ -58,14 +58,14 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 			OcctSplit(NatlHalfSpaceList_, partFace);
 		}
 
-		for (auto iter = intersectionFaceList_.begin(); iter != intersectionFaceList_.end(); iter++)
+		for (auto iter = 0; iter < intersectionFaceList_.size(); iter++)
 		{
-			StepEntity* step = new StepEntity(*iter);
+			StepEntity* step = new StepEntity(intersectionFaceList_[iter]);
 			step->GenerateHalfSpaceList();
 			step->GenerateCIT();
 			step->GenerateHalfCharacteristicPoint();
 			step->PMCtest();
-			step->Output(&m, &n, shapeName, vecOut_, true, true, true, false);
+			step->Output(&m, &n, iter, shapeName, vecOut_, true, true, true, false);
 		}
 		vector<vector<SFace*>>().swap(intersectionFaceList_);
 
@@ -83,17 +83,17 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 				SFace* partFace = ChoosePartitionFace();
 				OcctSplit(NatlHalfSpaceList_, partFace);
 			}
-			for (auto iter = intersectionFaceList_.begin(); iter != intersectionFaceList_.end(); iter++)
+			for (auto iter = 0; iter < intersectionFaceList_.size(); iter++)
 			{
-				StepEntity* step = new StepEntity(*iter);
+				StepEntity* step = new StepEntity(intersectionFaceList_[iter]);
 				step->GenerateHalfSpaceList();
 				step->GenerateCIT();
 				step->GenerateHalfCharacteristicPoint();
 				step->PMCtest();
 				if (oriClosedShell->orientation())
-					step->Output(&m, &n, shapeName, vecOut_, true, true, false, (i == orientedShell->size() - 1));
+					step->Output(&m, &n, iter, shapeName, vecOut_, true, true, false, (i == orientedShell->size() - 1));
 				else
-					step->Output(&m, &n, shapeName, vecOut_, true, false, false, (i == orientedShell->size() - 1));
+					step->Output(&m, &n, iter, shapeName, vecOut_, true, false, false, (i == orientedShell->size() - 1));
 			}
 			mp_ = m;
 			vector<vector<SFace*>>().swap(intersectionFaceList_);
@@ -898,15 +898,15 @@ void Partition::GetFaceList(vector<SFace*> faceList, SFace* splitFace)
 	
 	else if (faceList.size() == 7)
 	{
-// 		faceList1.push_back(faceList.at(0));
-// 		faceList1.push_back(faceList.at(4));
-// 		faceList1.push_back(faceList.at(6));
-// 		SFace* face1 = new SFace;
-// 		face1 = CloneFace(faceList.at(6));
-// 		face1->position_->point.z += 10.0;
-// 		face1->position_->verAxis.dy += 1.0;
-// 		faceList1.push_back(face1);
-// 		intersectionFaceList_.push_back(faceList1);
+		faceList1.push_back(faceList.at(0));
+		faceList1.push_back(faceList.at(4));
+		faceList1.push_back(faceList.at(6));
+		SFace* face1 = new SFace;
+		face1 = CloneFace(faceList.at(6));
+		face1->position_->point.z += 10.0;
+		face1->position_->verAxis.dy += 1.0;
+		faceList1.push_back(face1);
+//		intersectionFaceList_.push_back(faceList1);
 		faceList2.push_back(faceList.at(1));
 		faceList2.push_back(faceList.at(2));
 		faceList2.push_back(faceList.at(3));

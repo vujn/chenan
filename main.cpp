@@ -159,7 +159,7 @@ void _tmain(int argc, _TCHAR* argv[])
 	stplib_init();	// initialize merged cad library
 	stixmesh_init();
 	RoseDesign* design = ROSE.findDesign(pathName.c_str());
-
+	
 	if (!design)
 	{
 		printf("Could not open STEP file %s\n", pathName.c_str());
@@ -169,7 +169,7 @@ void _tmain(int argc, _TCHAR* argv[])
 	stix_tag_asms(design);
 
 	BRepToCSG csg(design);
-/*	system("pause");*/
+	system("pause");
 }
 
 bool GetStepFileDialog()
@@ -179,7 +179,7 @@ bool GetStepFileDialog()
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = nullptr;
 	ofn.lpstrFilter = _T("所有文件*.*)\0*.*\0");
-	ofn.lpstrInitialDir = _T("D:\\stepmod");
+	ofn.lpstrInitialDir = _T("C:\\Users\\hekaifa\\Desktop\\Test Step");
 	ofn.lpstrFile = szBuffer;
 	ofn.nMaxFile = sizeof(szBuffer) / sizeof(*szBuffer);
 	ofn.nFilterIndex = 0;

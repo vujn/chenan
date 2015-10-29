@@ -88,7 +88,6 @@
 #include "BRep_Tool.hxx"
 #include "TopExp_Explorer.hxx"
 #include "TopoDS.hxx"
-
 #include "BRep_Builder.hxx"
 #include "gp_Circ.hxx"
 #include "gp_Elips.hxx"
