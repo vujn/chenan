@@ -124,7 +124,7 @@ void BRepToCSG::GetShapeInformation(stp_representation* rep,
 		stp_product_definition_formation* pdf = proDefinition-> formation();
 		stp_product* p = pdf? pdf-> of_product(): 0;
 		const char * pname = p ? p->name() : 0;
-		nameShape_ = pname;
+//		nameShape_ = pname;
 		productId_ = p->entity_id();
 		MatrixMess(p->entity_id(), stixMtrx);
 		string str;
