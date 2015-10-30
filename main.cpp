@@ -169,7 +169,28 @@ void _tmain(int argc, _TCHAR* argv[])
 	stix_tag_asms(design);
 
 	BRepToCSG csg(design);
-	system("pause");
+// 	Standard_Boolean failsonly = Standard_False;
+// 	STEPControl_Reader reader; 
+// 	IFSelect_ReturnStatus status = reader.ReadFile(pathName.c_str());
+// 	reader.PrintCheckLoad(failsonly, IFSelect_ItemsByEntity);
+// 	Standard_Integer NbRoots = reader.NbRootsForTransfer();  
+// 	reader.PrintCheckTransfer(failsonly, IFSelect_ItemsByEntity);
+// 	for (Standard_Integer n = 1; n <= NbRoots; n++)
+// 	{
+// 		Standard_Boolean ok = reader.TransferRoot(n);
+// 	}
+// 	Standard_Integer nbs = reader.NbShapes();
+// 	if (nbs == 0) 
+// 	{
+// 		return IFSelect_RetVoid; 
+// 	}
+// 	for (Standard_Integer i = 1; i <= nbs; i++)
+// 	{
+// 		TopoDS_Shape test = reader.Shape(i);
+// 	}
+// 	Standard_Integer NbTrans = reader.TransferRoots();  
+// 	TopoDS_Shape result = reader.OneShape();  
+// 	Partition part(result);
 }
 
 bool GetStepFileDialog()
