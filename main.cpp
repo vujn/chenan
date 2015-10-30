@@ -36,6 +36,7 @@ int main()
 		TopoDS_Shape test = reader.Shape(i);
 	}
 	Standard_Integer NbTrans = reader.TransferRoots();  
+
 	TopoDS_Shape result = reader.OneShape();  
 	Partition part(result);
 

@@ -57,7 +57,7 @@ public:
 	//获取面的法向量及其他
 	void GetFaceAxis(TopoDS_Face face, TopoDS_Edge edge, gp_Vec& vec, gp_Pnt& start, gp_Pnt& end, TopAbs_Orientation& orient, gp_Pnt& axis);
 	void MatrixInformation(TopoDS_Solid solid, gp_Mat& mat, gp_XYZ& xyz);
-	void Partition::FindTheIntersectionFace(TopoDS_Shell shell);
+	bool FindTheIntersectionFace(TopoDS_Shell shell);
 	TopoDS_Face Choose();
 	bool JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aEdge, TopoDS_Edge bEdge);
 	void OcctSplit(TopoDS_Shape shape, TopoDS_Face face);
@@ -73,7 +73,7 @@ private:
 	vector<TopoDS_Face> topoFaceList_;
 	multimap<size_t, TopoDS_Face> partList_;
 	vector<TopoDS_Face> faceList_;
-
+	TopTools_HSequenceOfShape solids_;
 	multimap<size_t, SFace*> partitionFaceList_;
 	vector<vector<SFace*>> canSplitFaceList;
 	vector<vector<SFace*>> intersectionFaceList_;

@@ -48,15 +48,24 @@ void Partition::LoadStepFromOCCT()
 				aFace = TopoDS::Face(expFace.Current());
 				topoFaceList_.push_back(aFace);
 			}
-			FindTheIntersectionFace(shell);
+			bool isTrue = FindTheIntersectionFace(shell);
+			if (!isTrue)
+			{
+				for (Standard_Integer i = 1; i <= solids_.Length(); i++)
+				{
+					TopoDS_Solid tmpSol = TopoDS::Solid(solids_.Value(i));
+					OcctToCurrentStruct(tmpSol);
+				}
+			}
 // 			gp_Vec vec;
 // 			GetFaceAxis(aFace, vec);
 		}
 	}
 }
 
-void Partition::FindTheIntersectionFace(TopoDS_Shell shell)
+bool Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 {
+	bool isHasPartition = false;
 	for (auto iterA = 0; iterA < topoFaceList_.size(); iterA++)
 	{
 		for (auto iterB = iterA + 1; iterB < topoFaceList_.size(); iterB++)
@@ -96,6 +105,7 @@ void Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 								bool isPartitionFace = JudgeIntersection(topoFaceList_[iterA], topoFaceList_[iterB], aEdge, bEdge);
 								if (isPartitionFace)
 								{
+									isHasPartition = true;
 									printf("///////////////////////////////\n");
 //									OcctSplit(shell, topoFaceList_[iterB]);
 									//save face 
@@ -103,6 +113,7 @@ void Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 // 									pair<size_t, SFace*> pb(Fb->entityID_, Fb);
 // 									partList_.insert(pa);
 // 									partList_.insert(pb);
+
 								}
 								else
 								{
@@ -139,6 +150,7 @@ void Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 // 	TopoDS_Face aFace;
 // 	aFace = Choose();
 // 	OcctSplit(shell, aFace);
+	return isHasPartition;
 }
 
 
