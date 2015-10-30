@@ -669,7 +669,7 @@ void StepEntity::Output(int * p_m, int * p_n,int splitRepetitionNum, string p_sh
 		BoolExpression += ") ";
 	if ((p_withvoid&&is_outer) || (!p_withvoid))
 	{
-		str1 += ConvertToString((*p_m)) + " 0 0 ";
+		str1 += ConvertToString((*p_m)) + " 0 ";
 		(*p_m)++;
 	}
 	str1 += BoolExpression;
