@@ -18,6 +18,7 @@ Partition::Partition(RoseDesign* design)
 Partition::Partition(TopoDS_Shape& shapes)
 		: shapes_(shapes)
 {
+	intex_ = 1;
 	LoadStepFromOCCT();
 }
 
@@ -38,6 +39,30 @@ void Partition::LoadStepFromOCCT()
 		gp_Mat mat;
 		gp_XYZ xyz;
 		MatrixInformation(solid, mat, xyz);
+
+		string str;
+// 		auto isTrue = repeNum_.insert(pair<int, int>(productId_, NUM));
+// 		if (isTrue.second)
+// 			NUM++;
+// 		auto resultNum = repeNum_.find(productId_);
+// 		int id = repe_.entityId;
+// 		str = "TR"
+// 			+ ConvertToString(intex_) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 3) / ZOOMTIME)) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 3) / ZOOMTIME)) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 3) / ZOOMTIME)) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 0))) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 0))) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 0))) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 1))) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 1))) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 1))) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 2))) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 2))) + " "
+// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 2))) + " " + "1";
+// 		str += "\n";
+// 		intex_++;
+// 		TR_.push_back(str);
 		
 		for (expShell.Init(solid, TopAbs_SHELL); expShell.More(); expShell.Next())
 		{
@@ -48,15 +73,15 @@ void Partition::LoadStepFromOCCT()
 				aFace = TopoDS::Face(expFace.Current());
 				topoFaceList_.push_back(aFace);
 			}
-			bool isTrue = FindTheIntersectionFace(shell);
-			if (!isTrue)
-			{
-				for (Standard_Integer i = 1; i <= solids_.Length(); i++)
-				{
-					TopoDS_Solid tmpSol = TopoDS::Solid(solids_.Value(i));
-					OcctToCurrentStruct(tmpSol);
-				}
-			}
+// 			bool isTrue = FindTheIntersectionFace(shell);
+// 			if (!isTrue)
+// 			{
+// 				for (Standard_Integer i = 1; i <= solids_.Length(); i++)
+// 				{
+// 					TopoDS_Solid tmpSol = TopoDS::Solid(solids_.Value(i));
+// 					OcctToCurrentStruct(tmpSol);
+// 				}
+// 			}
 // 			gp_Vec vec;
 // 			GetFaceAxis(aFace, vec);
 		}
@@ -106,8 +131,8 @@ bool Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 								if (isPartitionFace)
 								{
 									isHasPartition = true;
-									printf("///////////////////////////////\n");
-//									OcctSplit(shell, topoFaceList_[iterB]);
+//									printf("///////////////////////////////\n");
+									OcctSplit(shell, topoFaceList_[iterB]);
 									//save face 
 // 									pair<size_t, SFace*> pa(Fa->entityID_, Fa);
 // 									pair<size_t, SFace*> pb(Fb->entityID_, Fb);
@@ -1525,4 +1550,11 @@ vector<SFace*> Partition::OcctToCurrentStruct(TopoDS_Shape aShape)
 	// 		
 	// 	}
 	return faceList;
+}
+double Partition::CompareNum(double matrix)
+{
+	if (IS_ZERO(matrix))
+		return 0.0;
+	else
+		return matrix;
 }

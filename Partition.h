@@ -61,13 +61,22 @@ public:
 	TopoDS_Face Choose();
 	bool JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aEdge, TopoDS_Edge bEdge);
 	void OcctSplit(TopoDS_Shape shape, TopoDS_Face face);
+	double CompareNum(double matrix);
+
+
 public:
 	std::vector<std::string> vecOut_;//输出的信息列表
 	int mp_;
 
 public:
 	vector<SFace*> NatlHalfSpaceList_;			//自然半空间队列
-
+	template < class T>
+	string ConvertToString(T value)
+	{
+		stringstream ss;
+		ss << value;
+		return ss.str();
+	}
 private:
 	TopoDS_Shape shapes_;
 	vector<TopoDS_Face> topoFaceList_;
@@ -82,6 +91,10 @@ private:
 	RoseDesign* design_;
 	stp_representation_item* item_;
 	bool isHasPartitionFace_;
-	
+
+	map<int, int> repeNum_;
+	Repetition repe_;
+	int intex_;
+	vector<string> TR_;
 };
 
