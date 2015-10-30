@@ -73,15 +73,15 @@ void Partition::LoadStepFromOCCT()
 				aFace = TopoDS::Face(expFace.Current());
 				topoFaceList_.push_back(aFace);
 			}
-// 			bool isTrue = FindTheIntersectionFace(shell);
-// 			if (!isTrue)
-// 			{
-// 				for (Standard_Integer i = 1; i <= solids_.Length(); i++)
-// 				{
-// 					TopoDS_Solid tmpSol = TopoDS::Solid(solids_.Value(i));
-// 					OcctToCurrentStruct(tmpSol);
-// 				}
-// 			}
+			bool isTrue = FindTheIntersectionFace(shell);
+			if (!isTrue)
+			{
+				for (Standard_Integer i = 1; i <= solids_.Length(); i++)
+				{
+					TopoDS_Solid tmpSol = TopoDS::Solid(solids_.Value(i));
+					OcctToCurrentStruct(tmpSol);
+				}
+			}
 // 			gp_Vec vec;
 // 			GetFaceAxis(aFace, vec);
 		}
@@ -147,27 +147,27 @@ bool Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 							}
 						}
 					}
-// 					Handle(Geom_Curve) HC1 = intersector.Line(i + 1);
-// 					GeomAdaptor_Curve myCurve(HC1);
-// 					GeomAbs_CurveType type = myCurve.GetType();
-// 					if (GeomAbs_Line == type)
-// 					{
-// 						gp_Lin line = myCurve.Line();
-// 						line.Translate(p1, p2);
-// 					}
-// 					else if (GeomAbs_Circle == type)
-// 					{
-// 						gp_Circ circle = myCurve.Circle();
-// 						circle.Translate(p1, p2);
-// 						gp_Ax1 ax1 = circle.Axis();
-// 					}
-// 					else if (GeomAbs_Ellipse == type)
-// 					{
-// 						gp_Elips elips = myCurve.Ellipse();
-// 						elips.Translate(p1, p2);
-// 					}
-// 					else
-// 						return;
+					Handle(Geom_Curve) HC1 = intersector.Line(i + 1);
+					GeomAdaptor_Curve myCurve(HC1);
+					GeomAbs_CurveType type = myCurve.GetType();
+					if (GeomAbs_Line == type)
+					{
+						gp_Lin line = myCurve.Line();
+						line.Translate(p1, p2);
+					}
+					else if (GeomAbs_Circle == type)
+					{
+						gp_Circ circle = myCurve.Circle();
+						circle.Translate(p1, p2);
+						gp_Ax1 ax1 = circle.Axis();
+					}
+					else if (GeomAbs_Ellipse == type)
+					{
+						gp_Elips elips = myCurve.Ellipse();
+						elips.Translate(p1, p2);
+					}
+					else
+						return;
 				}
 			}
 		}
@@ -188,7 +188,11 @@ void Partition::MatrixInformation(TopoDS_Solid solid, gp_Mat& mat, gp_XYZ& xyz)
 	trsf.Transforms(xyz);
 	gp_Mat matrix = trsf.VectorialPart();
 	Standard_Real matrix1 = matrix.Value(3, 3);//matrix info
-	printf("Loc: (%.6g %.6g %.6g)\n", xyz.X(), xyz.Y(),xyz.Z());
+	printf("Loc:%.6g %.6g %.6g", CompareNum(xyz.X() / ZOOMTIME),
+		CompareNum(xyz.Y() / ZOOMTIME), CompareNum(xyz.Z() / ZOOMTIME));
+	printf(" %.1f %f.1 %.1f", matrix.Value(1, 1), matrix.Value(2, 1), matrix.Value(3, 1));//新的X轴
+	printf(" %.1f %f.1 %.1f", matrix.Value(1, 2), matrix.Value(2, 2), matrix.Value(3, 2));//新的Y轴
+	printf(" %.1f %f.1 %.1f\n", matrix.Value(1, 3), matrix.Value(2, 3), matrix.Value(3, 3));//新的Z轴
 }
 
 void Partition::GetFaceAxis(TopoDS_Face face, TopoDS_Edge edge, gp_Vec& vec,
@@ -212,7 +216,7 @@ void Partition::GetFaceAxis(TopoDS_Face face, TopoDS_Edge edge, gp_Vec& vec,
 // 			aVertex = TopoDS::Vertex(expVertex.Current());
 // 			gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
 // 			CPoint3D point(Pnt.X(), Pnt.Y(), Pnt.Z());
-//	}
+// 	}
 	TopLoc_Location location;
 	Handle(Geom_Surface) aGeometricSurface = BRep_Tool::Surface(face, location);
 	GeomAdaptor_Surface msurface(aGeometricSurface);
