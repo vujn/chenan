@@ -1,6 +1,12 @@
 
 #include "stdafx.h"
 #include "StepToTopoDS_Builder.hxx"
+#include "STEPControl_ActorRead.hxx"
+#include "Transfer_TransientProcess.hxx"
+#include <XSControl_WorkSession.hxx>
+#include <TColStd_HSequenceOfTransient.hxx>
+#include <Interface_InterfaceModel.hxx>
+#include <Interface_EntityIterator.hxx>
 
 
 std::string pathName;
@@ -36,8 +42,21 @@ int main()
 		TopoDS_Shape test = reader.Shape(i);
 	}
 	Standard_Integer NbTrans = reader.TransferRoots();  
-
-	TopoDS_Shape result = reader.OneShape();  
+	
+	TopoDS_Shape result = reader.OneShape(); 
+	
+	Handle(XSControl_WorkSession) work = reader.WS();
+	Standard_CString name = work->LoadedFile();
+	Handle(Interface_InterfaceModel) m = work->Model();
+	Interface_EntityIterator it = m->Entities();
+	Handle(Transfer_TransientProcess) process = work->MapReader();
+	STEPControl_ActorRead actorRead;
+	Standard_Integer root = work->TransferReadRoots();
+	TCollection_AsciiString name1 = work->FileName(6);
+//	actorRead.TransferTransient(, process);
+	StepToTopoDS_Builder stepBuilder;
+	Transfer_TransientProcess trans;
+	
 	Partition part(result);
 
 // 	ROSE.quiet(1);	// console show;
