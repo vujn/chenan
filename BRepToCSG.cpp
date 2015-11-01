@@ -127,29 +127,7 @@ void BRepToCSG::GetShapeInformation(stp_representation* rep,
 		nameShape_ = pname;
 		productId_ = p->entity_id();
 		MatrixMess(p->entity_id(), stixMtrx);
-		string str;
-		auto isTrue = repeNum_.insert(pair<int, int>(productId_, NUM));
-		if (isTrue.second)
-			NUM++;
-		auto resultNum = repeNum_.find(productId_);
-		int id = repe_.entityId;
-		str = "TR"
-			+ ConvertToString(intex_) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 3) / ZOOMTIME)) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 3) / ZOOMTIME)) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 3) / ZOOMTIME)) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 0))) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 0))) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 0))) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 1))) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 1))) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 1))) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 2))) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 2))) + " "
-			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 2))) + " " + "1";
-		str += "\n";
-		intex_++;
-		TR_.push_back(str);
+		
 	}
 	SetOfstp_representation_item* items = rep->items();
 	Partition part(roseDesign_);
@@ -170,7 +148,29 @@ void BRepToCSG::GetShapeInformation(stp_representation* rep,
 			pair<set<int>::iterator, bool> iter = checkRepetitionStructure_.insert(productId_);
 			if (!iter.second)
 			{
-				
+				string str;
+				auto isTrue = repeNum_.insert(pair<int, int>(productId_, NUM));
+				if (isTrue.second)
+					NUM++;
+				auto resultNum = repeNum_.find(productId_);
+				int id = repe_.entityId;
+				str = "TR"
+					+ ConvertToString(intex_) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 3) / ZOOMTIME)) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 3) / ZOOMTIME)) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 3) / ZOOMTIME)) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 0))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 0))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 0))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 1))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 1))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 1))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 2))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 2))) + " "
+					+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 2))) + " " + "1";
+				str += "\n";
+				intex_++;
+				TR_.push_back(str);
 			}
 		}
 	}
