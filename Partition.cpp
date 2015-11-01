@@ -868,6 +868,20 @@ void Partition::GetFaceList(vector<SFace*> faceList, SFace* splitFace)
 	vector<SFace*> faceList1, faceList2;
 	if (faceList.size() == 16)
 	{
+// 		faceList1.push_back(faceList.at(3));
+// 		faceList1.push_back(faceList.at(4));
+// 		faceList1.push_back(faceList.at(9));
+// 		faceList1.push_back(faceList.at(11));
+// 		faceList1.push_back(faceList.at(10));
+// 		faceList1.push_back(faceList.at(13));
+// 		SFace* face1 = new SFace;
+// 		face1 = CloneFace(faceList.at(9));
+// 		face1->position_->point.z += 10.0;
+// 		face1->position_->verAxis.dy += 1.0;
+// 		face1->position_->verAxis.dx += 1.0;
+// 		faceList1.push_back(face1);
+// 		faceList1.push_back(splitFace);
+// 		intersectionFaceList_.push_back(faceList1);
 		faceList1.push_back(faceList.at(3));
 		faceList1.push_back(faceList.at(4));
 		faceList1.push_back(faceList.at(9));
@@ -876,7 +890,7 @@ void Partition::GetFaceList(vector<SFace*> faceList, SFace* splitFace)
 		faceList1.push_back(faceList.at(13));
 		SFace* face1 = new SFace;
 		face1 = CloneFace(faceList.at(9));
-		face1->position_->point.z += 10.0;
+		face1->position_->point.z += 1.0;
 		face1->position_->verAxis.dy += 1.0;
 		face1->position_->verAxis.dx += 1.0;
 		faceList1.push_back(face1);
@@ -904,20 +918,20 @@ void Partition::GetFaceList(vector<SFace*> faceList, SFace* splitFace)
 		faceList1.push_back(faceList.at(6));
 		SFace* face1 = new SFace;
 		face1 = CloneFace(faceList.at(6));
-		face1->position_->point.z += 10.0;
+		face1->position_->point.z += 1.0;
 		face1->position_->verAxis.dy += 1.0;
 		faceList1.push_back(face1);
-		//		intersectionFaceList_.push_back(faceList1);
+		intersectionFaceList_.push_back(faceList1);
 		faceList2.push_back(faceList.at(1));
 		faceList2.push_back(faceList.at(2));
 		faceList2.push_back(faceList.at(3));
 		SFace* face2 = new SFace;
 		face2 = CloneFace(faceList.at(3));
-		face2->position_->point.z -= 10.0;
+		face2->position_->point.z -= 1.0;
 		face2->position_->verAxis.dx += 1.0;
 		face2->position_->verAxis.dy -= 1.0;
 		faceList2.push_back(face2);
-		intersectionFaceList_.push_back(faceList2);
+//		intersectionFaceList_.push_back(faceList2);
 		intersectionFaceList_.push_back(faceList2);
 	}
 	else
