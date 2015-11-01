@@ -167,7 +167,8 @@ bool Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 						elips.Translate(p1, p2);
 					}
 					else
-						return;
+					{	
+					}
 				}
 			}
 		}

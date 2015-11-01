@@ -45,17 +45,17 @@ int main()
 	
 	TopoDS_Shape result = reader.OneShape(); 
 	
-	Handle(XSControl_WorkSession) work = reader.WS();
-	Standard_CString name = work->LoadedFile();
-	Handle(Interface_InterfaceModel) m = work->Model();
-	Interface_EntityIterator it = m->Entities();
-	Handle(Transfer_TransientProcess) process = work->MapReader();
-	STEPControl_ActorRead actorRead;
-	Standard_Integer root = work->TransferReadRoots();
-	TCollection_AsciiString name1 = work->FileName(6);
-//	actorRead.TransferTransient(, process);
-	StepToTopoDS_Builder stepBuilder;
-	Transfer_TransientProcess trans;
+// 	Handle(XSControl_WorkSession) work = reader.WS();
+// 	Standard_CString name = work->LoadedFile();
+// 	Handle(Interface_InterfaceModel) m = work->Model();
+// 	Interface_EntityIterator it = m->Entities();
+// 	Handle(Transfer_TransientProcess) process = work->MapReader();
+// 	STEPControl_ActorRead actorRead;
+// 	Standard_Integer root = work->TransferReadRoots();
+// 	TCollection_AsciiString name1 = work->FileName(6);
+// 	actorRead.TransferTransient(, process);
+// 	StepToTopoDS_Builder stepBuilder;
+// 	Transfer_TransientProcess trans;
 	
 	Partition part(result);
 
