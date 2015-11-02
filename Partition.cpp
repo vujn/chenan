@@ -79,7 +79,7 @@ void Partition::LoadStepFromOCCT()
 				for (Standard_Integer i = 1; i <= solids_.Length(); i++)
 				{
 					TopoDS_Solid tmpSol = TopoDS::Solid(solids_.Value(i));
-					OcctToCurrentStruct(tmpSol);
+//					OcctToCurrentStruct(tmpSol);
 				}
 			}
 // 			gp_Vec vec;
