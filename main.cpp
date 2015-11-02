@@ -1,45 +1,83 @@
 
 #include "stdafx.h"
-#include <commdlg.h>
-#include <shlwapi.h>
-#include <map>
-#include <stplib_init.h>
-#include "BRepToCSG.h"
-#include "BRepPrimAPI_MakeSphere.hxx"
-#include <TopExp.hxx>
-#include <BRepPrimAPI_MakeBox.hxx>
-#include "BRepPrimAPI_MakeCone.hxx"
+#include "StepToTopoDS_Builder.hxx"
+#include "STEPControl_ActorRead.hxx"
+#include "Transfer_TransientProcess.hxx"
+#include <XSControl_WorkSession.hxx>
+#include <TColStd_HSequenceOfTransient.hxx>
+#include <Interface_InterfaceModel.hxx>
+#include <Interface_EntityIterator.hxx>
+
 
 std::string pathName;
 
 void TCharToString(TCHAR* STR, string& pathName);
 bool GetStepFileDialog();
 
-// std::string dumpOrientation(const TopAbs_Orientation& orient)
-// {
-// 	std::string strType;
-// 
-// 	switch(orient)
+int main() 
+{   
+	bool isOpen = GetStepFileDialog();
+	if(!isOpen)
+	{
+		printf("打开文件错误!\n");
+		exit(1);
+	}
+	Standard_Boolean failsonly = Standard_False;
+	STEPControl_Reader reader; 
+	IFSelect_ReturnStatus status = reader.ReadFile(pathName.c_str());
+	reader.PrintCheckLoad(failsonly, IFSelect_ItemsByEntity);
+	Standard_Integer NbRoots = reader.NbRootsForTransfer();  
+	reader.PrintCheckTransfer(failsonly, IFSelect_ItemsByEntity);
+	for (Standard_Integer n = 1; n <= NbRoots; n++)
+	{
+		Standard_Boolean ok = reader.TransferRoot(n);
+	}
+	Standard_Integer nbs = reader.NbShapes();
+	if (nbs == 0) 
+	{
+		return IFSelect_RetVoid; 
+	}
+	for (Standard_Integer i = 1; i <= nbs; i++)
+	{
+		TopoDS_Shape test = reader.Shape(i);
+	}
+	Standard_Integer NbTrans = reader.TransferRoots();  
+	
+	TopoDS_Shape result = reader.OneShape(); 
+	
+// 	Handle(XSControl_WorkSession) work = reader.WS();
+// 	Standard_CString name = work->LoadedFile();
+// 	Handle(Interface_InterfaceModel) m = work->Model();
+// 	Interface_EntityIterator it = m->Entities();
+// 	Handle(Transfer_TransientProcess) process = work->MapReader();
+// 	STEPControl_ActorRead actorRead;
+// 	Standard_Integer root = work->TransferReadRoots();
+// 	TCollection_AsciiString name1 = work->FileName(6);
+// 	actorRead.TransferTransient(, process);
+// 	StepToTopoDS_Builder stepBuilder;
+// 	Transfer_TransientProcess trans;
+	
+	Partition part(result);
+
+// 	ROSE.quiet(1);	// console show;
+// 	stplib_init();	// initialize merged cad library
+// 	stixmesh_init();
+// 	RoseDesign* design = ROSE.findDesign(pathName.c_str());
+// 	
+// 	if (!design)
 // 	{
-// 	case TopAbs_FORWARD:
-// 		strType = "TopAbs_FORWARD";
-// 		break;
-// 
-// 	case TopAbs_REVERSED:
-// 		strType = "TopAbs_REVERSED";
-// 		break;
-// 
-// 	case TopAbs_INTERNAL:
-// 		strType = "TopAbs_INTERNAL";
-// 		break;
-// 
-// 	case TopAbs_EXTERNAL:
-// 		strType = "TopAbs_EXTERNAL";
-// 		break;
+// 		printf("Could not open STEP file %s\n", pathName.c_str());
+// 		exit(1);
 // 	}
+// 	rose_compute_backptrs(design);
+// 	stix_tag_asms(design);
 // 
-// 	return strType;
-// }
+// 	BRepToCSG csg(design);
+
+	return 0;
+} 
+
+
 // void processEdge(const TopoDS_Edge& edge, const TopoDS_Face& face)
 // {
 // 	Standard_Real dTolerance = BRep_Tool::Tolerance(edge);
@@ -147,51 +185,30 @@ bool GetStepFileDialog();
 // 	return 0;
 // }
 
-void _tmain(int argc, _TCHAR* argv[])
-{
-	bool isOpen = GetStepFileDialog();
-	if(!isOpen)
-	{
-		printf("打开文件错误!\n");
-		exit(1);
-	}
-	ROSE.quiet(1);	// console show;
-	stplib_init();	// initialize merged cad library
-	stixmesh_init();
-	RoseDesign* design = ROSE.findDesign(pathName.c_str());
-	
-	if (!design)
-	{
-		printf("Could not open STEP file %s\n", pathName.c_str());
-		exit(1);
-	}
-	rose_compute_backptrs(design);
-	stix_tag_asms(design);
-
-	BRepToCSG csg(design);
-// 	Standard_Boolean failsonly = Standard_False;
-// 	STEPControl_Reader reader; 
-// 	IFSelect_ReturnStatus status = reader.ReadFile(pathName.c_str());
-// 	reader.PrintCheckLoad(failsonly, IFSelect_ItemsByEntity);
-// 	Standard_Integer NbRoots = reader.NbRootsForTransfer();  
-// 	reader.PrintCheckTransfer(failsonly, IFSelect_ItemsByEntity);
-// 	for (Standard_Integer n = 1; n <= NbRoots; n++)
+// void _tmain(int argc, _TCHAR* argv[])
+// {
+// 	bool isOpen = GetStepFileDialog();
+// 	if(!isOpen)
 // 	{
-// 		Standard_Boolean ok = reader.TransferRoot(n);
+// 		printf("打开文件错误!\n");
+// 		exit(1);
 // 	}
-// 	Standard_Integer nbs = reader.NbShapes();
-// 	if (nbs == 0) 
+// 	ROSE.quiet(1);	// console show;
+// 	stplib_init();	// initialize merged cad library
+// 	stixmesh_init();
+// 	RoseDesign* design = ROSE.findDesign(pathName.c_str());
+// 	
+// 	if (!design)
 // 	{
-// 		return IFSelect_RetVoid; 
+// 		printf("Could not open STEP file %s\n", pathName.c_str());
+// 		exit(1);
 // 	}
-// 	for (Standard_Integer i = 1; i <= nbs; i++)
-// 	{
-// 		TopoDS_Shape test = reader.Shape(i);
-// 	}
-// 	Standard_Integer NbTrans = reader.TransferRoots();  
-// 	TopoDS_Shape result = reader.OneShape();  
-// 	Partition part(result);
-}
+// 	rose_compute_backptrs(design);
+// 	stix_tag_asms(design);
+// 
+// 	BRepToCSG csg(design);
+// 	system("pause");
+// }
 
 bool GetStepFileDialog()
 {
