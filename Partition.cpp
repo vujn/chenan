@@ -120,19 +120,20 @@ bool Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 							gp_Pnt startPntB = BRep_Tool::Pnt(TopExp::FirstVertex(bEdge, Standard_True));
 							gp_Pnt endPntB = BRep_Tool::Pnt(TopExp::LastVertex(bEdge, Standard_True));
 							
-//							Standard_Real dFirstParameter, dLastParameter;
-// 							Handle_Geom_Curve theCurve = BRep_Tool::Curve(aEdge, dFirstParameter, dLastParameter);
-// 							Handle_Geom_Circle theLine = Handle_Geom_Circle::DownCast(theCurve);
-// 							theLine.Dump(cout<<endl);
+							Standard_Real dFirstParameter, dLastParameter;
+							Handle_Geom_Curve theCurve = BRep_Tool::Curve(aEdge, dFirstParameter, dLastParameter);
+							Handle_Geom_Circle theLine = Handle_Geom_Circle::DownCast(theCurve);
+
 							if ((startPntA.IsEqual(startPntB, CAD_ZERO) && endPntA.IsEqual(endPntB, CAD_ZERO))
 								|| (startPntA.IsEqual(endPntB, CAD_ZERO) && endPntA.IsEqual(startPntB, CAD_ZERO)))
 							{
-								bool isPartitionFace = JudgeIntersection(topoFaceList_[iterA], topoFaceList_[iterB], aEdge, bEdge);
+								bool isPartitionFace = 
+									JudgeIntersection(topoFaceList_[iterA], topoFaceList_[iterB], aEdge, bEdge);
 								if (isPartitionFace)
 								{
 									isHasPartition = true;
 //									printf("///////////////////////////////\n");
-									OcctSplit(shell, topoFaceList_[iterB]);
+//									OcctSplit(shell, topoFaceList_[iterB]);
 									//save face 
 // 									pair<size_t, SFace*> pa(Fa->entityID_, Fa);
 // 									pair<size_t, SFace*> pb(Fb->entityID_, Fb);
@@ -147,28 +148,28 @@ bool Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 							}
 						}
 					}
-					Handle(Geom_Curve) HC1 = intersector.Line(i + 1);
-					GeomAdaptor_Curve myCurve(HC1);
-					GeomAbs_CurveType type = myCurve.GetType();
-					if (GeomAbs_Line == type)
-					{
-						gp_Lin line = myCurve.Line();
-						line.Translate(p1, p2);
-					}
-					else if (GeomAbs_Circle == type)
-					{
-						gp_Circ circle = myCurve.Circle();
-						circle.Translate(p1, p2);
-						gp_Ax1 ax1 = circle.Axis();
-					}
-					else if (GeomAbs_Ellipse == type)
-					{
-						gp_Elips elips = myCurve.Ellipse();
-						elips.Translate(p1, p2);
-					}
-					else
-					{	
-					}
+// 					Handle(Geom_Curve) HC1 = intersector.Line(i + 1);
+// 					GeomAdaptor_Curve myCurve(HC1);
+// 					GeomAbs_CurveType type = myCurve.GetType();
+// 					if (GeomAbs_Line == type)
+// 					{
+// 						gp_Lin line = myCurve.Line();
+// 						line.Translate(p1, p2);
+// 					}
+// 					else if (GeomAbs_Circle == type)
+// 					{
+// 						gp_Circ circle = myCurve.Circle();
+// 						circle.Translate(p1, p2);
+// 						gp_Ax1 ax1 = circle.Axis();
+// 					}
+// 					else if (GeomAbs_Ellipse == type)
+// 					{
+// 						gp_Elips elips = myCurve.Ellipse();
+// 						elips.Translate(p1, p2);
+// 					}
+// 					else
+// 					{	
+// 					}
 				}
 			}
 		}
@@ -209,10 +210,11 @@ void Partition::GetFaceAxis(TopoDS_Face face, TopoDS_Edge edge, gp_Vec& vec,
 // 	{
 // 			aEdge = TopoDS::Edge(expEdge.Current());
 // 			orient = aEdge.Orientation();
-// 			for (expVertex.Init(aEdge, TopAbs_VERTEX); expVertex.More(); expVertex.Next())
+// 			TopExp_Explorer expVertex;
+// 			for (expVertex.Init(edge, TopAbs_VERTEX); expVertex.More(); expVertex.Next())
 // 			{
-// 				start = BRep_Tool::Pnt(TopExp::FirstVertex(aEdge, Standard_True));
-// 				end = BRep_Tool::Pnt(TopExp::LastVertex(aEdge, Standard_True));
+// 				start = BRep_Tool::Pnt(TopExp::FirstVertex(edge, Standard_True));
+// 				end = BRep_Tool::Pnt(TopExp::LastVertex(edge, Standard_True));
 // 			}
 // 			aVertex = TopoDS::Vertex(expVertex.Current());
 // 			gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
