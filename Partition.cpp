@@ -7,6 +7,7 @@
 #include "GC_MakePlane.hxx"
 #include "BRepBuilderAPI_MakeVertex.hxx"
 #include <TopoDS.hxx>
+#include <BRepTools.hxx>
 
 
 
