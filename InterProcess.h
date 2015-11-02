@@ -18,4 +18,5 @@ public:
 	int SetInterPointList(Curve* C1, Curve* C2);//二维空间求交，生成交点，写进交点列表
 public:
 	vector<CPoint3D> interPointList_;  //交点链表
+	Standard_Real tolerance_;
 };

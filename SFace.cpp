@@ -114,12 +114,8 @@ void SPlane::GenerateCoefficient()
 
 Geom_Surface * SPlane::ToOCCT()
 {
-// 	gp_Pnt P1(position_->point.x, position_->point.y, position_->point.z);
-// 	gp_Vec Vec1(position_->verAxis.dx, position_->verAxis.dy, position_->verAxis.dz);
-// 	gp_Dir Dir1(Vec1);
-// 	Geom_Plane* plane = new Geom_Plane(P1,Dir1);
 	Geom_Plane* plane = new Geom_Plane(
- 		coefficient_[3] * 2.0, coefficient_[6] * 2.0, coefficient_[8] * 2.0, coefficient_[9]);
+		coefficient_[3] * 2.0, coefficient_[6] * 2.0, coefficient_[8] * 2.0, coefficient_[9]);
 	return plane;
 }
 

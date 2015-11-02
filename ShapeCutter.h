@@ -1,6 +1,5 @@
 #pragma once
 #include "stdafx.h"
-#include "TopTools_HSequenceOfShape.hxx"
 
 class ShapeCutter
 {
@@ -24,10 +23,8 @@ public:
 
 	~ShapeCutter();
 
-	
 public:
 
-	void Init(const TopoDS_Shape& theSolid, const TopoDS_Face& theExtFace);
 	void Init1(const TopoDS_Shape& theBox1);
 	void Init2(const TopoDS_Shape& theBox2);
 	void Init3(const TopoDS_Face& theFace);
@@ -35,18 +32,12 @@ public:
 	void Perform();
 	const TopoDS_Shape& CalcResult1();
 	const TopoDS_Shape& CalcResult2();
-
-	Standard_Boolean IsLastCut() const;
-
+	
 protected:
 	const TopTools_ListOfShape& SplitShape(const TopoDS_Shape& shape1, const TopoDS_Shape& shape2);
 	void Normal(const TopoDS_Face&  aFace, gp_Pnt& point, gp_Dir& NorDir);
 	Standard_Boolean IsAllEdgeOnFace(const TopoDS_Edge& anEdge, const TopoDS_Face& eachFace );
 	TopoDS_Shape GetBndBox(const TopoDS_Shape& theBox2);//get Box1
-
-
-public:
-	TopTools_HSequenceOfShape myResultSolids_;
 
 private:
 	TopoDS_Shape theBox1_;
@@ -57,12 +48,4 @@ private:
 	TopoDS_Shape halfWorld1_;
 	TopoDS_Shape halfWorld2_;
 	Standard_Boolean optimization_;
-
-	TopoDS_Shape mySolid_;
-	Standard_Boolean myIsDone_;
-	TopoDS_Shape myExtFace_;
-	TopoDS_Shape myPosPartSol_;
-	TopoDS_Shape myNegPartSol_;
-	Standard_Boolean myLastCut_;
-
 };

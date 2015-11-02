@@ -4,7 +4,8 @@
 
 InterProcess::InterProcess(void)
 {
-
+	tolerance_ = 1.0e-6;
+	//tolerance_ = Precision::Confusion();
 }
 
 InterProcess::~InterProcess(void)
@@ -25,7 +26,7 @@ int InterProcess::SetInterPointList(SFace* F1, SFace* F2, SFace* F3)
 	Handle(Geom_Surface) HS2 = F2->ToOCCT();
 	Handle(Geom_Surface) HS3 = F3->ToOCCT();
 	
-	GeomAPI_IntSS intersector1(HS1, HS2, CAD_ZERO); 
+	GeomAPI_IntSS intersector1(HS1, HS2, tolerance_); 
 	if(intersector1.IsDone())
 	{
 		Standard_Integer nb1 = intersector1.NbLines(); 
@@ -57,7 +58,7 @@ int InterProcess::SetInterPointList(Curve* C1, Curve* C2)
 	Handle(Geom2d_Curve) HC1 = C1->ToOCCT();
 	Handle(Geom2d_Curve) HC2 = C2->ToOCCT();
 
-	Geom2dAPI_InterCurveCurve Intersector1(HC1,HC2,CAD_ZERO);
+	Geom2dAPI_InterCurveCurve Intersector1(HC1,HC2,tolerance_);
 	Standard_Integer n = Intersector1.NbPoints(); 
 	gp_Pnt2d P;
 

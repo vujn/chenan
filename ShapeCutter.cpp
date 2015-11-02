@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "ShapeCutter.h"
-#include <BRepPrimAPI_MakeWedge.hxx>
-
+#include <BRepPrimAPI_MakeBox.hxx>
 
 ShapeCutter::ShapeCutter()
 {
@@ -22,9 +21,8 @@ ShapeCutter::ShapeCutter( const TopoDS_Shape& theBox2,
 	Standard_Boolean optimization )
 : theBox2_(theBox2), theFace_(theFace), optimization_(optimization)
 {
-	//得到最小外接box的坐标，并生成世界1
-//	theBox1_ = GetBndBox(theBox2);
-	Init2(theBox2);
+// 	//得到最小外接box的坐标，并生成世界1
+// 	theBox1_ = this->GetBndBox(theBox2);
 }
 
 ShapeCutter::~ShapeCutter()
@@ -40,7 +38,7 @@ void ShapeCutter::Init2( const TopoDS_Shape& theBox2 )
 {
 	theBox2_ = theBox2;
 	if (theBox1_.IsNull())
-		theBox1_ = GetBndBox(theBox2_);
+		theBox1_ = this->GetBndBox(theBox2);
 }
 
 void ShapeCutter::Init3( const TopoDS_Face& theFace )
@@ -53,516 +51,18 @@ void ShapeCutter::SetOptimization( Standard_Boolean optimization/*=Standard_True
 	optimization_ = optimization;
 }
 
-Standard_Boolean ShapeCutter::IsLastCut() const
-{
-	return myLastCut_;
-}
-
-void ShapeCutter::Init(const TopoDS_Shape& theSolid, const TopoDS_Face& theExtFace)
-{
-	myIsDone_ = Standard_False;
-	mySolid_ = theSolid;
-	Handle_TColgp_HSequenceOfPnt myPosPoints;
-	Handle_TColgp_HSequenceOfPnt myNegPoints;
-	myPosPoints = new TColgp_HSequenceOfPnt;
-	myNegPoints = new TColgp_HSequenceOfPnt;
-//	gp_Pnt posPnt(0, 0, 0);
-//	posPnt = myExtFace_->GetPosPnt();
-	gp_Pnt negPnt(0, 0, 0);
-//	negPnt = myExtFace_->GetNegPnt();
-	gp_Pnt posPnt(1000, 1000, 1000);
-	
-
-
-	///////////////////////////////////////////////////////////////////////////////////////////////////
-	//  this is a test for extents and evaluation
-// 	TopoDS_Face aFace;
-// 	TopoDS_Face aFace = myExtFace_->GetFace();
-
-	BRepAdaptor_Surface BS(theExtFace, Standard_True);
-	GeomAdaptor_Surface theAdaptFaceSurface = BS.Surface();
-
-	////////////////////////////////////////////////////////////////
-	// construct cutting half spaces
-	TopoDS_Shape PosHSol;
-	TopoDS_Shape posHSol = BRepPrimAPI_MakeHalfSpace(theExtFace, posPnt).Solid(); //positive cutting half space SOLID
-	BRepTools::Write(posHSol, "e:\\test1.brep");
-	PosHSol = posHSol;
-	if(PosHSol.IsNull())
-	{
-		printf("\n_#_ShapeCutter.cxx :: Solid of positive cutting half space is empty!!!");
-		return;
-	}
-	posHSol.Reverse();
-	TopoDS_Shape NegHSol = posHSol;
-	BRepTools::Write(NegHSol, "e:\\test2.brep");
-// 	TopoDS_Shape NegHSol = BRepPrimAPI_MakeHalfSpace(theExtFace, negPnt).Solid(); //negative cutting half space SOLID
-// 	if(NegHSol.IsNull())
-// 	{
-// 		printf("\n_#_ShapeCutter.cxx :: Solid of negative cutting half space is empty!!!");
-// 		return;
-// 	}
-
-	Standard_Boolean pHalfCut = Standard_False;
-	Standard_Boolean nHalfCut = Standard_False;
-
-	////////////////////////////////////////////////////////////////////////////
-	//
-	Bnd_Box B;
-	BRepBndLib::Add(mySolid_, B);
-	B.SetGap(1000.0);
-	Standard_Real aXmin, aYmin, aZmin, aXmax, aYmax, aZmax;
-	B.Get(aXmin, aYmin, aZmin, aXmax, aYmax, aZmax);
-	TopoDS_Shape aBox = BRepPrimAPI_MakeBox(gp_Pnt(aXmin, aYmin, aZmin), gp_Pnt(aXmax, aYmax, aZmax)).Shape();
-
-	//////////////////////////////////////////////////////////////////////////
-	// create pseudo half spaces (shrink to suitable size)
-	TopoDS_Shape PosBox, NegBox;
-	try
-	{
-		BRepAlgoAPI_Common posHCommon(PosHSol, aBox);
-		if(posHCommon.IsDone())
-		{
-			PosBox = posHCommon.Shape();
-			PosHSol = PosBox;
-		}
-		posHCommon.Destroy();
-	}
-	catch(Standard_DomainError)
-	{
-		Standard_Failure::Caught()->Print(cout); cout << endl;
-	}
-	try
-	{
-		BRepAlgoAPI_Common negHCommon(NegHSol, aBox);
-		if(negHCommon.IsDone())
-		{
-			NegBox = negHCommon.Shape();
-			NegHSol = NegBox;
-		}
-		negHCommon.Destroy();
-	}
-	catch(Standard_DomainError)
-	{
-		Standard_Failure::Caught()->Print(cout); cout << endl;
-	}
-
-
-	int itol = 0, highTolCount = 0;
-
-	//////////////////////////////////////////////////////////////
-	// JUMP-MASTER
-MASTER: //goto label; if cutting fails: try again using a higher tolerance
-
-	////////////////////////////////////////////////////////////////////////
-	// cutting with negative half space
-	if(NegHSol.IsNull())
-	{
-		printf("_#_ShapeCutter.cxx :: A negative  Null Cut appears!!");
-		return;
-	}
-	else
-	{
-		try
-		{
-			BRepAlgoAPI_Cut posCut(mySolid_, NegHSol);
-
-			if(posCut.IsDone())
-			{
-				pHalfCut = Standard_True;
-				myPosPartSol_ = posCut.Shape();
-			}
-			else
-			{
-				pHalfCut = Standard_False;
-				printf("_#_ShapeCutter.cxx :: Positive side solid Cutting failed !!");
-			}
-			posCut.Destroy();
-		}
-		catch(Standard_DomainError)
-		{
-			pHalfCut = Standard_False;
-			printf("_#_ShapeCutter.cxx :: Boolean Operation on a halfspace has failed !!!");
-			cout << "OCC error message:  ";
-			Standard_Failure::Caught()->Print(cout); cout << endl;
-		}
-	}
-
-	//////////////////////////////////////////////////////////////////////////////
-	// cutting with positive half space
-	if(PosHSol.IsNull())
-	{
-		printf("_#_ShapeCutter.cxx :: A positive  Null Cut appears!!");
-		return;
-	}
-	else
-	{
-		try
-		{
-			BRepAlgoAPI_Cut negCut(mySolid_, PosHSol);
-			BRepTools::Write(negCut, "E:\\test.brep");
-			if(negCut.IsDone())
-			{
-				nHalfCut = Standard_True;
-				myNegPartSol_ = negCut.Shape();
-			}
-			else
-			{
-				nHalfCut = Standard_False;
-				printf("_#_ShapeCutter.cxx :: Negative side solid cutting failed !!");
-				return;
-			}
-			negCut.Destroy();
-		}
-		catch(Standard_DomainError)
-		{
-			nHalfCut = Standard_False;
-			printf("_#_ShapeCutter.cxx :: Boolean Operation on a halfspace failed !!!");
-			cout << "OCC error :  ";
-			Standard_Failure::Caught()->Print(cout); cout << endl;
-		}
-	}
-	int sCount = 0;
-
-	////////////////////////////////////////////////////////////////
-	// check if positive part is valid
-	Standard_Boolean posPartNotValid(Standard_False);
-
-	for(TopExp_Explorer ex(myPosPartSol_, TopAbs_SOLID); ex.More(); ex.Next())
-	{
-		sCount++;
-		TopoDS_Solid solid = TopoDS::Solid(ex.Current());
-
-		if(solid.IsNull())
-		{
-			TCollection_AsciiString warningMessage("_#_ShapeCutter.cxx :: NULL Cut: P Cutting solid failed !!\n    Trying to use Boolean Common operation...");
-			printf(warningMessage.ToCString());
-			posPartNotValid = Standard_True;
-			break;
-		}
-
-		BRepCheck_Analyzer BA(solid, Standard_True);
-
-		if(!BA.IsValid())
-		{
-			posPartNotValid = Standard_True;
-			break;
-		}
-	}
-
-	///////////////////////////////////////////////////////////
-	// if cutting failed, try common operation
-	if(posPartNotValid)
-	{
-		sCount = 0;
-
-		try
-		{
-			BRepAlgoAPI_Common negCommon(mySolid_, NegHSol);
-
-			if(negCommon.IsDone())
-			{
-				pHalfCut = Standard_True;
-				myPosPartSol_ = negCommon.Shape();
-			}
-			else
-			{
-				pHalfCut = Standard_False;
-				printf("_#_ShapeCutter.cxx :: Positive side solid Common Operation failed !!");
-			}
-			negCommon.Destroy();
-		}
-		catch(Standard_DomainError)
-		{
-			pHalfCut = Standard_False;
-			cout << "OCC error message:  ";
-			Standard_Failure::Caught()->Print(cout); cout << endl;
-		}
-
-		for(TopExp_Explorer ex(myPosPartSol_, TopAbs_SOLID); ex.More(); ex.Next())
-		{
-			sCount++;
-			TopoDS_Solid solid = TopoDS::Solid(ex.Current());
-
-			if(solid.IsNull())
-			{
-				printf("_#_ShapeCutter.cxx :: NULL Common: P Common solid failed !!");
-				pHalfCut = Standard_False;
-				break;
-			}
-
-			BRepCheck_Analyzer BA(solid, Standard_True);
-
-			if(!BA.IsValid())
-			{
-				pHalfCut = Standard_False;
-				break;
-			}
-		}
-	}
-
-	if(sCount == 0)
-		pHalfCut = Standard_False;
-
-	sCount = 0;
-
-	//////////////////////////////////////////////////////////
-	// check if negative part is valid
-	Standard_Boolean negPartNotValid(Standard_False);
-
-	for(TopExp_Explorer ex(myNegPartSol_, TopAbs_SOLID); ex.More(); ex.Next())
-	{
-		sCount++;
-		TopoDS_Solid solid = TopoDS::Solid(ex.Current());
-
-		if(solid.IsNull())
-		{
-			printf("_#_ShapeCutter.cxx :: NULL Cut: N Cutting solid failed !!");
-			negPartNotValid = Standard_True;
-			break;
-		}
-
-		BRepCheck_Analyzer BA(solid, Standard_True);
-
-		if(!BA.IsValid())
-		{
-			negPartNotValid = Standard_True;
-
-			break;
-		}
-	}
-	////////////////////////////////////////////////////////
-	// if cutting failed, try common operation
-	if(negPartNotValid)
-	{
-		sCount = 0;
-		try
-		{
-			BRepAlgoAPI_Common negCommon(mySolid_, NegHSol);
-			BRepTools::Write(negCommon, "E:\\test.brep");
-			if(negCommon.IsDone())
-			{
-				nHalfCut = Standard_True;
-				myNegPartSol_ = negCommon.Shape();
-			}
-			else
-			{
-				nHalfCut = Standard_False;
-				printf("_#_ShapeCutter.cxx :: Negative side solid Common Operation failed !!");
-			}
-			negCommon.Destroy();
-		}
-		catch(Standard_DomainError)
-		{
-			nHalfCut = Standard_False;
-			printf("_#_ShapeCutter.cxx :: Boolean Operation on a halfspace has failed !!!");
-			cout << "OCC error message:  ";
-			Standard_Failure::Caught()->Print(cout); cout << endl;
-		}
-
-		for(TopExp_Explorer ex(myNegPartSol_, TopAbs_SOLID); ex.More(); ex.Next())
-		{
-			sCount++;
-			TopoDS_Solid solid = TopoDS::Solid(ex.Current());
-
-			if(solid.IsNull())
-			{
-				printf("_#_ShapeCutter.cxx :: NULL Common: N Common solid failed !!");
-				nHalfCut = Standard_False;
-				break;
-			}
-
-			BRepCheck_Analyzer BA(solid, Standard_True);
-
-			if(!BA.IsValid())
-			{
-				nHalfCut = Standard_False;
-				break;
-			}
-		}
-	}
-
-	if(sCount == 0)
-		nHalfCut = Standard_False; // if check is run on compound containing no solid
-
-	///////////////////////////////////////////////////////////////////
-	// Test if a boolean operation failed
-	sCount = 0;
-	itol++;
-	Standard_Real highTol(1.e-3);
-
-	if((!nHalfCut || !pHalfCut) && itol <= 3)
-	{
-		Standard_Real locTol = 1.e-07*(pow(10., itol));
-		highTol = locTol;
-		cout << "_#_ShapeCutter.cxx :: Tolerance correction due to failed boolean operation.  --- " << itol << endl;
-		cout << "                              Tolerance is :  " << locTol << endl;
-		
-		ShapeFix_ShapeTolerance setter; 
-		Standard_Boolean sett;
-		//sett = setter.LimitTolerance(mySolid,locTol,0.0,TopAbs_SOLID);
-		sett = setter.LimitTolerance(PosHSol, locTol, 0.0, TopAbs_SOLID);
-		sett = setter.LimitTolerance(NegHSol, locTol, 0.0, TopAbs_SOLID);
-		goto MASTER;
-	}
-
-	////////////////////////////////////////////////////////////////
-	if((!pHalfCut || !nHalfCut) && !IsLastCut())
-	{
-		printf("_#_ShapeCutter.cxx :: Warning: Cutting failed may try again !!");
-		myIsDone_ = Standard_False;
-		return;
-	}
-	////////////////////////////////////////////////////////////////
-	// if cutting certainly fails we try common;
-	// hihg tolerance BOP
-	if((!pHalfCut || !nHalfCut) && IsLastCut() && highTolCount < 1)
-	{
-		highTolCount++;
-		Standard_Real locTol = highTol;
-		highTol = locTol*(pow(10., highTolCount));
-
-		cout << "******************************************************************************" << endl;
-		cout << highTolCount << ".  High Tolerance correction due to failed boolean operation. " << endl;
-		cout << "Warning: Tolerance is high may introduce error :  " << highTol << endl;
-		cout << "******************************************************************************" << endl;
-
-		ShapeFix_ShapeTolerance setter;
-		Standard_Boolean sett;
-		sett = setter.LimitTolerance(PosHSol, highTol, 0.0, TopAbs_SOLID);
-		sett = setter.LimitTolerance(NegHSol, highTol, 0.0, TopAbs_SOLID);
-		goto MASTER;
-	}
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//expand by  shell shells
-
-	for(TopExp_Explorer ex(myPosPartSol_, TopAbs_SHELL); ex.More(); ex.Next())
-	{
-		TopoDS_Shell tmpShell = TopoDS::Shell(ex.Current());
-		//////////////////////////////////////////////////////////////////////////
-		BRepCheck_Shell shellCheck(tmpShell);
-		//BRepCheck::Print(shellCheck.Orientation(),cout);cout<< endl;
-		if(shellCheck.Closed(Standard_False) == BRepCheck_NoError)
-		{
-			BRepBuilderAPI_MakeSolid Bu(tmpShell);
-			if(Bu.IsDone())
-			{
-				TopoDS_Solid aSolid = Bu.Solid();
-				if(aSolid.IsNull())
-					printf("_#_ShapeCutter.cxx :: Warning: Null solid in Positive part!!");
-				BRepClass3d_SolidClassifier bsc3d(aSolid);
-				Standard_Real t = Precision::Confusion();
-				bsc3d.PerformInfinitePoint(t);
-
-				if(bsc3d.State() == TopAbs_IN)
-					cout << "Infinity in Solid, therefore discaded !! " << endl;
-				else
-					myResultSolids_.Append(aSolid);
-			}
-			else
-			{
-				printf("_#_ShapeCutter.cxx :: Model may be invalid: Solid computation from shell failed!!");
-			}
-		}
-		else
-			printf("_#_ShapeCutter.cxx :: Model may be invalid - open shell");
-	}
-
-	//  cout << " Total number of shells after cutting   " << endl;
-
-	for(TopExp_Explorer ex(myNegPartSol_, TopAbs_SHELL); ex.More(); ex.Next())
-	{
-
-		TopoDS_Shell tmpShell = TopoDS::Shell(ex.Current());
-		BRepCheck_Shell shellCheck(tmpShell);
-		//	BRepCheck::Print(shellCheck.Orientation(),cout); cout << endl;
-		if(shellCheck.Closed(Standard_False) == BRepCheck_NoError)
-		{
-			BRepBuilderAPI_MakeSolid Bu(tmpShell);
-			if(Bu.IsDone())
-			{
-				TopoDS_Solid aSolid = Bu.Solid();
-				if(aSolid.IsNull())
-					printf("_#_ShapeCutter.cxx :: Warning: Null solid in Positive part!!");
-
-				BRepClass3d_SolidClassifier bsc3d(aSolid);
-				Standard_Real t = Precision::Confusion();
-				bsc3d.PerformInfinitePoint(t);
-
-				if(bsc3d.State() == TopAbs_IN)
-					printf("_#_ShapeCutter.cxx :: Infinity in Solid, therefore discarded !! ");
-				else
-					myResultSolids_.Append(aSolid);
-			}
-			else
-			{
-				printf("_#_ShapeCutter.cxx :: Model may be invalid: Solid computation from shell failed!! ");
-			}
-		}
-		else
-		{
-			printf("_#_ShapeCutter.cxx :: Model may be invalid - open shell!!");
-		}
-		/////////////////////////////////////////////////////////////////////////
-	}
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////
-	// content analysis of result solids
-	//cout << "////////////////////////////////////////////////////////////////////////////////// " << endl;
-	//cout << " Cut Result =  " << myResultSolids->Length() << endl;
-	
-	if(!IsLastCut() && myResultSolids_.Length() <= 1)
-	{
-		printf("_#_ShapeCutter.cxx :: Warning: Cut result may be degenerate !!");
-		myIsDone_ = Standard_False;
-		return;
-	}
-	TopExp_Explorer ex;
-	int iv;
-	for(int i = 1; i <= myResultSolids_.Length(); i++)
-	{
-		for(ex.Init(myResultSolids_.Value(i), TopAbs_FACE), iv = 1; ex.More(); ex.Next(), iv++)
-		{
-			TopoDS_Face theFace = TopoDS::Face(ex.Current());
-			BRepAdaptor_Surface BS(theFace, Standard_True);
-			GeomAdaptor_Surface theAdaptFaceSurface = BS.Surface();
-			if(theAdaptFaceSurface.GetType() != GeomAbs_Plane)
-			{
-				cout << "Solid:  "<< i << " Face =  " << iv << "    non-planar face .....................!!"<< endl;
-			}
-			else
-			{
-				gp_Pln aPln = theAdaptFaceSurface.Plane();
-				Standard_Real A, B, C, D;
-				aPln.Coefficients(A, B, C, D);
-				//	cout << "Solid:  "<< i << " Face =  " << iv << "  A =  " << A << " B =  " << B << " C =  " << C <<" D =  " << D << endl;
-			}
-		}
-	}
-	myIsDone_ = Standard_True;
-}
-
-
 const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, const TopoDS_Shape& shape2)
 {
 	TopoDS_Shape S = shape1;
-	////////////////////////////test///////////////////////////////////
-// 	gp_Pln thePlane(gp_Pnt(3,-2.5,-5),gp_Dir(0,0,1));
-// 	TopoDS_Shape SS = BRepBuilderAPI_MakeFace(thePlane);
-// 	BRepTools::Write(SS, "E:\\test1.brep");
-// 	////////////////////////////test///////////////////////////////////
-// 
-// 	BRepAlgoAPI_Common jjj(shape1, the);
-// 	BRepTools::Write(jjj, "E:\\test.brep");
 
+	//gp_Pln thePlane(gp_Pnt(90,90,90),gp_Dir(1,1,1));
+	//gp_Pln thePlane = plane1;
+	//TopoDS_Face theFace = BRepBuilderAPI_MakeFace(thePlane);
 	BRepAlgoAPI_Section asect(S, shape2, Standard_False);
 	asect.ComputePCurveOn1(Standard_True);
 	asect.Approximation(Standard_True);
 	asect.Build();
 	TopoDS_Shape R = asect.Shape();
-
-	BRepTools::Write(R, "E:\\test.brep");
 
 	BRepFeat_SplitShape asplit(S);
 
@@ -585,7 +85,7 @@ const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, 
 	for (TopExp_Explorer Ex(R,TopAbs_EDGE); Ex.More(); Ex.Next()) 
 	{
 		TopoDS_Edge anEdge = TopoDS::Edge(Ex.Current());
-		TopoDS_Shape aFace;
+// 		TopoDS_Shape aFace;
 // 		if(asect.HasAncestorFaceOn1(anEdge, aFace))
 // 		{
 // 			TopoDS_Face F = TopoDS::Face(aFace);
@@ -596,9 +96,7 @@ const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, 
 		for (TopExp_Explorer Ex1(S,TopAbs_FACE); Ex1.More(); Ex1.Next())
 		{
 			TopoDS_Face eachFace = TopoDS::Face(Ex1.Current());
-			BRepTools::Write(eachFace, "E:\\test.txt");
-
-			Standard_Boolean isAllEdgeOnFace = IsAllEdgeOnFace(anEdge, eachFace);
+			Standard_Boolean isAllEdgeOnFace = this->IsAllEdgeOnFace(anEdge, eachFace);
 			if ( isAllEdgeOnFace ) 
 			{
 				asplit.Add(anEdge, eachFace);
@@ -806,15 +304,10 @@ TopoDS_Shape ShapeCutter::GetBndBox( const TopoDS_Shape& theBox2 )
 {
 	Standard_Real Xmin,Xmax,Ymin,Ymax,Zmin,Zmax;
 	Bnd_Box boite;
-	BRepBndLib::Add(theBox2, boite);
-//	boite.SetGap(1000.0);
+	BRepBndLib::Add(theBox2, boite,Standard_True);
 	boite.Get(Xmin, Ymin, Zmin, Xmax, Ymax, Zmax);
-	TopoDS_Shape theBox1 = BRepPrimAPI_MakeBox(gp_Pnt(Xmin, Ymin, Zmin), gp_Pnt(Xmax, Ymax, Zmax)).Shape();
-	BRepTools::Write(theBox1, "E:\\test.brep");
-	if(theBox1.IsNull())
-	{
-		printf("Get world failed!\n");
-	}
+	TopoDS_Shape theBox1 =
+		BRepPrimAPI_MakeBox( gp_Pnt(Xmin,Ymin,Zmin), Xmax-Xmin,Ymax-Ymin,Zmax-Zmin );
 	return theBox1;
 }
 
@@ -825,7 +318,7 @@ void ShapeCutter::Perform()
 	{
 		//BRepMesh::Mesh(theBox2_,1);
 	}
-	const TopTools_ListOfShape& theBox1SplitShapelist = SplitShape(theBox2_, theFace_);
+	const TopTools_ListOfShape& theBox1SplitShapelist = this->SplitShape(theBox2_, theFace_);
 	TopTools_ListIteratorOfListOfShape splitShapeIte(theBox1SplitShapelist);
 	splitShapeIte.More();
 	halfWorld1_ = splitShapeIte.Value();
