@@ -299,7 +299,7 @@ void Partition::StepConversionAndOutput(stp_representation_item* item,string sha
 		{
 			SFace* partFace = ChoosePartitionFace();
 			OcctSplit(NatlHalfSpaceList_, partFace);
-			intersectionFaceList_.push_back(NatlHalfSpaceList_);
+//			intersectionFaceList_.push_back(NatlHalfSpaceList_);
 		}
 		for (auto iter = 0; iter < intersectionFaceList_.size(); iter++)
 		{
