@@ -6,17 +6,14 @@ class ShapeCutter
 {
 public:
 
-	//Default Constructs
 	ShapeCutter();
 
-	//Constructs 1
 	//theBox1 is the world, theBox2 will be cutting by theFace.
 	ShapeCutter(const TopoDS_Shape& theBox1,
 		const TopoDS_Shape& theBox2,
 		const TopoDS_Face& theFace,
 		Standard_Boolean Optimization=Standard_True);
 
-	//Constructs 2
 	//theBox2 will be cutting by theFace. theBox1(the World) is calc From theBox2.
 	ShapeCutter(const TopoDS_Shape& theBox2, 
 		const TopoDS_Face& theFace,
@@ -26,7 +23,6 @@ public:
 
 	
 public:
-
 	void Init(const TopoDS_Shape& theSolid, const TopoDS_Face& theExtFace);
 	void Init1(const TopoDS_Shape& theBox1);
 	void Init2(const TopoDS_Shape& theBox2);
@@ -44,7 +40,6 @@ protected:
 	Standard_Boolean IsAllEdgeOnFace(const TopoDS_Edge& anEdge, const TopoDS_Face& eachFace );
 	TopoDS_Shape GetBndBox(const TopoDS_Shape& theBox2);//get Box1
 
-
 public:
 	TopTools_HSequenceOfShape myResultSolids_;
 
@@ -57,7 +52,8 @@ private:
 	TopoDS_Shape halfWorld1_;
 	TopoDS_Shape halfWorld2_;
 	Standard_Boolean optimization_;
-
+	
+	//McCad
 	TopoDS_Shape mySolid_;
 	Standard_Boolean myIsDone_;
 	TopoDS_Shape myExtFace_;

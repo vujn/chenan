@@ -695,7 +695,9 @@ void StepEntity::Output(int * p_m, int * p_n,int splitRepetitionNum, string p_sh
 			num = " " + ConvertToString(testNum) + " ";
 	}
 
-
+	/////////////////////
+	num = " ";
+	/////////////////////
 	for (size_t i = 0; i < CSGHalfSpaceList_.size(); i++)
 	{
 

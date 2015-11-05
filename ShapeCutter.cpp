@@ -75,7 +75,7 @@ void ShapeCutter::Init(const TopoDS_Shape& theSolid, const TopoDS_Face& theExtFa
 
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////
-	//  this is a test for extents and evaluation
+	//this is a test for extents and evaluation
 // 	TopoDS_Face aFace;
 // 	TopoDS_Face aFace = myExtFace_->GetFace();
 
@@ -102,7 +102,6 @@ void ShapeCutter::Init(const TopoDS_Shape& theSolid, const TopoDS_Face& theExtFa
 // 		printf("\n_#_ShapeCutter.cxx :: Solid of negative cutting half space is empty!!!");
 // 		return;
 // 	}
-
 	Standard_Boolean pHalfCut = Standard_False;
 	Standard_Boolean nHalfCut = Standard_False;
 
@@ -146,7 +145,6 @@ void ShapeCutter::Init(const TopoDS_Shape& theSolid, const TopoDS_Face& theExtFa
 	{
 		Standard_Failure::Caught()->Print(cout); cout << endl;
 	}
-
 
 	int itol = 0, highTolCount = 0;
 
@@ -555,7 +553,7 @@ const TopTools_ListOfShape& ShapeCutter::SplitShape(const TopoDS_Shape& shape1, 
 // 
 // 	BRepAlgoAPI_Common jjj(shape1, the);
 // 	BRepTools::Write(jjj, "E:\\test.brep");
-
+	
 	BRepAlgoAPI_Section asect(S, shape2, Standard_False);
 	asect.ComputePCurveOn1(Standard_True);
 	asect.Approximation(Standard_True);

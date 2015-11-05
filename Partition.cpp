@@ -8,6 +8,7 @@
 #include "BRepBuilderAPI_MakeVertex.hxx"
 #include <TopoDS.hxx>
 #include <BRepTools.hxx>
+#include <gp_Trsf.hxx>
 
 
 
@@ -32,15 +33,14 @@ void Partition::LoadStepFromOCCT()
 {
 	TopoDS_Solid solid;
 	TopoDS_Shell shell;
-	TopoDS_Face aFace;
-	TopExp_Explorer expSolid, expShell, expFace;
+	TopoDS_Edge aEdge, bEdge;
+	TopExp_Explorer expSolid, expShell, expFace, expEdge;
 	for (expSolid.Init(shapes_, TopAbs_SOLID); expSolid.More(); expSolid.Next())
 	{
 		solid = TopoDS::Solid(expSolid.Current());
 		gp_Mat mat;
 		gp_XYZ xyz;
 		MatrixInformation(solid, mat, xyz);
-
 		string str;
 // 		auto isTrue = repeNum_.insert(pair<int, int>(productId_, NUM));
 // 		if (isTrue.second)
@@ -64,31 +64,82 @@ void Partition::LoadStepFromOCCT()
 // 		str += "\n";
 // 		intex_++;
 // 		TR_.push_back(str);
-		
-		for (expShell.Init(solid, TopAbs_SHELL); expShell.More(); expShell.Next())
-		{
-			shell = TopoDS::Shell(expShell.Current());
-			BRepTools::Write(shell, "e:\\test.brep");
-			for (expFace.Init(shell, TopAbs_FACE); expFace.More(); expFace.Next())
-			{
-				aFace = TopoDS::Face(expFace.Current());
-				topoFaceList_.push_back(aFace);
-			}
-			bool isTrue = FindTheIntersectionFace(shell);
-			if (!isTrue)
-			{
-				for (Standard_Integer i = 1; i <= solids_.Length(); i++)
-				{
-					TopoDS_Solid tmpSol = TopoDS::Solid(solids_.Value(i));
-//					OcctToCurrentStruct(tmpSol);
-				}
-			}
-// 			gp_Vec vec;
-// 			GetFaceAxis(aFace, vec);
-		}
+	}
+
+	for (expShell.Init(shapes_, TopAbs_SHELL); expShell.More(); expShell.Next())
+	{
+		shell = TopoDS::Shell(expShell.Current());
+		BRepTools::Write(shell, "e:\\test.brep");
+		SplitSolid(shell);
 	}
 }
 
+
+void Partition::SplitSolid(TopoDS_Shell& shell)
+{
+	TopoDS_Face aFace, bFace;
+	TopoDS_Edge aEdge, bEdge;
+	TopExp_Explorer expFace, expEdge;
+	BRepTools::Write(shell, "e:\\test.brep");
+	
+	for (expFace.Init(shell, TopAbs_FACE); expFace.More(); expFace.Next())
+	{
+		aFace = TopoDS::Face(expFace.Current());
+		BRepTools::Write(aFace, "e:\\test1.brep");
+		
+		for (expEdge.Init(aFace, TopAbs_EDGE); expEdge.More(); expEdge.Next())
+		{
+			aEdge = TopoDS::Edge(expEdge.Current());
+			TopTools_IndexedDataMapOfShapeListOfShape shapeMap;
+			TopTools_ListOfShape faces;
+			TopTools_ListIteratorOfListOfShape edgeItr, faceItr;
+			TopExp::MapShapesAndAncestors(shell, TopAbs_EDGE, TopAbs_FACE, shapeMap);
+			faces = shapeMap.FindFromKey(aEdge);
+			TopoDS_Face sFace;
+			for (faceItr.Initialize(faces); faceItr.More(); faceItr.Next())
+			{
+				TopoDS_Face& anFace = TopoDS::Face(faceItr.Value());
+				if (!anFace.IsSame(aFace))
+					sFace = anFace;
+			}
+			bool isPartitionFace = JudgeIntersection(aFace, sFace, aEdge);
+			if (isPartitionFace)
+			{
+				TopoDS_Face face;
+				printf("test\n");
+				//save face 
+// 				pair<size_t, SFace*> pa(Fa->entityID_, Fa);
+// 				pair<size_t, SFace*> pb(Fb->entityID_, Fb);
+// 				partList_.insert(pa);
+// 				partList_.insert(pb);
+			}
+		}
+	}
+//////////////////////////////优先级判断/////////////////////////////////////
+// 	bool isTrue = FindTheIntersectionFace(shell);
+// 	if (!isTrue)
+// 	{
+// 		for (Standard_Integer i = 1; i <= solids_.Length(); i++)
+// 		{
+// 			TopoDS_Solid tmpSol = TopoDS::Solid(solids_.Value(i));
+// 			OcctToCurrentStruct(tmpSol);
+// 		}
+// 	}
+// 	TopoDS_Face aFace;
+// 	aFace = Choose();
+// 	OcctSplit(shell, aFace);
+}
+
+void Partition::DumpVertex(const TopoDS_Vertex& v)
+{
+	gp_Pnt p = BRep_Tool::Pnt(v);
+	Standard_Real dTolerance = BRep_Tool::Tolerance(v);
+	std::cout << "Vertex position: (" << p.X() << ", " << p.Y() << ", " << p.Z() << ")" << std::endl;
+	std::cout << std::endl;
+}
+
+
+///查找每个共享边对应的面,然后判断面是不是切割面
 bool Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 {
 	bool isHasPartition = false;
@@ -121,60 +172,60 @@ bool Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 							gp_Pnt startPntB = BRep_Tool::Pnt(TopExp::FirstVertex(bEdge, Standard_True));
 							gp_Pnt endPntB = BRep_Tool::Pnt(TopExp::LastVertex(bEdge, Standard_True));
 							
-							Standard_Real dFirstParameter, dLastParameter;
-							Handle_Geom_Curve theCurve = BRep_Tool::Curve(aEdge, dFirstParameter, dLastParameter);
-							Handle_Geom_Circle theLine = Handle_Geom_Circle::DownCast(theCurve);
+// 							Standard_Real dFirstParameter, dLastParameter;
+// 							Handle_Geom_Curve theCurve = BRep_Tool::Curve(aEdge, dFirstParameter, dLastParameter);
+// 							Handle_Geom_Circle theLine = Handle_Geom_Circle::DownCast(theCurve);
 
 							if ((startPntA.IsEqual(startPntB, CAD_ZERO) && endPntA.IsEqual(endPntB, CAD_ZERO))
 								|| (startPntA.IsEqual(endPntB, CAD_ZERO) && endPntA.IsEqual(startPntB, CAD_ZERO)))
 							{
-								bool isPartitionFace = 
-									JudgeIntersection(topoFaceList_[iterA], topoFaceList_[iterB], aEdge, bEdge);
-								if (isPartitionFace)
-								{
-									isHasPartition = true;
-//									printf("///////////////////////////////\n");
-//									OcctSplit(shell, topoFaceList_[iterB]);
+// 								bool isPartitionFace = 
+// 									JudgeIntersection(topoFaceList_[iterA], topoFaceList_[iterB], aEdge, bEdge);
+// 								if (isPartitionFace)
+// 								{
+// 									isHasPartition = true;
+// 									printf("///////////////////////////////\n");
+// 									OcctSplit(shell, topoFaceList_[iterB]);
 									//save face 
 // 									pair<size_t, SFace*> pa(Fa->entityID_, Fa);
 // 									pair<size_t, SFace*> pb(Fb->entityID_, Fb);
 // 									partList_.insert(pa);
 // 									partList_.insert(pb);
-
-								}
-								else
-								{
-
-								}
+// 
+// 								}
+// 								else
+// 								{
+// 
+// 								}
 							}
 						}
 					}
-// 					Handle(Geom_Curve) HC1 = intersector.Line(i + 1);
-// 					GeomAdaptor_Curve myCurve(HC1);
-// 					GeomAbs_CurveType type = myCurve.GetType();
-// 					if (GeomAbs_Line == type)
-// 					{
-// 						gp_Lin line = myCurve.Line();
-// 						line.Translate(p1, p2);
-// 					}
-// 					else if (GeomAbs_Circle == type)
-// 					{
-// 						gp_Circ circle = myCurve.Circle();
-// 						circle.Translate(p1, p2);
-// 						gp_Ax1 ax1 = circle.Axis();
-// 					}
-// 					else if (GeomAbs_Ellipse == type)
-// 					{
-// 						gp_Elips elips = myCurve.Ellipse();
-// 						elips.Translate(p1, p2);
-// 					}
-// 					else
-// 					{	
-// 					}
+					Handle(Geom_Curve) HC1 = intersector.Line(i + 1);
+					GeomAdaptor_Curve myCurve(HC1);
+					GeomAbs_CurveType type = myCurve.GetType();
+					if (GeomAbs_Line == type)
+					{
+						gp_Lin line = myCurve.Line();
+						line.Translate(p1, p2);
+					}
+					else if (GeomAbs_Circle == type)
+					{
+						gp_Circ circle = myCurve.Circle();
+						circle.Translate(p1, p2);
+						gp_Ax1 ax1 = circle.Axis();
+					}
+					else if (GeomAbs_Ellipse == type)
+					{
+						gp_Elips elips = myCurve.Ellipse();
+						elips.Translate(p1, p2);
+					}
+					else
+					{	
+					}
 				}
 			}
-		}
-	}
+ 		}
+ 	}
 // 	TopoDS_Face aFace;
 // 	aFace = Choose();
 // 	OcctSplit(shell, aFace);
@@ -191,21 +242,43 @@ void Partition::MatrixInformation(TopoDS_Solid solid, gp_Mat& mat, gp_XYZ& xyz)
 	trsf.Transforms(xyz);
 	gp_Mat matrix = trsf.VectorialPart();
 	Standard_Real matrix1 = matrix.Value(3, 3);//matrix info
-	printf("Loc:%.6g %.6g %.6g", CompareNum(xyz.X() / ZOOMTIME),
-		CompareNum(xyz.Y() / ZOOMTIME), CompareNum(xyz.Z() / ZOOMTIME));
-	printf(" %.1f %f.1 %.1f", matrix.Value(1, 1), matrix.Value(2, 1), matrix.Value(3, 1));//新的X轴
-	printf(" %.1f %f.1 %.1f", matrix.Value(1, 2), matrix.Value(2, 2), matrix.Value(3, 2));//新的Y轴
-	printf(" %.1f %f.1 %.1f\n", matrix.Value(1, 3), matrix.Value(2, 3), matrix.Value(3, 3));//新的Z轴
+	printf("Loc:%.6g %.6g %.6g\n", CompareNum(xyz.X()),
+		CompareNum(xyz.Y()), CompareNum(xyz.Z() ));
+	printf(" %.1f %.1f %.1f\n", matrix.Value(1, 1), matrix.Value(2, 1), matrix.Value(3, 1));//新的X轴
+	printf(" %.1f %.1f %.1f\n", matrix.Value(1, 2), matrix.Value(2, 2), matrix.Value(3, 2));//新的Y轴
+	printf(" %.1f %.1f %.1f\n", matrix.Value(1, 3), matrix.Value(2, 3), matrix.Value(3, 3));//新的Z轴
 }
 
 void Partition::GetFaceAxis(TopoDS_Face face, TopoDS_Edge edge, gp_Vec& vec,
 	gp_Pnt& start, gp_Pnt& end, TopAbs_Orientation& orient, gp_Pnt& axis)
 {
 	orient = edge.Orientation();
+
+// 	Standard_Real aFirst, aLast, aPFirst, aPLast;
+// 	Handle(Geom_Curve) aCurve3d = BRep_Tool::Curve(edge, aFirst, aLast);
+// 	Handle(Geom2d_Curve) aPCurve = BRep_Tool::CurveOnSurface(edge, face, aPFirst, aPLast
+// 	gp_Pnt s, e;
+// 	if (!orient)
+// 	{
+// 		s = BRep_Tool::Pnt(TopExp::FirstVertex(edge, Standard_True));
+// 		e = BRep_Tool::Pnt(TopExp::LastVertex(edge, Standard_True));
+// 	}
+// 	else
+// 	{
+// 		e = BRep_Tool::Pnt(TopExp::FirstVertex(edge, Standard_True));
+// 		s = BRep_Tool::Pnt(TopExp::LastVertex(edge, Standard_True));
+// 	}
 	gp_Pnt s = BRep_Tool::Pnt(TopExp::FirstVertex(edge, Standard_True));
 	gp_Pnt e = BRep_Tool::Pnt(TopExp::LastVertex(edge, Standard_True));
-	start = gp_Pnt(s.X() / ZOOMTIME, s.Y() / ZOOMTIME, s.Z() / ZOOMTIME);
-	end = gp_Pnt(e.X() / ZOOMTIME, e.Y() / ZOOMTIME, e.Z() / ZOOMTIME);
+
+	TopLoc_Location loc = edge.Location();
+	gp_Trsf trsf = loc.Transformation();
+	gp_XYZ xyz = trsf.TranslationPart();
+	gp_Mat mat = trsf.VectorialPart();
+	gp_TrsfForm form = trsf.Form();
+	
+	start = gp_Pnt(s.X(), s.Y(), s.Z());
+	end = gp_Pnt(e.X(), e.Y(), e.Z());
 // 	BRepTools::Write(aFace, "e:\\test1.brep");
 // 	for (expEdge.Init(face, TopAbs_EDGE); expEdge.More(); expEdge.Next())
 // 	{
@@ -224,13 +297,14 @@ void Partition::GetFaceAxis(TopoDS_Face face, TopoDS_Edge edge, gp_Vec& vec,
 	TopLoc_Location location;
 	Handle(Geom_Surface) aGeometricSurface = BRep_Tool::Surface(face, location);
 	GeomAdaptor_Surface msurface(aGeometricSurface);
+	
 	switch (msurface.GetType())
 	{
 	case GeomAbs_Plane:
 	{
 		gp_Pln agpPlane = msurface.Plane();
 		gp_Ax1 norm = agpPlane.Axis();
-		axis = gp_Pnt(norm.Location().X()/ZOOMTIME, norm.Location().Y()/ZOOMTIME, norm.Location().Z()/ZOOMTIME);
+		axis = gp_Pnt(norm.Location().X(), norm.Location().Y(), norm.Location().Z());
 		gp_Dir dir = norm.Direction();
 		vec = dir;
 		break;
@@ -239,7 +313,7 @@ void Partition::GetFaceAxis(TopoDS_Face face, TopoDS_Edge edge, gp_Vec& vec,
 	{
 		gp_Cylinder aCy = msurface.Cylinder();
 		gp_Dir dir = aCy.Axis().Direction();
-		axis = gp_Pnt(aCy.Location().X() / ZOOMTIME, aCy.Location().Y() / ZOOMTIME, aCy.Location().Z() / ZOOMTIME);
+		axis = gp_Pnt(aCy.Location().X(), aCy.Location().Y() , aCy.Location().Z());
 		vec = dir;
 		break;
 	}
@@ -250,7 +324,7 @@ void Partition::GetFaceAxis(TopoDS_Face face, TopoDS_Edge edge, gp_Vec& vec,
 		gp_Ax3 ax3 = sph.Position();
 		gp_Dir dir = ax3.Direction();
 		vec = dir;
-		axis = gp_Pnt(ax3.Location().X() / ZOOMTIME, ax3.Location().Y() / ZOOMTIME, ax3.Location().Z() / ZOOMTIME);
+		axis = gp_Pnt(ax3.Location().X(), ax3.Location().Y(), ax3.Location().Z());
 		break;
 	}
 	case GeomAbs_Cone:
@@ -529,9 +603,10 @@ void Partition::FindPartitionFace(SFace* Fa, SFace* Fb)
 	}
 }
 
-bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aEdge, TopoDS_Edge bEdge)
+bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aEdge)
 {
 	CVector3D aDir, bDir;
+	
 	TopAbs_Orientation oriFaceA = Fa.Orientation();
 	TopAbs_Orientation oriFaceB = Fb.Orientation();
 	TopLoc_Location locationA, locationB;
@@ -542,9 +617,12 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 	gp_Vec dirA, dirB;
 	gp_Pnt pntStartA, pntEndA, pntStartB, pntEndB, axisA, axisB;
 	TopAbs_Orientation orientA, orientB;
+
 	GetFaceAxis(Fa, aEdge, dirA, pntStartA, pntEndA,orientA, axisA);
-	GetFaceAxis(Fb, bEdge, dirB, pntStartB, pntEndB,orientB, axisB);
-	if (!oriFaceA)// 根据面的same_sense 判断该面的法线方向 1: 正向  0:反向
+	GetFaceAxis(Fb, aEdge, dirB, pntStartB, pntEndB,orientB, axisB);
+
+	
+	if (!oriFaceA)// 根据面的same_sense 判断该面的法线方向 0: 正向  1:反向
 		aDir = CVector3D(dirA.X(), dirA.Y(), dirA.Z());
 	else
 	{
@@ -560,22 +638,28 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 	}
 	if (GeomAbs_Plane == msurfaceA.GetType() && GeomAbs_Plane == msurfaceB.GetType()) //平面平面
 	{
-		Standard_Real result;
-		if ( !orientA )
+		BRepTools::Dump(Fa, cout);
+		BRepTools::Dump(Fb, cout);
+		TopoDS_Wire wire;
+		TopExp_Explorer expWire;
+		for (expWire.Init(Fb, TopAbs_WIRE); expWire.More(); expWire.Next())
 		{
-			CVector3D vect(pntEndA.X() - pntStartA.X(),
-				pntEndA.Y() - pntStartA.Y(),
-				pntEndA.Z() - pntStartA.Z());//交线向量
+			wire = TopoDS::Wire(expWire.Current());
+			BRepTools::Write(wire, "e:\\test1.brep");
+		}
+
+		Standard_Real result;
+		if ( orientA == 0 )
+		{
+			CVector3D vect(pntEndA.X() - pntStartA.X(), pntEndA.Y() - pntStartA.Y(), pntEndA.Z() - pntStartA.Z());//交线向量
 			result = (aDir*vect) | bDir; //(A法线叉积交线向量EF)点积 B法线
 		}
 		else
 		{
-			CVector3D vect(pntStartA.X() - pntEndA.X(),
-				pntStartA.Y() - pntEndA.Y(),
-				pntStartA.Z() - pntEndA.Z());
+			CVector3D vect(pntStartA.X() - pntEndA.X(), pntStartA.Y() - pntEndA.Y(), pntStartA.Z() - pntEndA.Z());
 			result = (aDir*vect) | bDir;
 		}
-		if (result > 0)
+		if (CompareNum(result) > 0)
 			return true;
 		else
 			return false;
@@ -584,7 +668,7 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 	{
 		Standard_Real result;
 		CPoint3D P(pntStartA.X(), pntStartA.Y(), pntStartA.Z());
-		if ( !orientA )
+		if ( orientA == 0 )
 		{
 			CVector3D PVec(axisA.X() - P.x, axisA.Y() - P.y, axisA.Z() - P.z);
 			if ( !oriFaceA )
@@ -597,7 +681,7 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 				CVector3D RVec = bDir * PVec;
 				result = aDir | (RVec*bDir);
 			}
-			if (result > 0)
+			if (CompareNum(result) > 0)
 				return true;
 			else
 				return false;
@@ -615,7 +699,7 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 				CVector3D RVec = bDir * PVec;
 				result = aDir | (RVec*bDir);
 			}
-			if (result > 0)
+			if (CompareNum(result) > 0)
 				return true;
 			else
 				return false;
@@ -625,10 +709,10 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 	{
 		Standard_Real result;
 		CPoint3D P(pntStartB.X(), pntStartB.Y(), pntStartB.Z());
-		if ( !orientB )
+		if ( orientB == 0 )
 		{
 			CVector3D PVec(axisB.X() - P.x, axisB.Y() - P.y, axisB.Z() - P.z);
-			if (!oriFaceB)
+			if (oriFaceB)
 			{
 				CVector3D RVec = PVec*bDir;
 				result = aDir | (RVec*bDir);
@@ -638,7 +722,7 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 				CVector3D RVec = bDir*PVec;
 				result = aDir | (RVec*bDir);
 			}
-			if (result > 0)
+			if (CompareNum(result) > 0)
 				return true;
 			else
 				return false;
@@ -646,7 +730,7 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 		else
 		{
 			CVector3D PVec(P.x - axisA.X(), P.y - axisA.Y(), P.z - axisA.Z());
-			if (!oriFaceA)
+			if (oriFaceA)
 			{
 				CVector3D RVec = PVec*bDir;
 				result = aDir | (RVec*bDir);
@@ -656,7 +740,7 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 				CVector3D RVec = PVec * bDir;
 				result = aDir | (RVec*bDir);
 			}
-			if (result > 0)
+			if (CompareNum(result) > 0)
 				return true;
 			else
 				return false;
@@ -665,13 +749,13 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 	else if (GeomAbs_Plane != msurfaceA.GetType() && GeomAbs_Plane != msurfaceB.GetType())//曲面 曲面
 	{
 		Standard_Real result;
-		if (!orientA)
+		if ( orientA == 0)
 		{
 			CVector3D FaVector, FbVector;
 			CVector3D PVec(axisA.X() - pntStartA.X(),
 				axisA.Y() - pntStartA.Y(),
 				axisA.Z() - pntStartA.Z());
-			if (!oriFaceA)
+			if ( oriFaceA)
 				FaVector = (PVec * aDir) * aDir;
 			else
 				FaVector = aDir * (PVec * aDir);
@@ -682,12 +766,12 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 				pntStartB.Z() - pntStartA.Z());
 			CVector3D RvecB = PVec * vec;
 
-			if (!oriFaceA)
+			if ( oriFaceA)
 				FbVector = RvecB * vec;
 			else
 				FbVector = vec * RvecB;
 			result = ((PVec * aDir)*FbVector) | FaVector;
-			if (result > 0)
+			if (CompareNum(result) > 0)
 				return  true;
 			else
 				return false;
@@ -1093,6 +1177,7 @@ void Partition::OcctSplit(TopoDS_Shape shape, TopoDS_Face face)
 	ShapeCutter cutter;
 	cutter.Init(shape, face);
 	TopTools_HSequenceOfShape solids = cutter.myResultSolids_;
+
 	while (!canSplitFaceList.empty())
 	{
 		vector<SFace*> tempList;
@@ -1114,9 +1199,9 @@ void Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
 {
 	TopoDS_Face useFace;
 
-//  	TopoDS_Face test;
-//  	CurrentStructToOCCT(splitFace, test);
-// 		BRepTools::Write(test, "e:\\test.brep");
+// 	TopoDS_Face test;
+// 	CurrentStructToOCCT(splitFace, test);
+// 	BRepTools::Write(test, "e:\\test.brep");
 	
 // 	gp_Pnt Pnt(splitFace->position_->point.x, splitFace->position_->point.y, splitFace->position_->point.z);
 // 	gp_Dir dir(splitFace->position_->verAxis.dx, splitFace->position_->verAxis.dy, splitFace->position_->verAxis.dz);
@@ -1173,62 +1258,56 @@ void Partition::OcctSplit(vector<SFace*> faceList, SFace* splitFace)
 	}
 }
 
-// void Partition::AddNewSplit(TopoDS_Shape stock, Handle(Geom_Surface)& surface)
-// {
-// 	TopoDS_Shape resultShape, nullshape;
-// 	BRepAlgoAPI_Section asect(stock, surface, Standard_False);
-// 
-// 	asect.ComputePCurveOn1(Standard_True);
-// 	asect.Approximation(Standard_True);
-// 	asect.Build();
-// 	TopoDS_Shape R = asect.Shape();
-// 
-// 	if(!asect.ErrorStatus() == 0) 
-// 		return;
-// 	BRepFeat_SplitShape asplit(stock);
-// 	for(TopExp_Explorer Ex(R, TopAbs_EDGE); Ex.More(); Ex.Next())
-// 	{
-// 		TopoDS_Shape anEdge = Ex.Current();
-// 		TopoDS_Shape aFace;
-// 		if(asect.HasAncestorFaceOn1(anEdge, aFace))
-// 		{
-// 			TopoDS_Face F = TopoDS::Face(aFace);
-// 			TopoDS_Edge E = TopoDS::Edge(anEdge);
-// 			asplit.Add(E, F);
-// 		}
-// 	}
-// 
-// 	asplit.Build();
-// 
-// 	if(!asplit.Shape().IsNull())
-// 		resultShape = asplit.Shape();
-// 	else
-// 		resultShape = nullshape;
-// 
-// 	//得到两个shape
-// 	for(TopExp_Explorer Ex1(resultShape, TopAbs_FACE); Ex1.More(); Ex1.Next())
-// 	{
-// 		TopoDS_Face aFace = TopoDS::Face(Ex1.Current());
-// 		
-// 		for(TopExp_Explorer Ex2(Ex1.Current(), TopAbs_VERTEX); Ex2.More(); Ex2.Next())
-// 		{
-// 			TopoDS_Vertex aVertex = TopoDS::Vertex(Ex2.Current());
-// 			gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
-// 			Standard_Real theDistance = Pnt.Distance(BRep_Tool::Pnt(aVertex));
-// 			if(theDistance <= 0)
-// 			{
-// 				TopoDS_Shape shape_1;
-// 				
-// 			}
-// 			else if(theDistance > 0)
-// 			{
-// 				TopoDS_Shape shape_2;
-// 				
-// 			}
-// 		}
-// 
-// 	}
-// }
+void Partition::AddNewSplit(TopoDS_Shape stock, Handle(Geom_Surface)& surface)
+{
+	TopoDS_Shape resultShape, nullshape;
+	BRepAlgoAPI_Section asect(stock, surface, Standard_False);
+
+	asect.ComputePCurveOn1(Standard_True);
+	asect.Approximation(Standard_True);
+	asect.Build();
+	TopoDS_Shape R = asect.Shape();
+
+	if(!asect.ErrorStatus() == 0) 
+		return;
+	BRepFeat_SplitShape asplit(stock);
+	for(TopExp_Explorer Ex(R, TopAbs_EDGE); Ex.More(); Ex.Next())
+	{
+		TopoDS_Shape anEdge = Ex.Current();
+		TopoDS_Shape aFace;
+		if(asect.HasAncestorFaceOn1(anEdge, aFace))
+		{
+			TopoDS_Face F = TopoDS::Face(aFace);
+			TopoDS_Edge E = TopoDS::Edge(anEdge);
+			asplit.Add(E, F);
+		}
+	}
+
+	asplit.Build();
+
+	if(!asplit.Shape().IsNull())
+		resultShape = asplit.Shape();
+	else
+		resultShape = nullshape;
+
+	//得到两个shape
+	for(TopExp_Explorer Ex1(resultShape, TopAbs_FACE); Ex1.More(); Ex1.Next())
+	{
+		TopoDS_Face aFace = TopoDS::Face(Ex1.Current());
+		
+		for(TopExp_Explorer Ex2(Ex1.Current(), TopAbs_VERTEX); Ex2.More(); Ex2.Next())
+		{
+			TopoDS_Vertex aVertex = TopoDS::Vertex(Ex2.Current());
+			gp_Pnt Pnt = BRep_Tool::Pnt(aVertex);
+			Standard_Real theDistance = Pnt.Distance(BRep_Tool::Pnt(aVertex));
+			if(theDistance <= 0)
+				TopoDS_Shape shape_1;
+			else if(theDistance > 0)
+				TopoDS_Shape shape_2;
+		}
+
+	}
+}
 
 void Partition::CurrentStructToOCCT(SFace* face, TopoDS_Face& aFace)
 {

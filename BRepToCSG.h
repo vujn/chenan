@@ -24,7 +24,7 @@ public:
 
 	void MatrixMess(size_t entityId, StixMtrx &stixMtrx);
 
-	Repetition repe_;
+	Repetition repe_;//Ðý×ªÆ½ÒÆstruct
 // 	typedef std::vector<Repetition> repetitionStructure;
 // 	repetitionStructure repetition_;
 	

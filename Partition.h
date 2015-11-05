@@ -28,7 +28,7 @@ public:
 
 public:
 
-	void LoadStepFromOCCT();
+	void LoadStepFromOCCT();// 通过occ读取step文件
 	std::string Partition::DumpOrientation(const TopAbs_Orientation& orient);
 
 	void GetSFaceInfo(SetOfstp_face* stpFace);
@@ -39,31 +39,50 @@ public:
 	
 public:
 
-	
 	bool IsPartitionFace(vector<SFace*> faceList);
 	void OcctSplit(vector<SFace*> faceList, SFace* splitFace);		//occt切割面
+	
+	/*! \brief 判断面Fa和Fb是否是切割面
+
+	*/
 	bool JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveName, orientationFaceA oriA, orientationFaceB oriB,
-		EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA, CPoint3D pointB);// 两个面相交或者多个面相交
+		EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA, CPoint3D pointB);
 	void FindPartitionFace(SFace* Fa, SFace* Fb);
 	SFace* ChoosePartitionFace();
+	
+	/*! \brief 结构转换SFace->OCCT
+	*/
 	void CurrentStructToOCCT( SFace* face, TopoDS_Face& aFace );
+	
+	/*! \brief 结构转换 OCCT->SFace
+	*/
 	vector<SFace*> OcctToCurrentStruct(TopoDS_Shape aShape);
-//	void AddNewSplit(TopoDS_Shape Stock, Handle(Geom_Surface)& plane1);
+
+	void AddNewSplit(TopoDS_Shape Stock, Handle(Geom_Surface)& plane1);
+	
 	SFace* CloneFace(SFace* face);
 	GeometryData* CloneEntity(GeometryData* geo);
 	void GetFaceList(vector<SFace*> faceList, SFace* splitFace);
 	
 
-	//获取面的法向量及其他
+	/*! \brief 获取面的信息
+	\param vec 面的法线
+	\param start edge的起始点
+	\param end edge的终点
+	\param orient edge的方向
+	\param axis 轴
+	*/
 	void GetFaceAxis(TopoDS_Face face, TopoDS_Edge edge, gp_Vec& vec, gp_Pnt& start, gp_Pnt& end, TopAbs_Orientation& orient, gp_Pnt& axis);
+	
+	
 	void MatrixInformation(TopoDS_Solid solid, gp_Mat& mat, gp_XYZ& xyz);
 	bool FindTheIntersectionFace(TopoDS_Shell shell);
 	TopoDS_Face Choose();
-	bool JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aEdge, TopoDS_Edge bEdge);
+	bool JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aEdge);
 	void OcctSplit(TopoDS_Shape shape, TopoDS_Face face);
 	double CompareNum(double matrix);
-
-
+	void DumpVertex(const TopoDS_Vertex& v);
+	void SplitSolid(TopoDS_Shell& shell);
 public:
 	std::vector<std::string> vecOut_;//输出的信息列表
 	int mp_;

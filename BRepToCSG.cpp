@@ -79,10 +79,10 @@ BRepToCSG::BRepToCSG(RoseDesign* roseDesign)
 	{
 		result << outFile_[2 * i + 1];
 	}
-	for (int i = 0; i < TR_.size(); i++)
-	{
-		result << TR_[i];
-	}
+// 	for (int i = 0; i < TR_.size(); i++)
+// 	{
+// 		result << TR_[i];
+// 	}
 // 	set<string>::iterator it;
 // 	for (it = TR_.begin(); it != TR_.end(); it++)
 // 		result << *it;

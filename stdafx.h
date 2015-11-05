@@ -22,6 +22,7 @@
 #include <memory>
 #include <tchar.h>
 #include "Geom_Circle.hxx"
+#include "gp_Quaternion.hxx"
 #include <stp_schema.h>
 #include <stix.h>
 #include <stixmesh.h>
