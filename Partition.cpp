@@ -47,28 +47,30 @@ void Partition::LoadStepFromOCCT()
 // 			NUM++;
 // 		auto resultNum = repeNum_.find(productId_);
 // 		int id = repe_.entityId;
-// 		str = "TR"
-// 			+ ConvertToString(intex_) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 3) / ZOOMTIME)) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 3) / ZOOMTIME)) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 3) / ZOOMTIME)) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 0))) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 0))) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 0))) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 1))) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 1))) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 1))) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 2))) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 2))) + " "
-// 			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 2))) + " " + "1";
-// 		str += "\n";
-// 		intex_++;
-// 		TR_.push_back(str);
+		str = "TR"
+			+ ConvertToString(intex_) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 3) / ZOOMTIME)) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 3) / ZOOMTIME)) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 3) / ZOOMTIME)) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 0))) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 0))) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 0))) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 1))) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 1))) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 1))) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(0, 2))) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(1, 2))) + " "
+			+ ConvertToString(CompareNum(repe_.stixMtrx.get(2, 2))) + " " + "1";
+		str += "\n";
+		intex_++;
+		TR_.push_back(str);
 	}
 
 	for (expShell.Init(shapes_, TopAbs_SHELL); expShell.More(); expShell.Next())
 	{
 		shell = TopoDS::Shell(expShell.Current());
+		
+		Standard_Integer i = setShapes_.Add(shapes_);
 		BRepTools::Write(shell, "e:\\test.brep");
 		SplitSolid(shell);
 	}
@@ -86,7 +88,6 @@ void Partition::SplitSolid(TopoDS_Shell& shell)
 	{
 		aFace = TopoDS::Face(expFace.Current());
 		BRepTools::Write(aFace, "e:\\test1.brep");
-		
 		for (expEdge.Init(aFace, TopAbs_EDGE); expEdge.More(); expEdge.Next())
 		{
 			aEdge = TopoDS::Edge(expEdge.Current());
@@ -105,13 +106,8 @@ void Partition::SplitSolid(TopoDS_Shell& shell)
 			bool isPartitionFace = JudgeIntersection(aFace, sFace, aEdge);
 			if (isPartitionFace)
 			{
-				TopoDS_Face face;
-				printf("test\n");
-				//save face 
-// 				pair<size_t, SFace*> pa(Fa->entityID_, Fa);
-// 				pair<size_t, SFace*> pb(Fb->entityID_, Fb);
-// 				partList_.insert(pa);
-// 				partList_.insert(pb);
+// 				partList_.push_back(aFace);
+// 				partList_.push_back(sFace);
 			}
 		}
 	}
@@ -172,10 +168,9 @@ bool Partition::FindTheIntersectionFace(TopoDS_Shell shell)
 							gp_Pnt startPntB = BRep_Tool::Pnt(TopExp::FirstVertex(bEdge, Standard_True));
 							gp_Pnt endPntB = BRep_Tool::Pnt(TopExp::LastVertex(bEdge, Standard_True));
 							
-// 							Standard_Real dFirstParameter, dLastParameter;
-// 							Handle_Geom_Curve theCurve = BRep_Tool::Curve(aEdge, dFirstParameter, dLastParameter);
-// 							Handle_Geom_Circle theLine = Handle_Geom_Circle::DownCast(theCurve);
-
+							Standard_Real dFirstParameter, dLastParameter;
+							Handle_Geom_Curve theCurve = BRep_Tool::Curve(aEdge, dFirstParameter, dLastParameter);
+							Handle_Geom_Circle theLine = Handle_Geom_Circle::DownCast(theCurve);
 							if ((startPntA.IsEqual(startPntB, CAD_ZERO) && endPntA.IsEqual(endPntB, CAD_ZERO))
 								|| (startPntA.IsEqual(endPntB, CAD_ZERO) && endPntA.IsEqual(startPntB, CAD_ZERO)))
 							{
@@ -360,6 +355,63 @@ std::string Partition::DumpOrientation(const TopAbs_Orientation& orient)
 	return strType;
 }
 
+void Partition::StepConversionAndOutput(TopoDS_Shell shell, string shapeName, int& m, int& n)
+{
+// 	OcctToCurrentStruct(shell);
+// 	if ("manifold_solid_brep")
+// 	{
+// 		for (auto iter = 0; iter < intersectionFaceList_.size(); iter++)
+// 		{
+// 			StepEntity* step = new StepEntity(intersectionFaceList_[iter]);
+// 			step->GenerateHalfSpaceList();
+// 			step->GenerateCIT();
+// 			step->GenerateHalfCharacteristicPoint();
+// 			step->PMCtest();
+// 			step->Output(&m, &n, iter, shapeName, vecOut_, false, false, false, false);
+// 		}
+// 		mp_ = m;
+// 		vector<vector<SFace*>>().swap(intersectionFaceList_);
+// 	}
+// 	if ("brep_with_voids")
+// 	{
+// 		for (auto iter = 0; iter < intersectionFaceList_.size(); iter++)
+// 		{
+// 			StepEntity* step = new StepEntity(intersectionFaceList_[iter]);
+// 			step->GenerateHalfSpaceList();
+// 			step->GenerateCIT();
+// 			step->GenerateHalfCharacteristicPoint();
+// 			step->PMCtest();
+// 			step->Output(&m, &n, iter, shapeName, vecOut_, true, true, true, false);
+// 		}
+// 		vector<vector<SFace*>>().swap(intersectionFaceList_);
+// 
+// 		SetOfstp_oriented_closed_shell* orientedShell = voidsBrep->voids();
+// 		for (size_t i = 0; i < orientedShell->size(); i++)
+// 		{
+// 			stp_oriented_closed_shell* oriClosedShell = orientedShell->get(i);
+// 			stp_closed_shell* closeShell = oriClosedShell->closed_shell_element();
+// 			SetOfstp_face* face = closeShell->cfs_faces();
+// 
+// 			GetSFaceInfo(face);
+// 			for (auto iter = 0; iter < intersectionFaceList_.size(); iter++)
+// 			{
+// 				StepEntity* step = new StepEntity(intersectionFaceList_[iter]);
+// 				step->GenerateHalfSpaceList();
+// 				step->GenerateCIT();
+// 				step->GenerateHalfCharacteristicPoint();
+// 				step->PMCtest();
+// 				if (oriClosedShell->orientation())
+// 					step->Output(&m, &n, iter, shapeName, vecOut_, true, true, false, (i == orientedShell->size() - 1));
+// 				else
+// 					step->Output(&m, &n, iter, shapeName, vecOut_, true, false, false, (i == orientedShell->size() - 1));
+// 			}
+// 			mp_ = m;
+// 			vector<vector<SFace*>>().swap(intersectionFaceList_);
+// 		}
+// 	}
+}
+
+
 void Partition::StepConversionAndOutput(stp_representation_item* item,string shapeName, int& m, int& n)
 {
 	if (!strcmp("manifold_solid_brep", item->className()))
@@ -470,7 +522,7 @@ bool Partition::IsPartitionFace(vector<SFace*> faceList)
 	}
 }
 
-TopoDS_Face Partition::Choose()
+TopoDS_Face Partition::ChooseFace()
 {
 	//分割面优先级判断
 	int num = 0;
@@ -638,8 +690,8 @@ bool Partition::JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aE
 	}
 	if (GeomAbs_Plane == msurfaceA.GetType() && GeomAbs_Plane == msurfaceB.GetType()) //平面平面
 	{
-		BRepTools::Dump(Fa, cout);
-		BRepTools::Dump(Fb, cout);
+// 		BRepTools::Dump(Fa, cout);
+// 		BRepTools::Dump(Fb, cout);
 		TopoDS_Wire wire;
 		TopExp_Explorer expWire;
 		for (expWire.Init(Fb, TopAbs_WIRE); expWire.More(); expWire.Next())

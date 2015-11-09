@@ -77,12 +77,13 @@ public:
 	
 	void MatrixInformation(TopoDS_Solid solid, gp_Mat& mat, gp_XYZ& xyz);
 	bool FindTheIntersectionFace(TopoDS_Shell shell);
-	TopoDS_Face Choose();
+	TopoDS_Face ChooseFace();
 	bool JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aEdge);
 	void OcctSplit(TopoDS_Shape shape, TopoDS_Face face);
 	double CompareNum(double matrix);
 	void DumpVertex(const TopoDS_Vertex& v);
 	void SplitSolid(TopoDS_Shell& shell);
+	void StepConversionAndOutput(TopoDS_Shell shell, string shapeName, int& m, int& n);
 public:
 	std::vector<std::string> vecOut_;//输出的信息列表
 	int mp_;
@@ -99,7 +100,7 @@ public:
 private:
 	TopoDS_Shape shapes_;
 	vector<TopoDS_Face> topoFaceList_;
-	multimap<size_t, TopoDS_Face> partList_;
+	multimap<size_t,TopoDS_Face> partList_;
 	vector<TopoDS_Face> faceList_;
 	TopTools_HSequenceOfShape solids_;
 	multimap<size_t, SFace*> partitionFaceList_;
@@ -111,6 +112,7 @@ private:
 	stp_representation_item* item_;
 	bool isHasPartitionFace_;
 
+	TopTools_ShapeSet setShapes_;
 	map<int, int> repeNum_;
 	Repetition repe_;
 	int intex_;

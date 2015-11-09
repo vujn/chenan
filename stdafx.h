@@ -37,6 +37,7 @@
 #include "Handle_Geom_Line.hxx"
 #include "Handle_Geom_Circle.hxx"
 #include "TColgp_HSequenceOfPnt.hxx"
+#include "TopTools_ShapeSet.hxx"
 #include "stixmesh_nurbs.h"
 #include <stp_axis1_placement.h>
 #include <stp_advanced_brep_shape_representation.h>
