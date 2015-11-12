@@ -28,11 +28,14 @@ public:
 
 public:
 
-	void LoadStepFromOCCT();// 通过occ读取step文件
+	void LoadStepFromOCCT();// load info form occ
 	std::string Partition::DumpOrientation(const TopAbs_Orientation& orient);
 
+	/*!brief
+	*/
 	void GetSFaceInfo(SetOfstp_face* stpFace);
 	void StepConversionAndOutput(stp_representation_item* item, string shapeName, int& m, int& n);
+	
 	void NatlHalfVector(stp_advanced_face* adFace);
 	void GetAxisData(stp_axis2_placement_3d* axis, GeometryData& data);
 	stp_cartesian_point* EdgeCurveStartOrEnd(stp_vertex* ver);
@@ -40,49 +43,68 @@ public:
 public:
 
 	bool IsPartitionFace(vector<SFace*> faceList);
-	void OcctSplit(vector<SFace*> faceList, SFace* splitFace);		//occt切割面
+	void OcctSplit(vector<SFace*> faceList, SFace* splitFace);
 	
-	/*! \brief 判断面Fa和Fb是否是切割面
-
+	/*! \brief judge splitFace 
 	*/
 	bool JudgeIntersection(SFace* Fa, SFace* Fb, Standard_CString curveName, orientationFaceA oriA, orientationFaceB oriB,
 		EdgeCurveVertex curveA, EdgeCurveVertex curveB, CPoint3D pointA, CPoint3D pointB);
 	void FindPartitionFace(SFace* Fa, SFace* Fb);
 	SFace* ChoosePartitionFace();
 	
-	/*! \brief 结构转换SFace->OCCT
+	/*! \brief structSFace->OCCT
 	*/
 	void CurrentStructToOCCT( SFace* face, TopoDS_Face& aFace );
 	
-	/*! \brief 结构转换 OCCT->SFace
+	/*! \brief struct OCCT->SFace
 	*/
 	vector<SFace*> OcctToCurrentStruct(TopoDS_Shape aShape);
 
 	void AddNewSplit(TopoDS_Shape Stock, Handle(Geom_Surface)& plane1);
 	
-	SFace* CloneFace(SFace* face);
-	GeometryData* CloneEntity(GeometryData* geo);
-	void GetFaceList(vector<SFace*> faceList, SFace* splitFace);
-	
-
-	/*! \brief 获取面的信息
-	\param vec 面的法线
-	\param start edge的起始点
-	\param end edge的终点
-	\param orient edge的方向
-	\param axis 轴
+	/*! \brief get face info
+	\param vec: face vec
+	\param start: edge start
+	\param end: edge end
+	\param orient: edge dir
+	\param axis: axis
 	*/
-	void GetFaceAxis(TopoDS_Face face, TopoDS_Edge edge, gp_Vec& vec, gp_Pnt& start, gp_Pnt& end, TopAbs_Orientation& orient, gp_Pnt& axis);
+	void GetFaceAxis(TopoDS_Face face, TopoDS_Edge edge, 
+		gp_Vec& vec, gp_Pnt& start, gp_Pnt& end, 
+		TopAbs_Orientation& wireOrient, TopAbs_Orientation& orient,
+		gp_Pnt& axis);
 	
-	
+	/*!brief get matrix
+	*/
 	void MatrixInformation(TopoDS_Solid solid, gp_Mat& mat, gp_XYZ& xyz);
+	
+	/*!brief find the intersection face in the shell
+	*/
 	bool FindTheIntersectionFace(TopoDS_Shell shell);
+	
+	/*!brief choose split face
+	*/
 	TopoDS_Face ChooseFace();
+	
+	/*!brief judge splitFace
+	*/
 	bool JudgeIntersection(TopoDS_Face Fa, TopoDS_Face Fb, TopoDS_Edge aEdge);
+
+	/*!brief split
+	SFace
+	*/
 	void OcctSplit(TopoDS_Shape shape, TopoDS_Face face);
+
 	double CompareNum(double matrix);
 	void DumpVertex(const TopoDS_Vertex& v);
+
+	/*!brief split
+	occt
+	*/
 	void SplitSolid(TopoDS_Shell& shell);
+
+	/*!brief conversion
+	*/
 	void StepConversionAndOutput(TopoDS_Shell shell, string shapeName, int& m, int& n);
 public:
 	std::vector<std::string> vecOut_;//输出的信息列表

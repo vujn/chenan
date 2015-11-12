@@ -8,13 +8,15 @@ public:
 
 	ShapeCutter();
 
-	//theBox1 is the world, theBox2 will be cutting by theFace.
+	/*!brief theBox1(the world), theBox2 will be cut by theFace.
+	*/
 	ShapeCutter(const TopoDS_Shape& theBox1,
 		const TopoDS_Shape& theBox2,
 		const TopoDS_Face& theFace,
 		Standard_Boolean Optimization=Standard_True);
-
-	//theBox2 will be cutting by theFace. theBox1(the World) is calc From theBox2.
+	
+	/*!brief theBox2 will be cutting by theFace. theBox1(the World) is calc From theBox2. 
+	*/
 	ShapeCutter(const TopoDS_Shape& theBox2, 
 		const TopoDS_Face& theFace,
 		Standard_Boolean Optimization=Standard_True);
@@ -35,9 +37,18 @@ public:
 	Standard_Boolean IsLastCut() const;
 
 protected:
+	/*!brief split the solid
+	*/
 	const TopTools_ListOfShape& SplitShape(const TopoDS_Shape& shape1, const TopoDS_Shape& shape2);
+	
 	void Normal(const TopoDS_Face&  aFace, gp_Pnt& point, gp_Dir& NorDir);
+	
+	/*!brief check edge is on the face?
+	*/
 	Standard_Boolean IsAllEdgeOnFace(const TopoDS_Edge& anEdge, const TopoDS_Face& eachFace );
+	
+	/*!brief get the bnd box
+	*/
 	TopoDS_Shape GetBndBox(const TopoDS_Shape& theBox2);//get Box1
 
 public:
